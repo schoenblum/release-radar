@@ -23,7 +23,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-from app.models.mixins import ActorTracked, InstitutionScoped, Timestamped
+from app.models.mixins import InstitutionScoped, Record
 
 
 class UserRole(enum.StrEnum):
@@ -32,14 +32,16 @@ class UserRole(enum.StrEnum):
     viewer = "viewer"
 
 
-class User(InstitutionScoped, Timestamped, ActorTracked, Base):
+class User(Record, Base):
     __tablename__ = "users"
     __table_args__ = (
         UniqueConstraint("institution_id", "email", name="uq_users_institution_email"),
         CheckConstraint("language IN ('en', 'ja')", name="language_supported"),
     )
+    # A password change is recorded, but never the hash.
+    __audit_redact__ = frozenset({"password_hash"})
+    __audit_exclude__ = frozenset({"token_version", "last_login_at"})
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)

@@ -21,7 +21,7 @@ from app.schemas.auth import (
     TokenResponse,
 )
 from app.schemas.user import UserOut
-from app.services import rate_limit, sessions
+from app.services import audit, rate_limit, sessions
 from app.services.email import send_password_reset_email
 from app.services.institution import get_institution
 from app.services.security import (
@@ -255,6 +255,8 @@ async def reset_password(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="reset_token_invalid")
 
     validate_new_password(payload.new_password)
+    # The link proves who this is, so the change is theirs in the audit log.
+    audit.set_actor(db, user.id)
     user.password_hash = await asyncio.to_thread(hash_password, payload.new_password)
     user.force_password_change = False
     token.used_at = datetime.now(UTC)

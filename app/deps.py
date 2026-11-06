@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.user import User, UserRole
+from app.services import audit
 from app.services.security import decode_access_token
 
 _bearer = HTTPBearer(auto_error=False)
@@ -30,6 +31,7 @@ async def get_authenticated_user(
     user = await db.get(User, user_id)
     if user is None or not user.is_active or payload["tv"] != user.token_version:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="invalid_token")
+    audit.set_actor(db, user.id)
     return user
 
 

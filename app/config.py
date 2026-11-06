@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     INSTITUTION_NAME_EN: str = "My institution"
     INSTITUTION_NAME_JA: str | None = None
     INSTITUTION_TIMEZONE: str = "Asia/Tokyo"
+    INSTITUTION_WEBSITE_DOMAIN: str | None = None
 
     BRAND_PACK_PATH: str = "/brand"
 

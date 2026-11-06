@@ -40,6 +40,7 @@ os.environ.update(
         "INSTITUTION_NAME_EN": "Example University",
         "INSTITUTION_NAME_JA": "例大学",
         "INSTITUTION_TIMEZONE": "Asia/Tokyo",
+        "INSTITUTION_WEBSITE_DOMAIN": "news.example.org",
         "SMTP_HOST": "",
         "SMTP_PORT": "587",
         "SMTP_SECURITY": "starttls",

@@ -17,5 +17,20 @@
       "button": "サインイン",
       "change_notice": "初回サインイン時に、ご自身のパスワードを設定していただきます。"
     }
+  },
+  "seed": {
+    "checkpoint": {
+      "d0": "リリース当日",
+      "d28": "28 日目"
+    },
+    "measure": {
+      "ea_views_d0": "EurekAlert エンバーゴ中の閲覧数",
+      "ea_views_d28": "EurekAlert 閲覧数（28 日目）",
+      "altmetric_d0": "Altmetric スコア（0 日目）",
+      "altmetric_d28": "Altmetric スコア（28 日目）",
+      "hp_views_d28": "ウェブサイト閲覧数（28 日間）",
+      "pickups_all": "ピックアップ数（全体）",
+      "pickups_major": "ピックアップ数（主要メディア）"
+    }
   }
 }

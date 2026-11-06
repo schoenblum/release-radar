@@ -87,3 +87,12 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:email.welcome.intro` | An account has been created for you on Release Radar. Sign in with the details below. | Release Radar のアカウントを作成しました。以下の情報でサインインしてください。 | pending |
 | `backend:email.welcome.password_label` | Temporary password | 仮パスワード | pending |
 | `backend:email.welcome.subject` | Your Release Radar account is ready | Release Radar のアカウントを作成しました | pending |
+| `backend:seed.checkpoint.d0` | Release day | リリース当日 | pending |
+| `backend:seed.checkpoint.d28` | Day 28 | 28 日目 | pending |
+| `backend:seed.measure.altmetric_d0` | Altmetric score, day 0 | Altmetric スコア（0 日目） | pending |
+| `backend:seed.measure.altmetric_d28` | Altmetric score, day 28 | Altmetric スコア（28 日目） | pending |
+| `backend:seed.measure.ea_views_d0` | EurekAlert embargoed views | EurekAlert エンバーゴ中の閲覧数 | pending |
+| `backend:seed.measure.ea_views_d28` | EurekAlert views, day 28 | EurekAlert 閲覧数（28 日目） | pending |
+| `backend:seed.measure.hp_views_d28` | Website views, 28 days | ウェブサイト閲覧数（28 日間） | pending |
+| `backend:seed.measure.pickups_all` | Pickups, all | ピックアップ数（全体） | pending |
+| `backend:seed.measure.pickups_major` | Pickups, major outlets | ピックアップ数（主要メディア） | pending |

@@ -31,6 +31,9 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSe
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+    # Read server-generated values back on every write, including updated_at on updates.
+    # Otherwise the next access would trigger a lazy load, which fails under async.
+    __mapper_args__ = {"eager_defaults": True}
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

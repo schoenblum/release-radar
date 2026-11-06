@@ -8,8 +8,8 @@ release.
 
 The interface, list values, surveys and exports are bilingual (English and Japanese).
 
-**Status:** early development. Phase 1, step 1.1: the skeleton with sign-in, language
-switching, theming, scheduling and backups.
+**Status:** early development. Phase 1, step 1.2: sign-in, language switching, theming,
+scheduling and backups, and the data model with its audit log. The data-entry pages come next.
 
 ## Run it
 

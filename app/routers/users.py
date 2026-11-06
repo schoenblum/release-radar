@@ -60,7 +60,6 @@ async def update_me(
     for field, value in changes.items():
         setattr(user, field, value)
     if changes:
-        user.updated_by_id = user.id
         await db.commit()
     return user
 
@@ -98,8 +97,6 @@ async def create_user(
         language=payload.language,
         password_hash=await asyncio.to_thread(hash_password, temporary),
         force_password_change=True,
-        created_by_id=admin.id,
-        updated_by_id=admin.id,
     )
     db.add(user)
     await db.commit()
@@ -143,7 +140,6 @@ async def update_user(
         await sessions.revoke_all_sessions(db, user)
     for field, value in changes.items():
         setattr(user, field, value)
-    user.updated_by_id = admin.id
     await db.commit()
     return user
 
@@ -161,7 +157,6 @@ async def reset_password_by_admin(
     temporary = generate_temporary_password()
     user.password_hash = await asyncio.to_thread(hash_password, temporary)
     user.force_password_change = True
-    user.updated_by_id = admin.id
     await sessions.revoke_all_sessions(db, user)
     await db.commit()
 

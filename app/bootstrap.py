@@ -1,7 +1,7 @@
-"""First-run setup: the institution row and the first admin. Safe to run repeatedly.
+"""Setup at every start: the institution row, built-in seeds and the first admin.
 
-The container entrypoint runs this once before Uvicorn starts its workers, so
-workers never race to create the first admin.
+Safe to run repeatedly: it adds only what is absent. The container entrypoint runs it once
+before Uvicorn starts its workers, so workers never race to create any of it.
 """
 
 import asyncio
@@ -13,6 +13,7 @@ from sqlalchemy import select
 from app.config import get_settings
 from app.database import SessionLocal
 from app.models import Institution, User, UserRole
+from app.seeds import seed_defaults
 from app.services.security import hash_password
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 async def bootstrap() -> None:
     settings = get_settings()
+    domain = (settings.INSTITUTION_WEBSITE_DOMAIN or "").strip().lower() or None
     async with SessionLocal() as db:
         institution = await db.scalar(select(Institution).order_by(Institution.created_at).limit(1))
         if institution is None:
@@ -27,11 +29,16 @@ async def bootstrap() -> None:
                 name_en=settings.INSTITUTION_NAME_EN,
                 name_ja=settings.INSTITUTION_NAME_JA,
                 timezone=settings.INSTITUTION_TIMEZONE,
+                website_domain=domain,
                 settings={},
             )
             db.add(institution)
             await db.flush()
             logger.info("Institution created")
+        elif institution.website_domain is None and domain:
+            # An install created before this setting existed.
+            institution.website_domain = domain
+        await seed_defaults(db, institution)
 
         admin_exists = await db.scalar(
             select(User.id)
