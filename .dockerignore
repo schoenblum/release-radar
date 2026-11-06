@@ -1,0 +1,20 @@
+# Keep the build context small and free of secrets or personal data.
+.git
+.github
+.env
+.env.*
+!.env.example
+data
+backups
+docs
+README.md
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+frontend/node_modules
+frontend/dist
+frontend/coverage
+app/static/*
+!app/static/.gitkeep
+**/.DS_Store

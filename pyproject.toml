@@ -1,0 +1,29 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["frontend", "data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "BLE", "S", "T20"]
+ignore = [
+  "B008", # FastAPI declares dependencies as default arguments
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106", "S107", "S603", "S607", "S608"]
+"alembic/versions/*" = ["E501"] # generated, and long constraint names cannot wrap
+"scripts/*" = ["T20"]
+"ops/*" = ["T20"]
+"app/cli.py" = ["T20"]
+"app/services/backup.py" = ["S603"] # pg_dump is called with fixed arguments and no shell
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+# The migrations folder shares its name with the package.
+known-third-party = ["alembic"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-p no:cacheprovider"
