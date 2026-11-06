@@ -1,0 +1,21 @@
+{
+  "email": {
+    "product": "Release Radar",
+    "footer": "This message was sent automatically by Release Radar.",
+    "reset": {
+      "subject": "Reset your Release Radar password",
+      "intro": "Someone asked to reset the password for this Release Radar account. Use the button below to choose a new one.",
+      "button": "Choose a new password",
+      "expiry": "The link works once and stays valid for {minutes} minutes.",
+      "ignore": "If this wasn't you, you can ignore this message. Your password stays as it is."
+    },
+    "welcome": {
+      "subject": "Your Release Radar account is ready",
+      "intro": "An account has been created for you on Release Radar. Sign in with the details below.",
+      "email_label": "Email",
+      "password_label": "Temporary password",
+      "button": "Sign in",
+      "change_notice": "You'll be asked to choose your own password when you first sign in."
+    }
+  }
+}

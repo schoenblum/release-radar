@@ -1,0 +1,21 @@
+{
+  "email": {
+    "product": "Release Radar",
+    "footer": "このメッセージは Release Radar から自動送信されています。",
+    "reset": {
+      "subject": "Release Radar のパスワード再設定",
+      "intro": "この Release Radar アカウントのパスワード再設定が申請されました。下のボタンから新しいパスワードを設定してください。",
+      "button": "新しいパスワードを設定する",
+      "expiry": "このリンクは 1 回のみ、{minutes} 分間有効です。",
+      "ignore": "心当たりがない場合は、このメールを無視してください。パスワードは変更されません。"
+    },
+    "welcome": {
+      "subject": "Release Radar のアカウントを作成しました",
+      "intro": "Release Radar のアカウントを作成しました。以下の情報でサインインしてください。",
+      "email_label": "メールアドレス",
+      "password_label": "仮パスワード",
+      "button": "サインイン",
+      "change_notice": "初回サインイン時に、ご自身のパスワードを設定していただきます。"
+    }
+  }
+}
