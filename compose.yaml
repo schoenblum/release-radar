@@ -1,0 +1,116 @@
+# Release Radar services. COMPOSE_PROFILES in .env chooses what runs, so the same
+# file works on a Mac, a Mac mini and a NAS (R5.2.3):
+#   dev         app-dev with live reload, Vite, Mailpit
+#   prod        app built into an image
+#   proxy       Caddy in front of app, for HTTPS
+# Published ports bind to 127.0.0.1 unless .env says otherwise.
+name: release-radar
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    profiles: [prod]
+    build:
+      context: .
+      target: runtime
+    image: release-radar:latest
+    restart: unless-stopped
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      BRAND_PACK_PATH: /brand
+      BACKUP_DIR: /backups
+    volumes:
+      - ${BRAND_PACK_HOST_PATH:-./app/brand_default}:/brand:ro
+      - ${BACKUP_HOST_PATH:-./data/backups}:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8000}:8000"
+
+  app-dev:
+    profiles: [dev]
+    build:
+      context: .
+      target: dev
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      TEST_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/release_radar_test
+      BRAND_PACK_PATH: /brand
+      BACKUP_DIR: /backups
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURITY: none
+      SMTP_USER: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: release-radar@example.org
+      # File-change events do not cross every VM's shared folder (Colima's, for one).
+      WATCHFILES_FORCE_POLLING: "true"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app
+    volumes:
+      - .:/srv/app
+      - ${BRAND_PACK_HOST_PATH:-./app/brand_default}:/brand:ro
+      - ${BACKUP_HOST_PATH:-./data/backups}:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  frontend:
+    profiles: [dev]
+    image: node:24-alpine
+    working_dir: /srv/frontend
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
+    environment:
+      VITE_PROXY_TARGET: http://app-dev:8000
+      VITE_USE_POLLING: "true"
+    volumes:
+      - ./frontend:/srv/frontend
+      - frontend-node-modules:/srv/frontend/node_modules
+    depends_on:
+      - app-dev
+    ports:
+      - "127.0.0.1:5173:5173"
+
+  mailpit:
+    profiles: [dev]
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:8025:8025"
+
+  proxy:
+    profiles: [proxy]
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    volumes:
+      - ./ops/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+
+volumes:
+  db-data:
+  frontend-node-modules:
+  caddy-data:

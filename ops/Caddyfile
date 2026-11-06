@@ -1,0 +1,6 @@
+# Optional HTTPS proxy (Compose profile "proxy"). Caddy obtains or issues a
+# certificate for SITE_ADDRESS. How the certificate is provided on the production
+# host is decided with IT at milestone D1.
+{$SITE_ADDRESS} {
+	reverse_proxy app:8000
+}
