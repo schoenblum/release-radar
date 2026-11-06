@@ -1,0 +1,87 @@
+{
+  "app": {
+    "name": "Release Radar",
+    "skip_to_content": "本文へ移動",
+    "version": "バージョン {{version}}",
+    "loading": "読み込み中…"
+  },
+  "nav": {
+    "main": "メイン",
+    "my_releases": "担当リリース",
+    "all_releases": "全リリース",
+    "writers": "ライター",
+    "settings": "設定",
+    "manual": "マニュアル"
+  },
+  "language": {
+    "switch_to": "English",
+    "switch_label": "表示言語を英語に切り替える"
+  },
+  "user_menu": {
+    "open": "アカウントメニュー",
+    "change_password": "パスワードを変更",
+    "sign_out": "サインアウト",
+    "roles": {
+      "admin": "管理者",
+      "editor": "編集者",
+      "viewer": "閲覧者"
+    }
+  },
+  "login": {
+    "title": "サインイン",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "submit": "サインイン",
+    "forgot": "パスワードをお忘れですか？"
+  },
+  "forgot": {
+    "title": "パスワードの再設定",
+    "intro": "メールアドレスを入力してください。新しいパスワードを設定するためのリンクをお送りします。",
+    "email": "メールアドレス",
+    "submit": "リンクを送信",
+    "sent": "このアドレスのアカウントがあれば、リンクをお送りしました。リンクの有効期間は 1 時間です。",
+    "email_disabled": "このシステムはまだメールを送信できません。管理者にパスワードの再設定を依頼してください。",
+    "back": "サインインに戻る"
+  },
+  "reset": {
+    "title": "新しいパスワードの設定",
+    "new_password": "新しいパスワード",
+    "confirm_password": "新しいパスワード（確認）",
+    "submit": "新しいパスワードを保存",
+    "done": "パスワードを変更しました。新しいパスワードでサインインできます。",
+    "to_login": "サインインへ",
+    "missing_token": "このリンクは不完全です。メールに記載されたリンクをすべてご利用いただくか、新しいリンクを申請してください。",
+    "request_new": "新しいリンクを申請"
+  },
+  "change_password": {
+    "title": "パスワードの変更",
+    "forced_notice": "ようこそ。続けるには、ご自身のパスワードを設定してください。",
+    "current_password": "現在のパスワード",
+    "new_password": "新しいパスワード",
+    "confirm_password": "新しいパスワード（確認）",
+    "hint": "10 文字以上で入力してください。",
+    "submit": "新しいパスワードを保存",
+    "back": "戻る"
+  },
+  "placeholder": {
+    "title": "このページは準備中です",
+    "my_releases": "担当リリースと入力予定の数値がここに表示されます。",
+    "all_releases": "全リリースの検索、絞り込み、エクスポートがここでできるようになります。",
+    "writers": "ライターごとの月別リリース数がここに表示されます。",
+    "settings": "機関情報、ユーザー、リストなどの設定がここでできるようになります。"
+  },
+  "errors": {
+    "generic": "問題が発生しました。もう一度お試しください。",
+    "network": "サーバーに接続できません。接続を確認して、もう一度お試しください。",
+    "validation_error": "入力内容を確認して、もう一度お試しください。",
+    "invalid_credentials": "メールアドレスとパスワードが一致しません。もう一度お試しください。",
+    "rate_limited": "試行回数が多すぎます。数分待ってから、もう一度お試しください。",
+    "session_expired": "もう一度サインインしてください。",
+    "current_password_incorrect": "現在のパスワードが正しくありません。もう一度お試しください。",
+    "password_too_short": "10 文字以上で入力してください。",
+    "password_too_long": "パスワードが長すぎます。短いものをご利用ください。",
+    "password_unchanged": "現在のパスワードとは異なるものを設定してください。",
+    "password_mismatch": "新しいパスワードが一致しません。",
+    "reset_token_invalid": "このリンクは有効期限が切れているか、すでに使用されています。新しいリンクを申請してください。"
+  }
+}

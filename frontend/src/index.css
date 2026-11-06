@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface-primary font-body text-content-primary antialiased;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading font-medium;
+    line-height: 1.25;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--border-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-4xs rounded px-2xs py-4xs text-sm font-semibold transition-colors;
+  }
+
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+
+  .btn-primary {
+    @apply btn bg-surface-accent text-content-on-accent hover:bg-accent-90;
+  }
+
+  .btn-quiet {
+    @apply btn border border-line-disabled bg-surface-primary text-content-primary hover:bg-surface-secondary;
+  }
+
+  .input {
+    @apply w-full rounded border border-line-disabled bg-surface-primary px-3xs py-4xs text-content-primary;
+  }
+
+  .input:focus {
+    @apply border-line-primary;
+  }
+
+  .field-label {
+    @apply mb-5xs block text-sm font-semibold;
+  }
+
+  .field-hint {
+    @apply mt-5xs text-sm text-content-secondary;
+  }
+
+  .link {
+    @apply text-content-accent underline underline-offset-2 hover:text-accent-90;
+  }
+
+  .notice-error {
+    @apply rounded bg-surface-alert px-3xs py-4xs text-sm text-content-alert;
+  }
+
+  .notice-info {
+    @apply rounded bg-surface-secondary px-3xs py-4xs text-sm;
+  }
+
+  .nav-link {
+    @apply rounded px-3xs py-4xs text-sm text-content-secondary transition-colors hover:bg-surface-secondary hover:text-content-primary;
+  }
+
+  .nav-link-active {
+    @apply bg-accent-10 font-semibold text-content-accent;
+  }
+
+  .accent-rule {
+    height: 2px;
+    background-image: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+  }
+
+  .skip-link {
+    @apply sr-only;
+  }
+
+  .skip-link:focus {
+    @apply not-sr-only absolute left-2xs top-2xs z-10 rounded bg-surface-accent px-2xs py-4xs text-content-on-accent;
+  }
+
+  .manual {
+    @apply max-w-3xl;
+  }
+
+  .manual h1 {
+    @apply mb-xs text-3xl;
+  }
+
+  .manual h2 {
+    @apply mb-4xs mt-s text-2xl;
+  }
+
+  .manual p,
+  .manual ul,
+  .manual ol {
+    @apply mb-2xs;
+  }
+
+  .manual ul {
+    @apply list-disc pl-xs;
+  }
+
+  .manual ol {
+    @apply list-decimal pl-xs;
+  }
+
+  .manual li {
+    @apply mb-5xs;
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "app": {
+    "name": "Release Radar",
+    "skip_to_content": "Skip to main content",
+    "version": "Version {{version}}",
+    "loading": "Loading…"
+  },
+  "nav": {
+    "main": "Main",
+    "my_releases": "My releases",
+    "all_releases": "All releases",
+    "writers": "Writers",
+    "settings": "Settings",
+    "manual": "Manual"
+  },
+  "language": {
+    "switch_to": "日本語",
+    "switch_label": "Switch the language to Japanese"
+  },
+  "user_menu": {
+    "open": "Account menu",
+    "change_password": "Change password",
+    "sign_out": "Sign out",
+    "roles": {
+      "admin": "Admin",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    }
+  },
+  "login": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "forgot": "Forgot your password?"
+  },
+  "forgot": {
+    "title": "Reset your password",
+    "intro": "Enter your email address and we'll send you a link to choose a new password.",
+    "email": "Email",
+    "submit": "Send link",
+    "sent": "If that address has an account, a link is on its way. It works for one hour.",
+    "email_disabled": "This installation can't send email yet. Please ask an administrator to reset your password.",
+    "back": "Back to sign-in"
+  },
+  "reset": {
+    "title": "Choose a new password",
+    "new_password": "New password",
+    "confirm_password": "Repeat the new password",
+    "submit": "Save the new password",
+    "done": "Your password has been changed. You can sign in with it now.",
+    "to_login": "Go to sign-in",
+    "missing_token": "This link is incomplete. Please use the full link from the email, or ask for a new one.",
+    "request_new": "Ask for a new link"
+  },
+  "change_password": {
+    "title": "Change password",
+    "forced_notice": "Welcome! Please choose your own password to continue.",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Repeat the new password",
+    "hint": "At least 10 characters.",
+    "submit": "Save the new password",
+    "back": "Back"
+  },
+  "placeholder": {
+    "title": "This page is on its way",
+    "my_releases": "Your releases and the numbers due will appear here.",
+    "all_releases": "All releases, with search, filters and export, will appear here.",
+    "writers": "Monthly release counts per writer will appear here.",
+    "settings": "Institution details, users, lists and other settings will appear here."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "We can't reach the server. Please check your connection and try again.",
+    "validation_error": "Please check what you entered and try again.",
+    "invalid_credentials": "That email and password don't match. Please try again.",
+    "rate_limited": "Too many attempts. Please wait a few minutes and try again.",
+    "session_expired": "Please sign in again.",
+    "current_password_incorrect": "Your current password isn't right. Please try again.",
+    "password_too_short": "Please use at least 10 characters.",
+    "password_too_long": "That password is too long. Please use a shorter one.",
+    "password_unchanged": "Please choose a password different from your current one.",
+    "password_mismatch": "The two new passwords don't match.",
+    "reset_token_invalid": "This link has expired or was already used. Please ask for a new one."
+  }
+}
