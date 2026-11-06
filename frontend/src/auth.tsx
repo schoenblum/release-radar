@@ -9,34 +9,34 @@ import {
 } from "react";
 
 import { api, onSessionLost, refreshSession } from "./api/client";
-import type { User, UserRole } from "./api/types";
+import type { CurrentUser } from "./api/types";
 import { applyLanguage, currentLanguage } from "./i18n";
 
 interface AuthContextValue {
-  user: User | null;
+  user: CurrentUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (email: string, password: string) => Promise<CurrentUser>;
   logout: () => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<User>;
-  setUser: (user: User) => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<CurrentUser>;
+  setUser: (user: CurrentUser) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** Where each role lands after signing in (D10). Configurable per role from step 1.3. */
-export function homePath(role: UserRole): string {
-  return role === "viewer" ? "/releases" : "/my-releases";
+/** Where someone lands after signing in (D10), as set per role in Settings. */
+export function homePath(user: Pick<CurrentUser, "landing">): string {
+  return user.landing === "mine" ? "/my-releases" : "/releases";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<User | null>(null);
+  const [user, setUserState] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   /**
    * Use the language saved on the account. A first-time user keeps the one on
    * screen, and it is saved, so the emails they receive use it too.
    */
-  const adopt = useCallback((signedIn: User): User => {
+  const adopt = useCallback((signedIn: CurrentUser): CurrentUser => {
     if (signedIn.language) {
       applyLanguage(signedIn.language);
     } else {

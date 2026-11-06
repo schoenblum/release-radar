@@ -23,7 +23,7 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-4xs rounded px-2xs py-4xs text-sm font-semibold transition-colors;
+    @apply inline-flex items-center justify-center gap-4xs whitespace-nowrap rounded px-2xs py-4xs text-sm font-semibold transition-colors;
   }
 
   .btn:disabled {
@@ -64,6 +64,76 @@
 
   .notice-info {
     @apply rounded bg-surface-secondary px-3xs py-4xs text-sm;
+  }
+
+  .btn-small {
+    @apply inline-flex items-center gap-5xs whitespace-nowrap rounded-sm border border-line-disabled bg-surface-primary px-4xs py-5xs text-sm hover:bg-surface-secondary;
+  }
+
+  .btn-small:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  /* Tables that read like a sheet: a cell looks like text until it is hovered or focused. */
+  .table-scroll {
+    @apply overflow-x-auto;
+  }
+
+  .data-table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .data-table th {
+    @apply whitespace-nowrap border-b border-line-disabled px-4xs py-4xs text-left font-semibold text-content-secondary;
+  }
+
+  .data-table td {
+    @apply border-b border-line-disabled px-5xs py-5xs align-top;
+  }
+
+  .cell-input {
+    @apply w-full min-w-24 rounded-sm border border-transparent bg-transparent px-5xs py-5xs text-sm;
+  }
+
+  /* Names stay readable: when space runs out, the table scrolls instead of cutting them off. */
+  input.cell-input {
+    @apply min-w-40;
+  }
+
+  .data-table td:first-child input.cell-input {
+    @apply min-w-64;
+  }
+
+  .cell-input:hover:not(:disabled) {
+    @apply border-line-disabled;
+  }
+
+  .cell-input:focus {
+    @apply border-line-primary bg-surface-primary;
+  }
+
+  .cell-input:disabled {
+    @apply cursor-default text-content-secondary;
+  }
+
+  .field-status {
+    @apply px-5xs text-sm text-content-secondary;
+  }
+
+  .field-error {
+    @apply mt-5xs px-5xs text-sm text-content-alert;
+  }
+
+  .chip {
+    @apply inline-block rounded-full border border-tag-1-line bg-tag-1 px-4xs text-sm;
+  }
+
+  .toast {
+    @apply fixed bottom-2xs left-1/2 z-30 flex max-w-lg -translate-x-1/2 items-center gap-3xs rounded bg-surface-accent px-2xs py-4xs text-sm text-content-on-accent shadow-md;
+  }
+
+  .toast .btn-small {
+    @apply text-content-primary;
   }
 
   .nav-link {

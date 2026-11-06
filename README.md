@@ -8,8 +8,9 @@ release.
 
 The interface, list values, surveys and exports are bilingual (English and Japanese).
 
-**Status:** early development. Phase 1, step 1.2: sign-in, language switching, theming,
-scheduling and backups, and the data model with its audit log. The data-entry pages come next.
+**Status:** early development. Phase 1, step 1.3: sign-in, language switching, theming,
+scheduling and backups, the data model with its audit log, and the admin Settings area. The
+data-entry pages come next.
 
 ## Run it
 

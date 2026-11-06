@@ -1,4 +1,4 @@
-import i18n from "i18next";
+import i18n, { type TFunction } from "i18next";
 import { initReactI18next } from "react-i18next";
 
 import en from "./locales/en.json";
@@ -45,5 +45,10 @@ void i18n.use(initReactI18next).init({
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });
+
+/** For keys that come from data, so they cannot be checked at compile time. */
+export function translate(t: TFunction, key: string): string {
+  return (t as (key: string) => string)(key);
+}
 
 export default i18n;

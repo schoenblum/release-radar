@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-type Page = "my_releases" | "all_releases" | "writers" | "settings";
+type Page = "my_releases" | "all_releases" | "writers";
 
 /** Stands in for a page that a later step builds. */
 export default function Placeholder({ page }: { page: Page }) {

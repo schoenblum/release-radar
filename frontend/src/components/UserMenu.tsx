@@ -58,6 +58,16 @@ export default function UserMenu() {
               {t(`user_menu.roles.${user.role}`)}
             </div>
           </div>
+          {user.role !== "viewer" && (
+            <Link
+              role="menuitem"
+              to="/my-fields"
+              className="block px-2xs py-4xs text-sm hover:bg-surface-secondary"
+              onClick={() => setOpen(false)}
+            >
+              {t("user_menu.my_fields")}
+            </Link>
+          )}
           <Link
             role="menuitem"
             to="/change-password"

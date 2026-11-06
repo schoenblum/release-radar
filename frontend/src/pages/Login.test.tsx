@@ -41,6 +41,7 @@ describe("sign-in page", () => {
             theme: "Neutral",
             institution_name_en: "Example University",
             institution_name_ja: "例大学",
+            timezone: "Asia/Tokyo",
             logo: null,
           });
         }

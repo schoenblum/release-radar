@@ -12,6 +12,7 @@ export function useBrand() {
     institutionName: data
       ? ((isJapanese ? data.institution_name_ja : null) ?? data.institution_name_en)
       : null,
+    timezone: data?.timezone,
     logoUrl: data?.logo?.url ?? null,
     logoAlt: data?.logo
       ? ((isJapanese ? data.logo.alt_ja : null) ?? data.logo.alt_en ?? "")

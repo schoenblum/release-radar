@@ -28,7 +28,7 @@ export default function ChangePassword() {
     setSubmitting(true);
     try {
       const updated = await changePassword(current, password);
-      navigate(homePath(updated.role), { replace: true });
+      navigate(homePath(updated), { replace: true });
     } catch (failure) {
       setError(failure);
       setSubmitting(false);

@@ -18,7 +18,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
 
   if (loading) return <PageLoading />;
-  if (user) return <Navigate to={homePath(user.role)} replace />;
+  if (user) return <Navigate to={homePath(user)} replace />;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
