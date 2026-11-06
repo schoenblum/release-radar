@@ -23,6 +23,7 @@ class BrandOut(BaseModel):
     theme: str
     institution_name_en: str
     institution_name_ja: str | None
+    timezone: str
     logo: LogoOut | None
 
 
@@ -39,6 +40,7 @@ async def brand(db: AsyncSession = Depends(get_db)) -> BrandOut:
         theme=theme.name,
         institution_name_en=institution.name_en,
         institution_name_ja=institution.name_ja,
+        timezone=institution.timezone,
         logo=logo,
     )
 

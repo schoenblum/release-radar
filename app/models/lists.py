@@ -7,10 +7,10 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-from app.models.mixins import Record
+from app.models.mixins import FieldVersioned, Record
 
 
-class ResearchField(Record, Base):
+class ResearchField(Record, FieldVersioned, Base):
     """A field such as STEM or HSS. The brief calls this ``Field``."""
 
     __tablename__ = "research_fields"
@@ -24,7 +24,7 @@ class ResearchField(Record, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
-class Unit(Record, Base):
+class Unit(Record, FieldVersioned, Base):
     """A school, institute or center."""
 
     __tablename__ = "units"
@@ -48,7 +48,7 @@ class Unit(Record, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
-class Writer(Record, Base):
+class Writer(Record, FieldVersioned, Base):
     """A list entry, not a user: former staff stay as writers (R3.2.1)."""
 
     __tablename__ = "writers"
@@ -63,7 +63,7 @@ class Writer(Record, Base):
     )
 
 
-class Vocabulary(Record, Base):
+class Vocabulary(Record, FieldVersioned, Base):
     """A named list for select-type custom fields."""
 
     __tablename__ = "vocabularies"
@@ -75,7 +75,7 @@ class Vocabulary(Record, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
-class VocabularyItem(Record, Base):
+class VocabularyItem(Record, FieldVersioned, Base):
     __tablename__ = "vocabulary_items"
     __table_args__ = (UniqueConstraint("vocabulary_id", "key", name="uq_vocabulary_items_key"),)
 

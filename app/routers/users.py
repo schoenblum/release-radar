@@ -15,7 +15,9 @@ from app.config import get_settings
 from app.database import get_db
 from app.deps import get_authenticated_user, require_admin
 from app.models.user import User, UserRole
+from app.routers.auth import current_user_out
 from app.schemas.user import (
+    CurrentUserOut,
     PasswordResetByAdmin,
     UserAdminUpdate,
     UserCreate,
@@ -49,19 +51,19 @@ async def _email_taken(db: AsyncSession, actor: User, email: str) -> bool:
 
 
 # Registered before /{user_id}, which would otherwise capture the word "me".
-@router.patch("/me", response_model=UserOut)
+@router.patch("/me", response_model=CurrentUserOut)
 async def update_me(
     payload: UserSelfUpdate,
     user: User = Depends(get_authenticated_user),
     db: AsyncSession = Depends(get_db),
-) -> User:
+) -> CurrentUserOut:
     """Own name and language. The language toggle also calls this at first sign-in."""
     changes = payload.model_dump(exclude_unset=True)
     for field, value in changes.items():
         setattr(user, field, value)
     if changes:
         await db.commit()
-    return user
+    return await current_user_out(db, user)
 
 
 @router.get("", response_model=list[UserOut])

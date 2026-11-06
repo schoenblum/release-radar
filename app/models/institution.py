@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-from app.models.mixins import Audited, Timestamped, UuidKeyed
+from app.models.mixins import Audited, FieldVersioned, Timestamped, UuidKeyed
 
 # The view each role lands on: "mine" and "all" are the two views of the Data page
 # (D30). "mine" falls back to "all" for someone with no writer entry (step 1.6).
@@ -15,7 +15,7 @@ DEFAULT_RELEASE_CODE_PATTERN = "AY{yyyy}-{nn}"
 DEFAULT_MAJOR_OUTLET_THRESHOLD = 1_000_000
 
 
-class Institution(UuidKeyed, Timestamped, Audited, Base):
+class Institution(UuidKeyed, Timestamped, Audited, FieldVersioned, Base):
     __tablename__ = "institutions"
     __table_args__ = (
         CheckConstraint("ay_start_month BETWEEN 1 AND 12", name="ay_start_month_range"),

@@ -15,7 +15,21 @@ from app import __version__
 from app.config import get_settings
 from app.database import SessionLocal
 from app.middleware import SecurityHeadersMiddleware
-from app.routers import auth, brand, system, users
+from app.routers import (
+    auth,
+    brand,
+    custom_fields,
+    data_export,
+    lists,
+    researchers,
+    system,
+    users,
+)
+from app.routers import (
+    settings as settings_router,
+)
+from app.services.audit import to_json
+from app.services.field_patch import FieldConflict
 from app.services.scheduler import start_scheduler, stop_scheduler
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -62,6 +76,20 @@ async def validation_error(_: Request, exc: RequestValidationError) -> JSONRespo
     )
 
 
+@app.exception_handler(FieldConflict)
+async def field_conflict(_: Request, exc: FieldConflict) -> JSONResponse:
+    """Someone else changed this field: show the current value so the person can choose."""
+    return JSONResponse(
+        {
+            "detail": "conflict",
+            "field": exc.field,
+            "current_value": to_json(exc.current_value),
+            "current_version": exc.current_version,
+        },
+        status_code=status.HTTP_409_CONFLICT,
+    )
+
+
 @app.get(f"{API_PREFIX}/health", tags=["health"])
 async def health() -> JSONResponse:
     """Answers 503 if the database is unreachable, so a monitor can see the problem."""
@@ -80,6 +108,11 @@ async def health() -> JSONResponse:
 app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(users.router, prefix=API_PREFIX)
 app.include_router(system.router, prefix=API_PREFIX)
+app.include_router(settings_router.router, prefix=API_PREFIX)
+app.include_router(lists.router, prefix=API_PREFIX)
+app.include_router(researchers.router, prefix=API_PREFIX)
+app.include_router(custom_fields.router, prefix=API_PREFIX)
+app.include_router(data_export.router, prefix=API_PREFIX)
 app.include_router(brand.api_router, prefix=API_PREFIX)
 app.include_router(brand.asset_router)
 

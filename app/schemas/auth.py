@@ -6,7 +6,7 @@ password produces a translatable error code. These fields only cap the size.
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.schemas.user import UserOut
+from app.schemas.user import CurrentUserOut
 
 MAX_PASSWORD_INPUT = 1024
 
@@ -20,7 +20,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"  # noqa: S105 - the token scheme, not a secret
     expires_in: int
-    user: UserOut
+    user: CurrentUserOut
 
 
 class ChangePasswordRequest(BaseModel):

@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 async def bootstrap() -> None:
     settings = get_settings()
     domain = (settings.INSTITUTION_WEBSITE_DOMAIN or "").strip().lower() or None
+    contact_email = (settings.INSTITUTION_CONTACT_EMAIL or "").strip().lower() or None
     async with SessionLocal() as db:
         institution = await db.scalar(select(Institution).order_by(Institution.created_at).limit(1))
         if institution is None:
@@ -30,14 +31,18 @@ async def bootstrap() -> None:
                 name_ja=settings.INSTITUTION_NAME_JA,
                 timezone=settings.INSTITUTION_TIMEZONE,
                 website_domain=domain,
+                contact_email=contact_email,
                 settings={},
             )
             db.add(institution)
             await db.flush()
             logger.info("Institution created")
-        elif institution.website_domain is None and domain:
-            # An install created before this setting existed.
-            institution.website_domain = domain
+        else:
+            # An install created before these settings existed.
+            if institution.website_domain is None and domain:
+                institution.website_domain = domain
+            if institution.contact_email is None and contact_email:
+                institution.contact_email = contact_email
         await seed_defaults(db, institution)
 
         admin_exists = await db.scalar(

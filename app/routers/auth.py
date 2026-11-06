@@ -20,10 +20,10 @@ from app.schemas.auth import (
     ResetPasswordRequest,
     TokenResponse,
 )
-from app.schemas.user import UserOut
+from app.schemas.user import CurrentUserOut
 from app.services import audit, rate_limit, sessions
 from app.services.email import send_password_reset_email
-from app.services.institution import get_institution
+from app.services.institution import get_institution, landing_for
 from app.services.security import (
     create_access_token,
     dummy_password_hash,
@@ -53,10 +53,16 @@ def _client_address(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def _token_response(user: User) -> TokenResponse:
+async def current_user_out(db: AsyncSession, user: User) -> CurrentUserOut:
+    out = CurrentUserOut.model_validate(user)
+    out.landing = await landing_for(db, user)
+    return out
+
+
+async def _token_response(db: AsyncSession, user: User) -> TokenResponse:
     token, expires_in = create_access_token(user.id, user.token_version)
     return TokenResponse(
-        access_token=token, expires_in=expires_in, user=UserOut.model_validate(user)
+        access_token=token, expires_in=expires_in, user=await current_user_out(db, user)
     )
 
 
@@ -99,7 +105,7 @@ async def login(
     raw_token = await sessions.create_session(db, user)
     await db.commit()
     sessions.set_refresh_cookie(response, raw_token)
-    return _token_response(user)
+    return await _token_response(db, user)
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -116,7 +122,7 @@ async def refresh(
     sessions.extend_session(session)
     await db.commit()
     sessions.set_refresh_cookie(response, raw_token)
-    return _token_response(user)
+    return await _token_response(db, user)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
@@ -128,9 +134,11 @@ async def logout(request: Request, response: Response, db: AsyncSession = Depend
     sessions.clear_refresh_cookie(response)
 
 
-@router.get("/me", response_model=UserOut)
-async def me(user: User = Depends(get_authenticated_user)) -> User:
-    return user
+@router.get("/me", response_model=CurrentUserOut)
+async def me(
+    user: User = Depends(get_authenticated_user), db: AsyncSession = Depends(get_db)
+) -> CurrentUserOut:
+    return await current_user_out(db, user)
 
 
 @router.post("/change-password", response_model=TokenResponse)
@@ -154,7 +162,7 @@ async def change_password(
     raw_token = await sessions.create_session(db, user)
     await db.commit()
     sessions.set_refresh_cookie(response, raw_token)
-    return _token_response(user)
+    return await _token_response(db, user)
 
 
 @router.post(

@@ -43,7 +43,7 @@ def set_actor(db: AsyncSession, user_id: uuid.UUID | None) -> None:
     db.info[_ACTOR_KEY] = user_id
 
 
-def _to_json(value: Any) -> Any:
+def to_json(value: Any) -> Any:
     if isinstance(value, enum.Enum):
         return value.value
     if isinstance(value, uuid.UUID):
@@ -53,9 +53,9 @@ def _to_json(value: Any) -> Any:
     if isinstance(value, Decimal):
         return float(value)
     if isinstance(value, dict):
-        return {key: _to_json(item) for key, item in value.items()}
+        return {key: to_json(item) for key, item in value.items()}
     if isinstance(value, list | tuple):
-        return [_to_json(item) for item in value]
+        return [to_json(item) for item in value]
     return value
 
 
@@ -85,10 +85,10 @@ def _changes(obj: Audited) -> list[tuple[str, Any, Any]]:
             for item in sorted(old_map.keys() | new_map.keys()):
                 if old_map.get(item) != new_map.get(item):
                     changes.append(
-                        (f"{key}.{item}", _to_json(old_map.get(item)), _to_json(new_map.get(item)))
+                        (f"{key}.{item}", to_json(old_map.get(item)), to_json(new_map.get(item)))
                     )
         else:
-            changes.append((key, _to_json(old), _to_json(new)))
+            changes.append((key, to_json(old), to_json(new)))
     return changes
 
 
@@ -98,7 +98,7 @@ def _snapshot(obj: Audited) -> dict[str, Any]:
         value = getattr(obj, key)
         if value is None:
             continue
-        snapshot[key] = REDACTED if key in obj.__audit_redact__ else _to_json(value)
+        snapshot[key] = REDACTED if key in obj.__audit_redact__ else to_json(value)
     return snapshot
 
 

@@ -140,6 +140,14 @@ def apply_rules_to_changed_releases(session: Session) -> None:
             _apply_rules(session, release, is_new=False)
 
 
+def resync_institution(session: Session, institution_id: uuid.UUID) -> None:
+    """Re-run the rules for every release, after something the rules read has changed."""
+    releases = session.scalars(select(Release).where(Release.institution_id == institution_id))
+    with session.no_autoflush:
+        for release in releases.all():
+            _apply_rules(session, release, is_new=False)
+
+
 def due_date(release_date: date | None, offset_days: int | None) -> date | None:
     """When a reading falls due. None without a release date (R7.5.6) or a checkpoint."""
     if release_date is None or offset_days is None:

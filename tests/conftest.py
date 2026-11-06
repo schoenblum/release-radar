@@ -41,6 +41,7 @@ os.environ.update(
         "INSTITUTION_NAME_JA": "例大学",
         "INSTITUTION_TIMEZONE": "Asia/Tokyo",
         "INSTITUTION_WEBSITE_DOMAIN": "news.example.org",
+        "INSTITUTION_CONTACT_EMAIL": "",
         "SMTP_HOST": "",
         "SMTP_PORT": "587",
         "SMTP_SECURITY": "starttls",
@@ -186,6 +187,18 @@ async def admin_headers(client: AsyncClient, make_user: MakeUser) -> dict[str, s
     await make_user("chief@example.org", "chief-password-123", UserRole.admin)
     body = await sign_in(client, "chief@example.org", "chief-password-123")
     return bearer(body["access_token"])
+
+
+@pytest_asyncio.fixture
+async def headers_for(client: AsyncClient, make_user: MakeUser):
+    """Sign in a new user with this role and return their request headers."""
+
+    async def _headers(role: UserRole, email: str | None = None) -> dict[str, str]:
+        address = email or f"{role.value}-account@example.org"
+        await make_user(address, "correct-horse-battery", role)
+        return bearer((await sign_in(client, address, "correct-horse-battery"))["access_token"])
+
+    return _headers
 
 
 @pytest.fixture

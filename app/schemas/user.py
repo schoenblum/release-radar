@@ -25,6 +25,12 @@ class UserOut(BaseModel):
     created_at: datetime
 
 
+class CurrentUserOut(UserOut):
+    """The signed-in person, with where they land after signing in."""
+
+    landing: str = "all"
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     full_name: str | None = Field(default=None, max_length=255)

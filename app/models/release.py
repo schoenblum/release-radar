@@ -92,7 +92,7 @@ class Release(Record, FieldVersioned, Base):
     custom_values: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
 
-class Checkpoint(Record, Base):
+class Checkpoint(Record, FieldVersioned, Base):
     """A point in time relative to the release date (D3)."""
 
     __tablename__ = "checkpoints"
@@ -107,7 +107,7 @@ class Checkpoint(Record, Base):
     offset_days: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
-class Measure(Record, Base):
+class Measure(Record, FieldVersioned, Base):
     """A metric at a checkpoint, such as ``altmetric.d28``."""
 
     __tablename__ = "measures"

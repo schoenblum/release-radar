@@ -10,10 +10,10 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-from app.models.mixins import Record
+from app.models.mixins import FieldVersioned, Record
 
 
-class CustomField(Record, Base):
+class CustomField(Record, FieldVersioned, Base):
     __tablename__ = "custom_fields"
     __table_args__ = (
         UniqueConstraint("institution_id", "key", name="uq_custom_fields_key"),
@@ -60,7 +60,7 @@ class CustomField(Record, Base):
     score_eligible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
-class CoreFieldConfig(Record, Base):
+class CoreFieldConfig(Record, FieldVersioned, Base):
     """How admins have adapted a core release field: relabel, hide, require, reorder (R6.6.3)."""
 
     __tablename__ = "core_field_configs"
