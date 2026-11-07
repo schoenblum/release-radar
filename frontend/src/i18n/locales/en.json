@@ -143,7 +143,12 @@
   "csv": {
     "would": "This would add {{created}}, update {{updated}} and leave {{unchanged}} as they are.",
     "did": "Added {{created}}, updated {{updated}}, left {{unchanged}} as they were.",
-    "problem": "Row {{row}} ({{key}}): {{message}}"
+    "problem_row": "Row {{row}} ({{key}}): {{message}}",
+    "problem_cell": "Row {{row}} ({{key}}), column “{{column}}”: {{message}}",
+    "problem_value": "“{{value}}” can't be used. {{reason}}",
+    "allowed": "Please use one of: {{values}}.",
+    "skipped_would": "These would be skipped. The rest of each row still applies:",
+    "skipped_did": "These were skipped. The rest of each row was applied:"
   },
   "my_fields": {
     "title": "My fields",

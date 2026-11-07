@@ -264,7 +264,7 @@ async def test_import_creates_then_updates_by_key(client, admin_headers):
     assert rows["ONE"]["field_versions"]["name_ja"] == 1
 
 
-async def test_rows_that_cannot_be_used_are_reported_and_the_rest_still_apply(
+async def test_a_cell_that_cannot_be_used_is_reported_and_the_rest_still_apply(
     client, admin_headers
 ):
     text = (
@@ -276,13 +276,135 @@ async def test_rows_that_cannot_be_used_are_reported_and_the_rest_still_apply(
         "BADFLAG,School,school,,perhaps\n"
     )
     report = (await _import(client, f"{UNITS}/import", admin_headers, text)).json()
-    assert report["created"] == 1
+    assert report["created"] == 4
     assert report["errors"] == [
-        {"row": 3, "key": "", "code": "field_required"},
-        {"row": 4, "key": "BADTYPE", "code": "field_invalid"},
-        {"row": 5, "key": "BADFIELD", "code": "unknown_reference"},
-        {"row": 6, "key": "BADFLAG", "code": "field_invalid"},
+        {
+            "row": 3,
+            "key": "",
+            "column": "key",
+            "value": "",
+            "code": "field_required",
+            "allowed": [],
+        },
+        {
+            "row": 4,
+            "key": "BADTYPE",
+            "column": "type",
+            "value": "club",
+            "code": "field_invalid",
+            "allowed": ["school", "institute", "center", "other"],
+        },
+        {
+            "row": 5,
+            "key": "BADFIELD",
+            "column": "default_field",
+            "value": "Nowhere",
+            "code": "unknown_reference",
+            "allowed": [],
+        },
+        {
+            "row": 6,
+            "key": "BADFLAG",
+            "column": "active",
+            "value": "perhaps",
+            "code": "field_invalid",
+            "allowed": ["Y", "N"],
+        },
     ]
+
+
+async def test_a_bad_cell_costs_only_that_cell(client, admin_headers):
+    """The case from step 1.3's feedback: an edited row must not be lost to one cell."""
+    await _create(client, UNITS, admin_headers, name_en="Genetics")
+    text = (
+        "key,name_en,name_ja,short_label,type,aliases,default_field,active\n"
+        "Genetics,Genetics,遺伝学,Gen,Research institute,,,Y\n"
+    )
+    report = (await _import(client, f"{UNITS}/import", admin_headers, text)).json()
+    assert (report["created"], report["updated"], report["unchanged"]) == (0, 1, 0)
+    assert [problem["column"] for problem in report["errors"]] == ["type"]
+    row = (await client.get(UNITS, headers=admin_headers)).json()[0]
+    assert (row["name_ja"], row["short_label"], row["unit_type"]) == ("遺伝学", "Gen", None)
+
+
+@pytest.mark.parametrize(
+    ("cell", "stored"),
+    [
+        ("School", "school"),
+        ("INSTITUTE", "institute"),
+        ("Center", "center"),
+        ("Centre", "center"),
+        ("other", "other"),
+        ("研究科・学部", "school"),
+        ("研究所", "institute"),
+        ("センター", "center"),
+        ("", None),
+    ],
+)
+async def test_unit_types_are_understood_as_people_write_them(client, admin_headers, cell, stored):
+    text = f"key,type\nGenetics,{cell}\n"
+    report = (await _import(client, f"{UNITS}/import", admin_headers, text)).json()
+    assert report["errors"] == []
+    assert (await client.get(UNITS, headers=admin_headers)).json()[0]["unit_type"] == stored
+
+
+@pytest.mark.parametrize(
+    ("cell", "stored"),
+    [
+        ("Yes", True),
+        ("TRUE", True),
+        ("Active", True),
+        ("有効", True),
+        ("No", False),
+        ("Inactive", False),
+    ],
+)
+async def test_the_active_column_is_understood_as_people_write_it(
+    client, admin_headers, cell, stored
+):
+    text = f"key,active\nGenetics,{cell}\n"
+    report = (await _import(client, f"{UNITS}/import", admin_headers, text)).json()
+    assert report["errors"] == []
+    assert (await client.get(UNITS, headers=admin_headers)).json()[0]["is_active"] is stored
+
+
+async def test_a_column_left_out_of_the_file_is_left_alone(client, admin_headers):
+    """It used to be blanked on every record, which silently lost data."""
+    field = (await _create(client, FIELDS, admin_headers, name_en="Sciences")).json()
+    await _create(
+        client,
+        UNITS,
+        admin_headers,
+        name_en="Genetics",
+        name_ja="遺伝学",
+        short_label="Gen",
+        unit_type="institute",
+        aliases="G, GEN",
+        default_field_id=field["id"],
+    )
+    report = (
+        await _import(client, f"{UNITS}/import", admin_headers, "key,short_label\nGenetics,G.\n")
+    ).json()
+    assert (report["updated"], report["errors"]) == (1, [])
+    row = (await client.get(UNITS, headers=admin_headers)).json()[0]
+    assert row["short_label"] == "G."
+    assert row["name_ja"] == "遺伝学"
+    assert row["unit_type"] == "institute"
+    assert row["aliases"] == ["G", "GEN"]
+    assert row["default_field_id"] == field["id"]
+
+
+async def test_an_empty_cell_in_a_column_the_file_has_clears_it(client, admin_headers):
+    await _create(client, UNITS, admin_headers, name_en="Genetics", name_ja="遺伝学")
+    await _import(client, f"{UNITS}/import", admin_headers, "key,name_ja\nGenetics,\n")
+    assert (await client.get(UNITS, headers=admin_headers)).json()[0]["name_ja"] is None
+
+
+async def test_a_problem_names_the_fields_that_exist(client, admin_headers):
+    await _create(client, FIELDS, admin_headers, name_en="Sciences")
+    text = "key,default_field\nGenetics,Biology\n"
+    report = (await _import(client, f"{UNITS}/import", admin_headers, text)).json()
+    assert report["errors"][0]["allowed"] == ["Sciences"]
 
 
 async def test_a_file_without_the_key_column_is_refused(client, admin_headers):
@@ -309,10 +431,12 @@ async def test_writers_import_links_a_user_by_email(client, admin_headers, make_
         "B. Writer,,,nobody@example.org,Y\n"
     )
     report = (await _import(client, f"{WRITERS}/import", admin_headers, text)).json()
-    assert report["created"] == 1
-    assert report["errors"] == [{"row": 3, "key": "B. Writer", "code": "unknown_reference"}]
+    assert report["created"] == 2
+    assert [(p["row"], p["key"], p["column"], p["code"]) for p in report["errors"]] == [
+        (3, "B. Writer", "user_email", "unknown_reference")
+    ]
     async with SessionLocal() as db:
-        writer = await db.scalar(select(Writer))
+        writer = await db.scalar(select(Writer).where(Writer.display_name_en == "A. Writer"))
     assert writer.user_id == user.id
     exported = (await client.get(f"{WRITERS}/export", headers=admin_headers)).content.decode(
         "utf-8-sig"
@@ -330,7 +454,9 @@ async def test_a_clash_costs_that_row_and_not_the_file(client, admin_headers, ma
     )
     report = (await _import(client, f"{WRITERS}/import", admin_headers, text)).json()
     assert report["created"] == 2
-    assert report["errors"] == [{"row": 3, "key": "B. Writer", "code": "value_in_use"}]
+    assert [(p["row"], p["key"], p["code"]) for p in report["errors"]] == [
+        (3, "B. Writer", "value_in_use")
+    ]
     rows = (await client.get(WRITERS, headers=admin_headers)).json()
     assert sorted(row["display_name_en"] for row in rows) == ["A. Writer", "C. Writer"]
 

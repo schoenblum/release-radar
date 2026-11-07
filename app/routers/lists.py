@@ -5,9 +5,10 @@ them. Entries are retired by switching off "active", never deleted, as releases 
 refer to them.
 
 CSV uses plain column names and both languages side by side, so a file can go straight
-back in. Importing updates entries by their key, skips rows it cannot use and reports
-them. A dry run does the real work and rolls it back, so the preview cannot disagree with
-the result.
+back in. Importing updates entries by their key. A column the file leaves out is left
+alone, so a file with just two columns changes just those. A cell that cannot be used is
+reported by row and column, and costs only that cell: the rest of its row still applies. A
+dry run does the real work and rolls it back, so the preview cannot disagree with the result.
 """
 
 import csv
@@ -51,8 +52,20 @@ from app.services.field_patch import (
 
 router = APIRouter(prefix="/lists", tags=["lists"])
 
-_TRUE = {"y", "yes", "true", "1"}
-_FALSE = {"n", "no", "false", "0"}
+_TRUE = {"y", "yes", "true", "1", "on", "active", "はい", "有効"}
+_FALSE = {"n", "no", "false", "0", "off", "inactive", "いいえ", "無効"}
+_UNIT_TYPES = ("school", "institute", "center", "other")
+# What people type after seeing the Lists page, in either language.
+_UNIT_TYPE_SPELLINGS = {
+    **{name: name for name in _UNIT_TYPES},
+    "centre": "center",
+    "研究科・学部": "school",
+    "研究科": "school",
+    "学部": "school",
+    "研究所": "institute",
+    "センター": "center",
+    "その他": "other",
+}
 # Spreadsheets would run a cell starting with one of these as a formula.
 _FORMULA_STARTS = ("=", "+", "-", "@")
 
@@ -70,17 +83,6 @@ def _from_csv(value: str | None) -> str:
 
 def _flag(value: bool) -> str:
     return "Y" if value else "N"
-
-
-def _parse_flag(value: str, default: bool) -> bool:
-    lowered = value.lower()
-    if lowered in _TRUE:
-        return True
-    if lowered in _FALSE:
-        return False
-    if lowered == "":
-        return default
-    raise field_error("field_invalid")
 
 
 # ---------------------------------------------------------------- CSV: what each list holds
@@ -109,6 +111,67 @@ async def _csv_context(db: AsyncSession, institution_id: UUID) -> CsvContext:
     )
 
 
+def _as_written(cell: str, _context: CsvContext, _current: Any) -> Any:
+    return cell
+
+
+def _read_flag(cell: str, _context: CsvContext, current: Any) -> bool:
+    """An empty cell keeps the current state, and a new entry starts active."""
+    lowered = cell.lower()
+    if lowered in _TRUE:
+        return True
+    if lowered in _FALSE:
+        return False
+    if lowered == "":
+        return current.is_active if current is not None else True
+    raise field_error("field_invalid")
+
+
+def _read_unit_type(cell: str, _context: CsvContext, _current: Any) -> str | None:
+    # An unknown word goes through, for the field's own check to refuse.
+    return _UNIT_TYPE_SPELLINGS.get(cell.lower(), cell)
+
+
+def _read_field_name(cell: str, context: CsvContext, _current: Any) -> UUID | None:
+    if not cell:
+        return None
+    if cell.lower() not in context.fields_by_name:
+        raise field_error("unknown_reference")
+    return context.fields_by_name[cell.lower()]
+
+
+def _read_user_email(cell: str, context: CsvContext, _current: Any) -> UUID | None:
+    if not cell:
+        return None
+    if cell.lower() not in context.users_by_email:
+        raise field_error("unknown_reference")
+    return context.users_by_email[cell.lower()]
+
+
+def _no_suggestions(_context: CsvContext) -> list[str]:
+    return []
+
+
+def _field_names(context: CsvContext) -> list[str]:
+    return sorted(context.fields_by_id.values())
+
+
+@dataclass(frozen=True)
+class CsvColumn:
+    """One column of a list's file."""
+
+    name: str
+    attribute: str
+    read: Callable[[str, CsvContext, Any], Any] = _as_written
+    # What to use instead, shown when a cell is refused.
+    allowed: Callable[[CsvContext], list[str]] = _no_suggestions
+    # An empty name takes the row's key, so a new entry needs only that.
+    falls_back_to_key: bool = False
+
+
+_ACTIVE_COLUMN = CsvColumn("active", "is_active", _read_flag, lambda _: ["Y", "N"])
+
+
 def _unit_row(unit: Unit, context: CsvContext) -> dict[str, str]:
     return {
         "key": unit.key,
@@ -122,38 +185,12 @@ def _unit_row(unit: Unit, context: CsvContext) -> dict[str, str]:
     }
 
 
-def _unit_values(row: dict[str, str], context: CsvContext, current: Unit | None) -> dict[str, Any]:
-    field_name = row.get("default_field", "")
-    if field_name and field_name.lower() not in context.fields_by_name:
-        raise field_error("unknown_reference")
-    return {
-        "name_en": row.get("name_en") or row.get("key"),
-        "name_ja": row.get("name_ja"),
-        "short_label": row.get("short_label"),
-        "unit_type": row.get("type"),
-        "aliases": row.get("aliases"),
-        "default_field_id": context.fields_by_name.get(field_name.lower()) if field_name else None,
-        "is_active": _parse_flag(row.get("active", ""), current.is_active if current else True),
-    }
-
-
 def _field_row(field: ResearchField, _: CsvContext) -> dict[str, str]:
     return {
         "name_en": field.name_en,
         "name_ja": field.name_ja or "",
         "scope_note": field.scope_note or "",
         "active": _flag(field.is_active),
-    }
-
-
-def _field_values(
-    row: dict[str, str], _: CsvContext, current: ResearchField | None
-) -> dict[str, Any]:
-    return {
-        "name_en": row.get("name_en"),
-        "name_ja": row.get("name_ja"),
-        "scope_note": row.get("scope_note"),
-        "is_active": _parse_flag(row.get("active", ""), current.is_active if current else True),
     }
 
 
@@ -167,21 +204,6 @@ def _writer_row(writer: Writer, context: CsvContext) -> dict[str, str]:
     }
 
 
-def _writer_values(
-    row: dict[str, str], context: CsvContext, current: Writer | None
-) -> dict[str, Any]:
-    user_email = row.get("user_email", "").lower()
-    if user_email and user_email not in context.users_by_email:
-        raise field_error("unknown_reference")
-    return {
-        "display_name_en": row.get("display_name_en"),
-        "display_name_ja": row.get("display_name_ja"),
-        "full_name": row.get("full_name"),
-        "user_id": context.users_by_email.get(user_email) if user_email else None,
-        "is_active": _parse_flag(row.get("active", ""), current.is_active if current else True),
-    }
-
-
 def _item_row(item: VocabularyItem, _: CsvContext) -> dict[str, str]:
     return {
         "key": item.key,
@@ -189,17 +211,6 @@ def _item_row(item: VocabularyItem, _: CsvContext) -> dict[str, str]:
         "label_ja": item.label_ja or "",
         "aliases": ", ".join(item.aliases),
         "active": _flag(item.is_active),
-    }
-
-
-def _item_values(
-    row: dict[str, str], _: CsvContext, current: VocabularyItem | None
-) -> dict[str, Any]:
-    return {
-        "label_en": row.get("label_en") or row.get("key"),
-        "label_ja": row.get("label_ja"),
-        "aliases": row.get("aliases"),
-        "is_active": _parse_flag(row.get("active", ""), current.is_active if current else True),
     }
 
 
@@ -212,9 +223,17 @@ class ListConfig:
     order: str
     key_column: str = ""
     key_attribute: str = ""
-    columns: tuple[str, ...] = ()
+    csv_columns: tuple[str | CsvColumn, ...] = ()
     to_row: Callable[[Any, CsvContext], dict[str, str]] | None = None
-    to_values: Callable[[dict[str, str], CsvContext, Any], dict[str, Any]] | None = None
+
+    @property
+    def columns(self) -> tuple[str, ...]:
+        """What the exported file holds, including a key that cannot be changed by import."""
+        return tuple(c if isinstance(c, str) else c.name for c in self.csv_columns)
+
+    @property
+    def importable(self) -> tuple[CsvColumn, ...]:
+        return tuple(c for c in self.csv_columns if isinstance(c, CsvColumn))
 
 
 UNITS = ListConfig(
@@ -224,7 +243,7 @@ UNITS = ListConfig(
         "name_en": field_patch.text(required=True),
         "name_ja": field_patch.text(),
         "short_label": field_patch.text(64),
-        "unit_type": field_patch.choice("school", "institute", "center", "other", required=False),
+        "unit_type": field_patch.choice(*_UNIT_TYPES, required=False),
         "aliases": field_patch.string_list(),
         "default_field_id": field_patch.reference(ResearchField),
         "is_active": field_patch.boolean(),
@@ -233,18 +252,17 @@ UNITS = ListConfig(
     order="name_en",
     key_column="key",
     key_attribute="key",
-    columns=(
+    csv_columns=(
         "key",
-        "name_en",
-        "name_ja",
-        "short_label",
-        "type",
-        "aliases",
-        "default_field",
-        "active",
+        CsvColumn("name_en", "name_en", falls_back_to_key=True),
+        CsvColumn("name_ja", "name_ja"),
+        CsvColumn("short_label", "short_label"),
+        CsvColumn("type", "unit_type", _read_unit_type, lambda _: list(_UNIT_TYPES)),
+        CsvColumn("aliases", "aliases"),
+        CsvColumn("default_field", "default_field_id", _read_field_name, _field_names),
+        _ACTIVE_COLUMN,
     ),
     to_row=_unit_row,
-    to_values=_unit_values,
 )
 FIELDS = ListConfig(
     model=ResearchField,
@@ -259,9 +277,13 @@ FIELDS = ListConfig(
     order="name_en",
     key_column="name_en",
     key_attribute="name_en",
-    columns=("name_en", "name_ja", "scope_note", "active"),
+    csv_columns=(
+        CsvColumn("name_en", "name_en", falls_back_to_key=True),
+        CsvColumn("name_ja", "name_ja"),
+        CsvColumn("scope_note", "scope_note"),
+        _ACTIVE_COLUMN,
+    ),
     to_row=_field_row,
-    to_values=_field_values,
 )
 WRITERS = ListConfig(
     model=Writer,
@@ -277,9 +299,14 @@ WRITERS = ListConfig(
     order="display_name_en",
     key_column="display_name_en",
     key_attribute="display_name_en",
-    columns=("display_name_en", "display_name_ja", "full_name", "user_email", "active"),
+    csv_columns=(
+        CsvColumn("display_name_en", "display_name_en", falls_back_to_key=True),
+        CsvColumn("display_name_ja", "display_name_ja"),
+        CsvColumn("full_name", "full_name"),
+        CsvColumn("user_email", "user_id", _read_user_email),
+        _ACTIVE_COLUMN,
+    ),
     to_row=_writer_row,
-    to_values=_writer_values,
 )
 VOCABULARIES = ListConfig(
     model=Vocabulary,
@@ -306,9 +333,14 @@ VOCABULARY_ITEMS = ListConfig(
     order="position",
     key_column="key",
     key_attribute="key",
-    columns=("key", "label_en", "label_ja", "aliases", "active"),
+    csv_columns=(
+        "key",
+        CsvColumn("label_en", "label_en", falls_back_to_key=True),
+        CsvColumn("label_ja", "label_ja"),
+        CsvColumn("aliases", "aliases"),
+        _ACTIVE_COLUMN,
+    ),
     to_row=_item_row,
-    to_values=_item_values,
 )
 CONFIGS = {"units": UNITS, "fields": FIELDS, "writers": WRITERS, "vocabularies": VOCABULARIES}
 
@@ -369,6 +401,24 @@ def _to_csv(config: ListConfig, rows: list[Any], context: CsvContext, filename: 
     )
 
 
+def _problem(
+    row: int,
+    key: str,
+    column: str | None,
+    value: str,
+    code: str,
+    allowed: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "row": row,
+        "key": key,
+        "column": column,
+        "value": value[:80],
+        "code": code,
+        "allowed": allowed or [],
+    }
+
+
 async def _import_csv(
     db: AsyncSession,
     config: ListConfig,
@@ -387,17 +437,27 @@ async def _import_csv(
     for line, raw in enumerate(reader, start=2):
         row = {name: _from_csv(value) for name, value in raw.items() if name}
         key = row.get(config.key_column, "")
-        try:
-            if not key:
-                raise field_error("field_required")
-            current = by_key.get(key.lower())
-            values = config.to_values(row, context, current)
-            cleaned = {
-                field: await clean_value(db, institution_id, config.specs[field], value)
-                for field, value in values.items()
-            }
-        except HTTPException as error:
-            report["errors"].append({"row": line, "key": key, "code": error.detail})
+        if not key:
+            report["errors"].append(_problem(line, key, config.key_column, "", "field_required"))
+            continue
+        current = by_key.get(key.lower())
+        cleaned: dict[str, Any] = {}
+        for column in config.importable:
+            # Left out of the file means left alone.
+            if column.name not in row and not (current is None and column.falls_back_to_key):
+                continue
+            cell = row.get(column.name, "")
+            if not cell and column.falls_back_to_key:
+                cell = key
+            try:
+                value = column.read(cell, context, current)
+                spec = config.specs[column.attribute]
+                cleaned[column.attribute] = await clean_value(db, institution_id, spec, value)
+            except HTTPException as error:
+                report["errors"].append(
+                    _problem(line, key, column.name, cell, error.detail, column.allowed(context))
+                )
+        if current is None and any(field not in cleaned for field in config.required):
             continue
         # Each row in its own savepoint: a clash, such as two writers linked to one user,
         # costs that row and not the file.
@@ -419,7 +479,7 @@ async def _import_csv(
         except IntegrityError:
             if current is not None:
                 await db.refresh(current)
-            report["errors"].append({"row": line, "key": key, "code": "value_in_use"})
+            report["errors"].append(_problem(line, key, None, "", "value_in_use"))
             continue
         if created is not None:
             by_key[key.lower()] = created
@@ -635,7 +695,7 @@ async def import_entries(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     config = _config(kind)
-    if config.to_values is None:
+    if not config.importable:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="not_found")
     institution_id = admin.institution_id
 

@@ -379,3 +379,9 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.users.role` | Role | 権限 | pending |
 | `frontend:settings.users.switched_off` | {{email}} was switched off. | {{email}} を無効にしました。 | pending |
 | `frontend:user_menu.my_fields` | My fields | マイフィールド | pending |
+| `frontend:csv.allowed` | Please use one of: {{values}}. | 次のいずれかを使用してください：{{values}} | pending |
+| `frontend:csv.problem_cell` | Row {{row}} ({{key}}), column “{{column}}”: {{message}} | {{row}} 行目（{{key}}）、「{{column}}」列：{{message}} | pending |
+| `frontend:csv.problem_row` | Row {{row}} ({{key}}): {{message}} | {{row}} 行目（{{key}}）：{{message}} | pending |
+| `frontend:csv.problem_value` | “{{value}}” can't be used. {{reason}} | 「{{value}}」は使用できません。{{reason}} | pending |
+| `frontend:csv.skipped_did` | These were skipped. The rest of each row was applied: | 以下はスキップしました。各行のその他の内容は適用しました： | pending |
+| `frontend:csv.skipped_would` | These would be skipped. The rest of each row still applies: | 以下はスキップされます。各行のその他の内容は適用されます： | pending |

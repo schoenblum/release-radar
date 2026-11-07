@@ -129,11 +129,22 @@ export interface VocabularyItem {
   field_versions: FieldVersions;
 }
 
+export interface ImportProblem {
+  row: number;
+  key: string;
+  /** Null when the whole row could not be used, rather than one cell. */
+  column: string | null;
+  value: string;
+  code: string;
+  /** What to use instead, where that is a short list. */
+  allowed: string[];
+}
+
 export interface ImportReport {
   created: number;
   updated: number;
   unchanged: number;
-  errors: { row: number; key: string; code: string }[];
+  errors: ImportProblem[];
   dry_run: boolean;
 }
 

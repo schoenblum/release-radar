@@ -1,9 +1,10 @@
+import type { TFunction } from "i18next";
 import { useRef, useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { http } from "../api/client";
 import { codeMessage, errorMessage } from "../api/errors";
-import type { ImportReport } from "../api/types";
+import type { ImportProblem, ImportReport } from "../api/types";
 
 /**
  * Reads a CSV file as UTF-8, or else as Shift-JIS, which is what Japanese Excel saves
@@ -15,6 +16,20 @@ export function decodeCsv(bytes: ArrayBuffer): string {
   } catch {
     return new TextDecoder("shift_jis").decode(bytes);
   }
+}
+
+/** One problem in plain words: where it is, what was there, and what to use instead. */
+export function problemMessage(t: TFunction, problem: ImportProblem): string {
+  const where = { row: problem.row, key: problem.key || "—" };
+  if (problem.column === null) {
+    return t("csv.problem_row", { ...where, message: codeMessage(t, problem.code) });
+  }
+  const reason =
+    problem.allowed.length > 0
+      ? t("csv.allowed", { values: problem.allowed.join(", ") })
+      : codeMessage(t, problem.code);
+  const message = problem.value ? t("csv.problem_value", { value: problem.value, reason }) : reason;
+  return t("csv.problem_cell", { ...where, column: problem.column, message });
 }
 
 /** Export a list as CSV, and import one after showing what it would do. */
@@ -111,17 +126,16 @@ export default function CsvTools({
             })}
           </p>
           {report.errors.length > 0 && (
-            <ul className="mt-5xs list-disc pl-2xs">
-              {report.errors.map((problem) => (
-                <li key={problem.row}>
-                  {t("csv.problem", {
-                    row: problem.row,
-                    key: problem.key,
-                    message: codeMessage(t, problem.code),
-                  })}
-                </li>
-              ))}
-            </ul>
+            <>
+              <p className="mt-5xs">{t(pending ? "csv.skipped_would" : "csv.skipped_did")}</p>
+              <ul className="mt-5xs list-disc pl-2xs">
+                {report.errors.map((problem) => (
+                  <li key={`${problem.row}-${problem.column ?? ""}`}>
+                    {problemMessage(t, problem)}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
           {pending && (
             <div className="mt-4xs flex gap-4xs">

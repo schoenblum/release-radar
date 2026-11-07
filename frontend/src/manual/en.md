@@ -36,7 +36,7 @@ To combine two records of the same person, choose **Merge** on the record you wa
 
 - **Institution:** names, time zone, the month the academic year starts, your news website, and where people land after signing in.
 - **Users:** invite people and set their role. To remove someone, switch off **Active**: their name stays in the history. If they tracked personal fields, pass those on or make them institution fields here.
-- **Lists:** units, fields, writers and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes.
+- **Lists:** units, fields, writers and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
 - **Form:** rename, hide, require or reorder the fields on a release, and add your own.
 - **Checkpoints & reminders:** when numbers are collected and which numbers those are.
 - **Data:** backups, a full copy of your data, and what the automatic jobs have been doing.

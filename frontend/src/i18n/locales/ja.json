@@ -143,7 +143,12 @@
   "csv": {
     "would": "{{created}} 件を追加、{{updated}} 件を更新し、{{unchanged}} 件は変更しません。",
     "did": "{{created}} 件を追加、{{updated}} 件を更新しました。{{unchanged}} 件は変更していません。",
-    "problem": "{{row}} 行目（{{key}}）：{{message}}"
+    "problem_row": "{{row}} 行目（{{key}}）：{{message}}",
+    "problem_cell": "{{row}} 行目（{{key}}）、「{{column}}」列：{{message}}",
+    "problem_value": "「{{value}}」は使用できません。{{reason}}",
+    "allowed": "次のいずれかを使用してください：{{values}}",
+    "skipped_would": "以下はスキップされます。各行のその他の内容は適用されます：",
+    "skipped_did": "以下はスキップしました。各行のその他の内容は適用しました："
   },
   "my_fields": {
     "title": "マイフィールド",
