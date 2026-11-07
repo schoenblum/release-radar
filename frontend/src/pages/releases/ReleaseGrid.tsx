@@ -1,0 +1,808 @@
+import {
+  columnSizingFeature,
+  columnVisibilityFeature,
+  createColumnHelper,
+  tableFeatures,
+  useTable,
+  type ColumnVisibilityState,
+} from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
+import { flushSync } from "react-dom";
+import { useTranslation } from "react-i18next";
+
+import { codeMessage } from "../../api/errors";
+import type { Release, Unit } from "../../api/types";
+import { useToast } from "../../components/Toast";
+import CellEditor, { type Move } from "./CellEditor";
+import { parseClipboard, toClipboard } from "./clipboard";
+import { isVisible, type ColumnChoice, type GridColumn, type Tone } from "./columns";
+import { parseBoolean } from "./parse";
+import { planPaste, type CellRange } from "./paste";
+import type { PendingCell, PendingCells, useCellSaves } from "./useCellSaves";
+
+const features = tableFeatures({ columnVisibilityFeature, columnSizingFeature });
+const helper = createColumnHelper<typeof features, Release>();
+const getRowId = (release: Release): string => release.id;
+
+// Kept in step with .grid-cell and .grid-head-row in index.css.
+const ROW_HEIGHT = 36;
+const HEADER_HEIGHT = 48;
+const NEW_ROW_HEIGHT = 52;
+const OVERSCAN_ROWS = 10;
+const LAST_ROWS_FLIP = 3;
+
+interface CellId {
+  row: string;
+  column: string;
+}
+
+interface Editing extends CellId {
+  initial: string;
+  replace: boolean;
+}
+
+const cellDomId = (cell: CellId): string => `cell-${cell.row}-${cell.column}`;
+
+const TONE_CLASS: Record<Tone, string> = {
+  due: "tone-due",
+  na: "tone-na",
+  later: "tone-later",
+  muted: "tone-muted",
+  plain: "",
+};
+
+function displayedValue(pending: PendingCell | undefined): pending is PendingCell {
+  return !!pending && pending.status !== "saved";
+}
+
+function CellMessage({
+  pending,
+  column,
+  flip,
+}: {
+  pending: PendingCell;
+  column: GridColumn;
+  flip: boolean;
+}) {
+  const { t } = useTranslation();
+  const className = flip ? "grid-message grid-message-above" : "grid-message";
+  if (pending.conflict) {
+    const { value, state } = pending.conflict;
+    const shown =
+      state === "not_applicable"
+        ? t("data.not_applicable")
+        : value === null || value === ""
+          ? t("conflict.empty")
+          : typeof value === "object"
+            ? JSON.stringify(value)
+            : String(value);
+    return (
+      <div role="alert" className={className}>
+        <p>{t("conflict.message", { value: shown })}</p>
+        <div className="mt-5xs flex gap-5xs">
+          <button type="button" className="btn-small" data-action="keep">
+            {t("conflict.keep_mine")}
+          </button>
+          <button type="button" className="btn-small" data-action="theirs">
+            {t("conflict.use_theirs")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div role="alert" className={className}>
+      <p>
+        {column.editor === "number" && pending.code === "field_invalid"
+          ? t("data.not_a_number")
+          : codeMessage(t, pending.code ?? "generic")}
+      </p>
+      <p className="text-content-secondary">{t("data.failed_hint")}</p>
+    </div>
+  );
+}
+
+interface RowProps {
+  release: Release;
+  index: number;
+  total: number;
+  columns: GridColumn[];
+  offsets: number[];
+  /** The columns of the selected range in this row, as [first, last]. */
+  range: [number, number] | null;
+  activeColumn: string | null;
+  editing: Editing | null;
+  pending: Record<string, PendingCell> | undefined;
+  units: Unit[];
+  onCommit: (text: string, move: Move) => void;
+  onPickResearcher: (record: { id: string; name: string } | null) => void;
+  onCancel: () => void;
+}
+
+/** Rows re-render on their own, so moving around a long list stays quick. */
+const GridRow = memo(function GridRow({
+  release,
+  index,
+  total,
+  columns,
+  offsets,
+  range,
+  activeColumn,
+  editing,
+  pending,
+  units,
+  onCommit,
+  onPickResearcher,
+  onCancel,
+}: RowProps) {
+  const flip = index >= total - LAST_ROWS_FLIP && total > LAST_ROWS_FLIP;
+  return (
+    <tr role="row" aria-rowindex={index + 2} data-row={index}>
+      {columns.map((column, position) => {
+        const cellPending = pending?.[column.id];
+        const shown = displayedValue(cellPending);
+        const view = column.view(release);
+        const isEditing = editing?.column === column.id;
+        const isActive = activeColumn === column.id;
+        const editable = column.isEditable(release);
+        const inRange = range !== null && position >= range[0] && position <= range[1];
+        const classes = [
+          "grid-cell",
+          column.frozen ? "grid-cell-frozen" : "",
+          column.alignRight ? "text-right" : "",
+          shown ? "" : TONE_CLASS[view.tone],
+          inRange ? "in-range" : "",
+          isActive ? "is-active" : "",
+          isEditing ? "is-editing" : "",
+          editable ? "" : "is-read-only",
+          cellPending?.status === "saving" ? "is-saving" : "",
+          cellPending?.status === "saved" ? "is-saved" : "",
+          cellPending?.status === "failed" ? "is-failed" : "",
+          isActive && cellPending?.status === "failed" ? "has-message" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+        const text = shown ? cellPending.text : view.text;
+        const checked = view.checked !== undefined;
+        return (
+          <td
+            key={column.id}
+            id={cellDomId({ row: release.id, column: column.id })}
+            role="gridcell"
+            aria-colindex={position + 1}
+            aria-selected={inRange || isActive}
+            aria-readonly={!editable}
+            data-column={position}
+            className={classes}
+            title={isEditing ? undefined : (view.hint ?? (checked ? undefined : text || undefined))}
+            style={column.frozen ? { left: offsets[position] } : undefined}
+          >
+            {isEditing && editing ? (
+              <CellEditor
+                column={column}
+                release={release}
+                units={units}
+                initial={editing.initial}
+                replace={editing.replace}
+                onCommit={onCommit}
+                onPickResearcher={onPickResearcher}
+                onCancel={onCancel}
+              />
+            ) : checked ? (
+              <input
+                type="checkbox"
+                tabIndex={-1}
+                readOnly
+                disabled={!editable}
+                aria-label={column.label}
+                data-action="toggle"
+                checked={shown ? parseBoolean(cellPending.text) === true : view.checked === true}
+              />
+            ) : column.id === "title" ? (
+              <button type="button" tabIndex={-1} className="grid-title" data-action="open">
+                {text}
+              </button>
+            ) : (
+              <span className="grid-text">{text}</span>
+            )}
+            {isActive && !isEditing && cellPending?.status === "failed" && (
+              <CellMessage pending={cellPending} column={column} flip={flip} />
+            )}
+          </td>
+        );
+      })}
+    </tr>
+  );
+});
+
+export default function ReleaseGrid({
+  rows,
+  allColumns,
+  choice,
+  canEdit,
+  saves,
+  units,
+  newRow,
+  empty,
+  onOpen,
+  onRefresh,
+}: {
+  rows: Release[];
+  allColumns: GridColumn[];
+  choice: ColumnChoice;
+  canEdit: boolean;
+  saves: ReturnType<typeof useCellSaves>;
+  units: Unit[];
+  newRow: ReactNode;
+  empty: ReactNode;
+  onOpen: (releaseId: string) => void;
+  onRefresh: () => void;
+}) {
+  const { t } = useTranslation();
+  const toast = useToast();
+
+  const definitions = useMemo(
+    () =>
+      allColumns.map((column) =>
+        helper.display({ id: column.id, header: column.label, size: column.width }),
+      ),
+    [allColumns],
+  );
+  const columnVisibility = useMemo<ColumnVisibilityState>(
+    () => Object.fromEntries(allColumns.map((column) => [column.id, isVisible(column, choice)])),
+    [allColumns, choice],
+  );
+  const table = useTable({
+    features,
+    columns: definitions,
+    data: rows,
+    getRowId,
+    state: { columnVisibility },
+  });
+  const leaves = table.getVisibleLeafColumns();
+  const leafIds = leaves.map((leaf) => leaf.id).join("|");
+  const columns = useMemo(() => {
+    const byId = new Map(allColumns.map((column) => [column.id, column]));
+    return leafIds
+      .split("|")
+      .map((id) => byId.get(id))
+      .filter((column): column is GridColumn => !!column);
+  }, [allColumns, leafIds]);
+
+  const offsets = useMemo(() => {
+    let left = 0;
+    return columns.map((column) => {
+      const start = left;
+      if (column.frozen) left += column.width;
+      return start;
+    });
+  }, [columns]);
+  const frozenWidth = columns.reduce((sum, column) => sum + (column.frozen ? column.width : 0), 0);
+  const totalWidth = columns.reduce((sum, column) => sum + column.width, 0);
+  const headHeight = HEADER_HEIGHT + (newRow ? NEW_ROW_HEIGHT : 0);
+
+  const scroller = useRef<HTMLDivElement>(null);
+  const catcher = useRef<HTMLTextAreaElement>(null);
+  const clicking = useRef(false);
+  // This project does not use the React Compiler, which is what the rule protects.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scroller.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: OVERSCAN_ROWS,
+    scrollMargin: headHeight,
+    scrollPaddingStart: headHeight,
+    getItemKey: (index) => rows[index]?.id ?? index,
+  });
+
+  const [active, setActive] = useState<CellId | null>(null);
+  const [anchor, setAnchor] = useState<CellId | null>(null);
+  const [editing, setEditing] = useState<Editing | null>(null);
+
+  const rowIndex = useMemo(() => new Map(rows.map((row, index) => [row.id, index])), [rows]);
+  const columnIndex = useMemo(
+    () => new Map(columns.map((column, index) => [column.id, index])),
+    [columns],
+  );
+
+  const range = useMemo<CellRange | null>(() => {
+    if (!active) return null;
+    const row = rowIndex.get(active.row);
+    const column = columnIndex.get(active.column);
+    if (row === undefined || column === undefined) return null;
+    const anchorRow = (anchor && rowIndex.get(anchor.row)) ?? row;
+    const anchorColumn = (anchor && columnIndex.get(anchor.column)) ?? column;
+    return {
+      top: Math.min(row, anchorRow),
+      bottom: Math.max(row, anchorRow),
+      left: Math.min(column, anchorColumn),
+      right: Math.max(column, anchorColumn),
+    };
+  }, [active, anchor, rowIndex, columnIndex]);
+
+  const rangeLeft = range?.left;
+  const rangeRight = range?.right;
+  const rangeColumns = useMemo<[number, number] | null>(
+    () =>
+      rangeLeft === undefined || rangeRight === undefined ? null : [rangeLeft, rangeRight],
+    [rangeLeft, rangeRight],
+  );
+
+  const moveTo = useCallback(
+    (row: number, column: number, extend = false) => {
+      const release = rows[Math.max(0, Math.min(rows.length - 1, row))];
+      const target = columns[Math.max(0, Math.min(columns.length - 1, column))];
+      if (!release || !target) return;
+      const next = { row: release.id, column: target.id };
+      setActive(next);
+      if (!extend) setAnchor(next);
+    },
+    [rows, columns],
+  );
+
+  // Bring the selected cell into view. Scroll padding keeps it clear of the frozen columns.
+  useEffect(() => {
+    if (!active) return;
+    const index = rowIndex.get(active.row);
+    if (index !== undefined) virtualizer.scrollToIndex(index, { align: "auto" });
+    document
+      .getElementById(cellDomId(active))
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // Only when the selection moves, not whenever the list refreshes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  const focusGrid = useCallback(() => {
+    scroller.current?.focus({ preventScroll: true });
+  }, []);
+
+  const commitCell = useCallback(
+    (release: Release, column: GridColumn, text: string) => {
+      const parsed = column.parse(text, release);
+      if (parsed.ok) void saves.save([{ release, column, text, commit: parsed.commit }]);
+      else saves.markProblem({ release, column, text, code: parsed.code });
+    },
+    [saves],
+  );
+
+  const startEditing = useCallback(
+    (cell: CellId, replace: boolean) => {
+      const index = rowIndex.get(cell.row);
+      const release = index === undefined ? undefined : rows[index];
+      const column = columns[columnIndex.get(cell.column) ?? -1];
+      if (!release || !column || !column.isEditable(release)) return;
+      if (column.editor === "boolean" || column.editor === "none") return;
+      const failed = saves.pending[release.id]?.[column.id];
+      const initial =
+        failed?.status === "failed" ? failed.text : column.editText(release);
+      // Synchronously, so the editor has focus before the next key arrives.
+      flushSync(() => setEditing({ ...cell, initial, replace }));
+    },
+    [rows, columns, rowIndex, columnIndex, saves.pending],
+  );
+
+  // Editors get callbacks that never change, so opening one re-renders only its own row.
+  const latest = useRef({ editing, rows, columns, rowIndex, columnIndex, saves, commitCell, moveTo });
+  useLayoutEffect(() => {
+    latest.current = { editing, rows, columns, rowIndex, columnIndex, saves, commitCell, moveTo };
+  });
+
+  const onCommit = useCallback(
+    (text: string, move: Move) => {
+      const now = latest.current;
+      setEditing(null);
+      if (now.editing) {
+        const index = now.rowIndex.get(now.editing.row);
+        const position = now.columnIndex.get(now.editing.column);
+        if (index !== undefined && position !== undefined) {
+          const release = now.rows[index];
+          const column = now.columns[position];
+          const unchanged =
+            text === now.editing.initial && now.saves.pending[release.id]?.[column.id] === undefined;
+          if (!unchanged) now.commitCell(release, column, text);
+          if (move.rows !== 0 || move.columns !== 0) {
+            now.moveTo(index + move.rows, position + move.columns);
+          }
+        }
+      }
+      focusGrid();
+    },
+    [focusGrid],
+  );
+
+  const onCancel = useCallback(() => {
+    setEditing(null);
+    focusGrid();
+  }, [focusGrid]);
+
+  const onPickResearcher = useCallback(
+    (record: { id: string; name: string } | null) => {
+      const now = latest.current;
+      setEditing(null);
+      if (now.editing) {
+        const index = now.rowIndex.get(now.editing.row);
+        const position = now.columnIndex.get(now.editing.column);
+        if (index !== undefined && position !== undefined) {
+          void now.saves.save([
+            {
+              release: now.rows[index],
+              column: now.columns[position],
+              text: record?.name ?? "",
+              commit: { kind: "field", field: "researcher_id", value: record?.id ?? null },
+            },
+          ]);
+          now.moveTo(index + 1, position);
+        }
+      }
+      focusGrid();
+    },
+    [focusGrid],
+  );
+
+  function toggle(release: Release, column: GridColumn): void {
+    if (!column.isEditable(release)) return;
+    const pending = saves.pending[release.id]?.[column.id];
+    const now = displayedValue(pending)
+      ? parseBoolean(pending.text) === true
+      : column.view(release).checked === true;
+    commitCell(release, column, now ? "" : "✓");
+  }
+
+  async function runUndo(): Promise<void> {
+    try {
+      const count = await saves.undo();
+      if (count !== null) toast({ text: t("data.undid", { count }) });
+    } catch {
+      toast({ text: t("data.undo_failed") });
+    }
+  }
+
+  function clearRange(): void {
+    if (!range) return;
+    const group = [];
+    for (let row = range.top; row <= range.bottom; row += 1) {
+      for (let position = range.left; position <= range.right; position += 1) {
+        const release = rows[row];
+        const column = columns[position];
+        if (!release || !column || !column.isEditable(release)) continue;
+        const parsed = column.parse("", release);
+        if (parsed.ok) group.push({ release, column, text: "", commit: parsed.commit });
+      }
+    }
+    if (group.length > 0) void saves.save(group);
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+    if (editing || event.nativeEvent.isComposing) return;
+    if (event.target !== scroller.current && event.target !== catcher.current) return;
+    // Safari offers copy and paste only where something can be edited. While Cmd or Ctrl is
+    // held, this holds the focus, so the clipboard works the same in every browser.
+    if ((event.key === "Meta" || event.key === "Control") && catcher.current) {
+      catcher.current.value = " ";
+      catcher.current.focus({ preventScroll: true });
+      catcher.current.select();
+      return;
+    }
+    if (!active || !range) {
+      if (rows.length > 0 && event.key.startsWith("Arrow")) {
+        event.preventDefault();
+        moveTo(0, 0);
+      }
+      return;
+    }
+    const row = rowIndex.get(active.row);
+    const position = columnIndex.get(active.column);
+    if (row === undefined || position === undefined) return;
+    const release = rows[row];
+    const column = columns[position];
+    const command = event.metaKey || event.ctrlKey;
+
+    if (command) {
+      if (event.key.toLowerCase() === "z" && !event.shiftKey && canEdit) {
+        event.preventDefault();
+        void runUndo();
+      }
+      return;
+    }
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowUp":
+      case "ArrowLeft":
+      case "ArrowRight":
+        event.preventDefault();
+        moveTo(
+          row + (event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0),
+          position + (event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0),
+          event.shiftKey,
+        );
+        return;
+      case "Tab": {
+        const backwards = event.shiftKey;
+        const atEdge = backwards
+          ? row === 0 && position === 0
+          : row === rows.length - 1 && position === columns.length - 1;
+        // Past the last cell, Tab leaves the grid, so a keyboard is never trapped in it.
+        if (atEdge) return;
+        event.preventDefault();
+        if (!backwards && position === columns.length - 1) moveTo(row + 1, 0);
+        else if (backwards && position === 0) moveTo(row - 1, columns.length - 1);
+        else moveTo(row, position + (backwards ? -1 : 1));
+        return;
+      }
+      case "Home":
+        event.preventDefault();
+        moveTo(row, 0, event.shiftKey);
+        return;
+      case "End":
+        event.preventDefault();
+        moveTo(row, columns.length - 1, event.shiftKey);
+        return;
+      case "Enter":
+        event.preventDefault();
+        if (event.shiftKey || column.editor === "none") onOpen(release.id);
+        else if (column.editor === "boolean") toggle(release, column);
+        else startEditing(active, false);
+        return;
+      case "F2":
+        event.preventDefault();
+        startEditing(active, false);
+        return;
+      case "Escape":
+        if (saves.pending[release.id]?.[column.id]?.status === "failed") {
+          saves.drop(release.id, column.id);
+        } else {
+          setAnchor(active);
+        }
+        return;
+      case "Backspace":
+      case "Delete":
+        event.preventDefault();
+        clearRange();
+        return;
+      case " ":
+        if (column.editor === "boolean") {
+          event.preventDefault();
+          toggle(release, column);
+          return;
+        }
+        break;
+      default:
+        break;
+    }
+    // Any other key that writes something starts editing, and lands in the editor by itself.
+    if ((event.key.length === 1 || event.key === "Process") && !event.altKey) {
+      startEditing(active, true);
+    }
+  }
+
+  function onPaste(event: ClipboardEvent<HTMLDivElement>): void {
+    if (editing || !range || !canEdit) return;
+    event.preventDefault();
+    const cells = parseClipboard(event.clipboardData.getData("text/plain"));
+    const plan = planPaste(cells, range, rows, columns);
+    plan.problems.forEach((problem) => saves.markProblem(problem));
+    void saves.save(plan.saves).then((outcome) => {
+      const invalid = outcome.failed + plan.problems.length;
+      toast({
+        text: [
+          t("data.paste_result", { saved: outcome.saved, invalid }),
+          plan.skipped > 0 ? t("data.paste_skipped", { count: plan.skipped }) : "",
+          plan.overflow > 0 ? t("data.paste_overflow", { count: plan.overflow }) : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        undo: outcome.saved > 0 ? () => void runUndo() : undefined,
+      });
+    });
+  }
+
+  function onCopy(event: ClipboardEvent<HTMLDivElement>): void {
+    if (editing || !range) return;
+    event.preventDefault();
+    const lines: string[][] = [];
+    for (let row = range.top; row <= range.bottom; row += 1) {
+      const line: string[] = [];
+      for (let position = range.left; position <= range.right; position += 1) {
+        const release = rows[row];
+        const column = columns[position];
+        if (release && column) line.push(column.editText(release));
+      }
+      lines.push(line);
+    }
+    event.clipboardData.setData("text/plain", toClipboard(lines));
+  }
+
+  function cellAt(target: EventTarget): { release: Release; column: GridColumn } | null {
+    const element = target as HTMLElement;
+    const cell = element.closest<HTMLElement>("td[data-column]");
+    const row = cell?.closest<HTMLElement>("tr[data-row]");
+    if (!cell || !row) return null;
+    const release = rows[Number(row.dataset.row)];
+    const column = columns[Number(cell.dataset.column)];
+    return release && column ? { release, column } : null;
+  }
+
+  function onMouseDown(event: MouseEvent<HTMLTableSectionElement>): void {
+    const element = event.target as HTMLElement;
+    if (element.closest(".grid-editor, .picker, .grid-message")) return;
+    const found = cellAt(event.target);
+    if (!found) return;
+    const cell = { row: found.release.id, column: found.column.id };
+    clicking.current = true;
+    setActive(cell);
+    if (!event.shiftKey) setAnchor(cell);
+    // Keep the browser from selecting text while a range is being dragged. Focus moving to
+    // the grid is what closes an open editor, and saves it.
+    event.preventDefault();
+    focusGrid();
+    clicking.current = false;
+  }
+
+  function onMouseOver(event: MouseEvent<HTMLTableSectionElement>): void {
+    if (event.buttons !== 1 || editing) return;
+    const found = cellAt(event.target);
+    if (found) setActive({ row: found.release.id, column: found.column.id });
+  }
+
+  function onDoubleClick(event: MouseEvent<HTMLTableSectionElement>): void {
+    const element = event.target as HTMLElement;
+    if (element.closest("[data-action]")) return;
+    const found = cellAt(event.target);
+    if (!found) return;
+    if (found.column.editor === "none") onOpen(found.release.id);
+    else startEditing({ row: found.release.id, column: found.column.id }, false);
+  }
+
+  function onClick(event: MouseEvent<HTMLTableSectionElement>): void {
+    const element = event.target as HTMLElement;
+    const action = element.closest<HTMLElement>("[data-action]")?.dataset.action;
+    if (!action) return;
+    const found = cellAt(event.target);
+    if (!found) return;
+    const { release, column } = found;
+    if (action === "open") {
+      onOpen(release.id);
+    } else if (action === "toggle") {
+      event.preventDefault();
+      toggle(release, column);
+    } else {
+      const pending = saves.pending[release.id]?.[column.id];
+      if (action === "keep" && pending) void saves.keepMine(release.id, column.id, pending);
+      if (action === "theirs") {
+        saves.drop(release.id, column.id);
+        onRefresh();
+      }
+    }
+  }
+
+  const items = virtualizer.getVirtualItems();
+  const before = items.length > 0 ? items[0].start - headHeight : 0;
+  const after =
+    items.length > 0
+      ? virtualizer.getTotalSize() - (items[items.length - 1].end - headHeight)
+      : 0;
+  const coreRows = table.getRowModel().rows;
+  const pendingByRow: PendingCells = saves.pending;
+
+  return (
+    <div
+      ref={scroller}
+      className="grid-scroll"
+      role="grid"
+      aria-label={t("data.grid_label")}
+      aria-rowcount={rows.length + 1}
+      aria-colcount={columns.length}
+      aria-multiselectable
+      aria-activedescendant={active ? cellDomId(active) : undefined}
+      tabIndex={0}
+      style={{ scrollPaddingLeft: frozenWidth, scrollPaddingTop: headHeight }}
+      onKeyDown={onKeyDown}
+      onKeyUp={(event) => {
+        if ((event.key === "Meta" || event.key === "Control") && event.target === catcher.current) {
+          focusGrid();
+        }
+      }}
+      onPaste={onPaste}
+      onCopy={onCopy}
+      onFocus={(event) => {
+        // Arriving by Tab starts at the first cell. A click has chosen its own.
+        if (event.target === scroller.current && !active && !clicking.current && rows.length > 0) {
+          moveTo(0, 0);
+        }
+      }}
+    >
+      {/* Editable on purpose: browsers can turn Paste off for a read-only field. */}
+      <textarea ref={catcher} className="sr-only" tabIndex={-1} aria-hidden="true" />
+      <table className="grid-table" role="presentation" style={{ width: totalWidth }}>
+        <colgroup>
+          {columns.map((column) => (
+            <col key={column.id} style={{ width: column.width }} />
+          ))}
+        </colgroup>
+        <thead role="rowgroup">
+          <tr role="row" aria-rowindex={1} className="grid-head-row">
+            {columns.map((column, position) => (
+              <th
+                key={column.id}
+                role="columnheader"
+                aria-colindex={position + 1}
+                title={column.label}
+                className={[
+                  column.frozen ? "grid-head-frozen" : "",
+                  column.alignRight ? "text-right" : "",
+                ].join(" ")}
+                style={column.frozen ? { left: offsets[position] } : undefined}
+              >
+                {column.label}
+              </th>
+            ))}
+          </tr>
+          {newRow && (
+            <tr className="grid-new-row">
+              <th colSpan={columns.length} className="grid-new-cell">
+                {newRow}
+              </th>
+            </tr>
+          )}
+        </thead>
+        <tbody
+          role="rowgroup"
+          onMouseDown={onMouseDown}
+          onMouseOver={onMouseOver}
+          onDoubleClick={onDoubleClick}
+          onClick={onClick}
+        >
+          {before > 0 && (
+            <tr aria-hidden="true">
+              <td colSpan={columns.length} style={{ height: before }} />
+            </tr>
+          )}
+          {items.map((item) => {
+            const coreRow = coreRows[item.index];
+            if (!coreRow) return null;
+            const release = coreRow.original;
+            const inRows = range && item.index >= range.top && item.index <= range.bottom;
+            return (
+              <GridRow
+                key={release.id}
+                release={release}
+                index={item.index}
+                total={rows.length}
+                columns={columns}
+                offsets={offsets}
+                range={inRows ? rangeColumns : null}
+                activeColumn={active?.row === release.id ? active.column : null}
+                editing={editing?.row === release.id ? editing : null}
+                pending={pendingByRow[release.id]}
+                units={units}
+                onCommit={onCommit}
+                onPickResearcher={onPickResearcher}
+                onCancel={onCancel}
+              />
+            );
+          })}
+          {after > 0 && (
+            <tr aria-hidden="true">
+              <td colSpan={columns.length} style={{ height: after }} />
+            </tr>
+          )}
+        </tbody>
+      </table>
+      {rows.length === 0 && <div className="grid-empty">{empty}</div>}
+    </div>
+  );
+}

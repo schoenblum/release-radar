@@ -13,7 +13,7 @@ import MyFields from "./pages/MyFields";
 import Placeholder from "./pages/Placeholder";
 import Researchers from "./pages/Researchers";
 import ResetPassword from "./pages/ResetPassword";
-import DataPage from "./pages/data/DataPage";
+import DataPage from "./pages/releases/DataPage";
 import CheckpointsSettings from "./pages/settings/Checkpoints";
 import DataSettings from "./pages/settings/Data";
 import FormSettings from "./pages/settings/Form";
