@@ -124,6 +124,15 @@
     @apply mt-5xs px-5xs text-sm text-content-alert;
   }
 
+  .side-panel {
+    @apply fixed inset-y-0 right-0 z-20 w-full max-w-xl overflow-y-auto border-l border-line-disabled bg-surface-primary p-2xs shadow-md outline-none;
+  }
+
+  /* Stays in view while a wide table scrolls sideways. */
+  .pinned-right {
+    @apply sticky right-0 bg-surface-primary;
+  }
+
   .chip {
     @apply inline-block rounded-full border border-tag-1-line bg-tag-1 px-4xs text-sm;
   }

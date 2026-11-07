@@ -162,6 +162,7 @@ interface TextFieldProps {
   className?: string;
   disabled?: boolean;
   hint?: string;
+  title?: string;
 }
 
 export function TextField({
@@ -176,6 +177,7 @@ export function TextField({
   className = "cell-input",
   disabled = false,
   hint,
+  title,
 }: TextFieldProps) {
   const { draft, setDraft, status, commit, revert, keepMine, useTheirs } = useAutosave<string>(
     textFromServer(value),
@@ -201,6 +203,7 @@ export function TextField({
     className,
     disabled,
     placeholder,
+    title,
     value: draft,
     onKeyDown,
     onBlur: () => {

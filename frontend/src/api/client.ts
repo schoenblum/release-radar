@@ -112,6 +112,7 @@ export const http = {
     request<T>(path, body === undefined ? { method: "POST" } : post(body)),
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
+  delete: (path: string) => request<void>(path, { method: "DELETE" }),
   /** Save one field, naming the version last seen, so a conflict can be noticed (R3.3.3). */
   patchField: (path: string, field: string, value: unknown, version: number) =>
     request<FieldSaved>(path, {

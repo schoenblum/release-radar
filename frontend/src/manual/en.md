@@ -28,7 +28,13 @@ Numbers you track for yourself, such as clicks on your own links, go here. Open 
 
 Editors find **Researchers** in the top navigation, and admins find it under **Settings**. Search by name or identifier. Changes save as soon as you leave a field.
 
+Two different people can share a name, so a name alone never links a release to a record. A record with a namesake shows a small label, **Others with this name**, which finds them when clicked. Tick **Same name only** to see them all. The unit, identifiers and **Notes** tell them apart, so write something in **Notes** when nothing else does, such as a lab or a topic.
+
 To combine two records of the same person, choose **Merge** on the record you want to retire, search for the one to keep and choose **Keep this one**. Its releases move across, and any gaps on the record you keep are filled in.
+
+If that was a mistake, choose **Undo** straight away. Later on, choose **Split** on the record you kept, and then **Undo merge**: the merged record comes back with its releases.
+
+If one record covers two people, choose **Split**, tick the releases of the other person and choose where they go: a new record, which starts with the same name, or one that already exists.
 
 ## Settings for admins
 

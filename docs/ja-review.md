@@ -57,7 +57,6 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:nav.writers` | Writers | ライター | pending |
 | `frontend:placeholder.all_releases` | All releases, with search, filters and export, will appear here. | 全リリースの検索、絞り込み、エクスポートがここでできるようになります。 | pending |
 | `frontend:placeholder.my_releases` | Your releases and the numbers due will appear here. | 担当リリースと入力予定の数値がここに表示されます。 | pending |
-| `frontend:placeholder.settings` | Institution details, users, lists and other settings will appear here. | 機関情報、ユーザー、リストなどの設定がここでできるようになります。 | pending |
 | `frontend:placeholder.title` | This page is on its way | このページは準備中です | pending |
 | `frontend:placeholder.writers` | Monthly release counts per writer will appear here. | ライターごとの月別リリース数がここに表示されます。 | pending |
 | `frontend:reset.confirm_password` | Repeat the new password | 新しいパスワード（確認） | pending |
@@ -120,7 +119,6 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:conflict.message` | Someone else just changed this to “{{value}}”. | 他の方がこの項目を「{{value}}」に変更しました。 | pending |
 | `frontend:conflict.use_theirs` | Use theirs | 相手の内容を使う | pending |
 | `frontend:csv.did` | Added {{created}}, updated {{updated}}, left {{unchanged}} as they were. | {{created}} 件を追加、{{updated}} 件を更新しました。{{unchanged}} 件は変更していません。 | pending |
-| `frontend:csv.problem` | Row {{row}} ({{key}}): {{message}} | {{row}} 行目（{{key}}）：{{message}} | pending |
 | `frontend:csv.would` | This would add {{created}}, update {{updated}} and leave {{unchanged}} as they are. | {{created}} 件を追加、{{updated}} 件を更新し、{{unchanged}} 件は変更しません。 | pending |
 | `frontend:custom_field.add` | Add field | 項目を追加 | pending |
 | `frontend:custom_field.due` | Due at | 入力時点 | pending |
@@ -209,9 +207,8 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:researchers.given_name` | Given name | 名 | pending |
 | `frontend:researchers.merge` | Merge | 統合 | pending |
 | `frontend:researchers.merge_choose` | Keep this one | こちらを残す | pending |
-| `frontend:researchers.merge_hint` | Search for the record to keep. Its details stay, and gaps are filled from this one. | 残すレコードを検索してください。そのレコードの内容は保持され、空欄のみこのレコードの内容で補います。 | pending |
+| `frontend:researchers.merge_hint` | Search for the record to keep. Its details stay, and gaps are filled from this one. You can undo this later, under Split. | 残すレコードを検索してください。残すレコードの内容はそのまま保たれ、空欄はこのレコードの内容で補われます。統合は後から「分割」で取り消せます。 | pending |
 | `frontend:researchers.merge_into` | Merge {{name}} into: | {{name}} の統合先： | pending |
-| `frontend:researchers.merge_question` | Move {{count}} release(s) to {{name}} and retire this record? | {{count}} 件のリリースを {{name}} に移し、このレコードを統合しますか？ | pending |
 | `frontend:researchers.merged` | {{from}} was merged into {{to}}. | {{from}} を {{to}} に統合しました。 | pending |
 | `frontend:researchers.name` | Name as entered | 入力された氏名 | pending |
 | `frontend:researchers.name_ja` | Name (JA) | 氏名（日本語） | pending |
@@ -240,8 +237,8 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.checkpoints.metrics.altmetric` | Altmetric score | Altmetric スコア | pending |
 | `frontend:settings.checkpoints.metrics.ea_views` | EurekAlert views | EurekAlert 閲覧数 | pending |
 | `frontend:settings.checkpoints.metrics.hp_views` | Website views | ウェブサイト閲覧数 | pending |
-| `frontend:settings.checkpoints.offset` | Days after release | リリース後の日数 | pending |
-| `frontend:settings.checkpoints.reminders_later` | Reminder settings arrive with the reminders themselves, in a later phase. | リマインダーの設定は、今後のフェーズで機能とともに追加されます。 | pending |
+| `frontend:settings.checkpoints.offset` | Days from release | リリース日からの日数 | pending |
+| `frontend:settings.checkpoints.reminders_later` | The choice above is saved already. The reminder emails themselves arrive in a later phase. | 上記の選択はすでに保存されています。リマインダーメールの送信は、今後のフェーズで開始します。 | pending |
 | `frontend:settings.checkpoints.reminders_title` | Reminders | リマインダー | pending |
 | `frontend:settings.checkpoints.rules.always` | All releases | 全リリース | pending |
 | `frontend:settings.checkpoints.rules.embargoed` | Embargoed releases | エンバーゴ付きのリリース | pending |
@@ -292,12 +289,12 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.form.label_en` | Label (EN) | 名称（英語） | pending |
 | `frontend:settings.form.label_ja` | Label (JA) | 名称（日本語） | pending |
 | `frontend:settings.form.required` | Required | 必須 | pending |
-| `frontend:settings.help.checkpoints` | The moments after a release when numbers are collected, and which numbers those are. | リリース後に数値を収集する時点と、収集する数値を設定します。 | pending |
+| `frontend:settings.help.checkpoints` | The moments around a release when numbers are collected, and which numbers those are. | リリースの前後で数値を収集する時点と、収集する数値を設定します。 | pending |
 | `frontend:settings.help.data` | Your backups, a full copy of your data, and what the automatic jobs have been doing. | バックアップ、全データのエクスポート、自動処理の実行状況を確認できます。 | pending |
 | `frontend:settings.help.form` | Adapt the fields on a release: rename, hide, require or reorder them, or add your own. | リリースの項目を調整します。名称変更、非表示、必須、並べ替え、独自項目の追加ができます。 | pending |
 | `frontend:settings.help.institution` | Who you are and how the tool counts years. The defaults work, so change only what differs. | 機関の情報と年度の数え方を設定します。初期設定のままでも使えるので、異なる点だけ変更してください。 | pending |
 | `frontend:settings.help.lists` | The values people choose from. To retire an entry, switch off Active: releases that use it keep it. | 選択肢となる値です。使わなくなった項目は「有効」をオフにしてください。その項目を使っているリリースはそのまま残ります。 | pending |
-| `frontend:settings.help.researchers` | Everyone named on a release. Tidy up names, add identifiers and merge duplicates. Nothing here changes any statistics, because releases refer to the record and not the name. | リリースに登場する研究者です。氏名の整理、識別子の追加、重複の統合ができます。リリースは氏名ではなくレコードを参照するため、統計には影響しません。 | pending |
+| `frontend:settings.help.researchers` | Everyone named on a release. Tidy up names, add identifiers, merge duplicates and split records that cover two people. Nothing here changes any statistics, because releases refer to the record and not the name. | リリースに記載された研究者の一覧です。氏名の整理、識別子の追加、重複の統合、2 人分をまとめてしまったレコードの分割ができます。リリースは氏名ではなくレコードを参照しているため、統計には影響しません。 | pending |
 | `frontend:settings.help.users` | Invite people and choose what they can do. People are switched off rather than deleted, so their name stays in the history. | ユーザーを招待し、権限を設定します。ユーザーは削除せず無効にするため、履歴に名前が残ります。 | pending |
 | `frontend:settings.institution.ay_start` | Academic year starts in | 年度の開始月 | pending |
 | `frontend:settings.institution.code_pattern` | Release code pattern | リリースコードの形式 | pending |
@@ -388,9 +385,35 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:errors.invalid_doi` | Please enter a DOI like 10.1234/example, or a doi.org link. | 10.1234/example の形式の DOI、または doi.org のリンクを入力してください。 | pending |
 | `frontend:errors.invalid_time` | Please enter a time like 09:30. | 09:30 の形式で時刻を入力してください。 | pending |
 | `frontend:errors.invalid_url` | Please enter a web address starting with https://. | https:// で始まるウェブアドレスを入力してください。 | pending |
+| `frontend:errors.release_moved` | One of these releases has already moved. Please look again. | 選択したリリースのいずれかはすでに移動されています。もう一度ご確認ください。 | pending |
+| `frontend:errors.researcher_not_merged` | This record isn't merged into another one. | このレコードは他のレコードに統合されていません。 | pending |
+| `frontend:errors.split_into_self` | These releases are already on that record. | これらのリリースはすでにそのレコードにあります。 | pending |
 | `frontend:errors.title_or_doi_required` | A release needs a title or a DOI. | リリースにはタイトルまたは DOI が必要です。 | pending |
 | `frontend:errors.whole_number_required` | Please enter a whole number. | 整数を入力してください。 | pending |
+| `frontend:researchers.merge_undone` | The merge was undone. | 統合を取り消しました。 | pending |
+| `frontend:researchers.merged_entry` | {{name}}, merged on {{date}} (releases: {{count}}) | {{name}}（{{date}} に統合、リリース {{count}} 件） | pending |
+| `frontend:researchers.merged_title` | Merged into this record | このレコードに統合されたレコード | pending |
+| `frontend:researchers.no_code` | (no code yet) | （コード未付与） | pending |
+| `frontend:researchers.no_title` | (no title yet) | （タイトル未入力） | pending |
+| `frontend:researchers.notes` | Notes | メモ | pending |
+| `frontend:researchers.notes_hint` | Anything that tells namesakes apart, such as a lab or a topic. | 所属研究室や研究テーマなど、同姓同名の方を区別できる情報。 | pending |
+| `frontend:researchers.same_name` | Others with this name: {{count}} | 同じ氏名の他のレコード：{{count}} 件 | pending |
+| `frontend:researchers.same_name_only` | Same name only | 同じ氏名のみ | pending |
+| `frontend:researchers.split` | Split | 分割 | pending |
+| `frontend:researchers.split_done` | Releases moved to {{name}}: {{count}} | {{name}} に移動したリリース：{{count}} 件 | pending |
+| `frontend:researchers.split_existing` | An existing record | 既存のレコード | pending |
+| `frontend:researchers.split_hint` | For when one record covers two people. Tick the releases that belong to the other person. | 1 つのレコードに 2 人分がまとまっている場合に使います。もう 1 人のリリースにチェックを入れてください。 | pending |
+| `frontend:researchers.split_move` | Move selected ({{count}}) | 選択したリリースを移動（{{count}} 件） | pending |
+| `frontend:researchers.split_new` | A new record | 新しいレコード | pending |
+| `frontend:researchers.split_new_name` | Name of the new record | 新しいレコードの氏名 | pending |
+| `frontend:researchers.split_new_notes` | How to tell them apart (optional) | 区別するための情報（任意） | pending |
+| `frontend:researchers.split_none` | This record has no releases to move. | このレコードに移動できるリリースはありません。 | pending |
+| `frontend:researchers.split_target` | Move them to | 移動先 | pending |
+| `frontend:researchers.split_title` | Move releases from {{name}} to another record | {{name}} のリリースを別のレコードに移動 | pending |
+| `frontend:researchers.unmerge` | Undo merge | 統合を取り消す | pending |
+| `frontend:researchers.unmerged` | {{name}} is a separate record again. | {{name}} は再び別のレコードになりました。 | pending |
 | `frontend:settings.checkpoints.offset_help` | A negative number falls before the release date: −3 is three days before. Reminders go out at the start of the day you choose. | 負の数はリリース日より前の日を表します。−3 は 3 日前です。リマインダーは選択した日の朝に送信されます。 | pending |
 | `frontend:settings.checkpoints.remind` | Remind | リマインダー | pending |
 | `frontend:settings.checkpoints.remind_day_before` | The day before | 前日 | pending |
 | `frontend:settings.checkpoints.remind_on_day` | On the day | 当日 | pending |
+| `frontend:errors.researcher_in_use` | This record is still in use, so it stays. | このレコードは使用中のため、削除できません。 | pending |
