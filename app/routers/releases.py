@@ -10,10 +10,11 @@ Removing a release only hides it: Undo brings it back, and its code stays taken 
 
 import re
 from collections import defaultdict
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any, Literal
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, false, func, or_, select
@@ -34,6 +35,7 @@ from app.models import (
     ResearchField,
     Unit,
     User,
+    UserRole,
     Writer,
 )
 from app.schemas.releases import (
@@ -42,6 +44,7 @@ from app.schemas.releases import (
     CustomValuePatch,
     DoiLookup,
     DoiLookupOut,
+    DueItem,
     HistoryEntry,
     ReadingOut,
     ReadingPatch,
@@ -89,6 +92,10 @@ _DECIMAL_UNITS = frozenset({"score"})
 # A reading's history leaves out what only supports these.
 _READING_HISTORY_FIELDS = ("value", "state", "note")
 _PAPER_FIELDS = ("journal", "paper_title", "publication_date", "authors")
+# R7.5.1: besides what is due, what falls due in the next days.
+_DUE_HORIZON_DAYS = 3
+# Someone enters these by hand. Automatic and calculated measures ask nobody for anything.
+_ASKED_FOR_SOURCE = "manual"
 # Core-field settings use a name, and the release holds the reference.
 _CORE_ATTRIBUTES = {
     "writer": "writer_id",
@@ -343,6 +350,110 @@ async def list_releases(
         total=total or 0,
         has_writer_entry=writer_id is not None,
     )
+
+
+@router.get("/releases/due", response_model=list[DueItem])
+async def due_items(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[DueItem]:
+    """What this person is asked for, soonest first (R7.5.1): as writer, or as a field's owner.
+
+    Items stay until filled or set N/A, with no notion of late (P5). A custom field is not
+    asked for on dates before it existed: nobody can have been tracking it then.
+    """
+    if user.role == UserRole.viewer:
+        return []
+    institution = await db.get(Institution, user.institution_id)
+    today = today_in(institution.timezone)
+    horizon = today + timedelta(days=_DUE_HORIZON_DAYS)
+    writer_id = await db.scalar(
+        select(Writer.id).where(Writer.institution_id == institution.id, Writer.user_id == user.id)
+    )
+    is_live = [
+        Release.institution_id == institution.id,
+        Release.deleted_at.is_(None),
+        Release.release_date.is_not(None),
+    ]
+    items: list[DueItem] = []
+
+    def item(release: Release, due: date, label: Measure | CustomField, **extra: Any) -> DueItem:
+        return DueItem(
+            release_id=release.id,
+            release_code=release.code,
+            release_title=release.title or release.paper_title,
+            due_date=due,
+            due_now=due <= today,
+            label_en=label.label_en,
+            label_ja=label.label_ja,
+            **extra,
+        )
+
+    if writer_id is not None:
+        rows = await db.execute(
+            select(Reading, Measure, Checkpoint, Release)
+            .join(Measure, Measure.id == Reading.measure_id)
+            .join(Checkpoint, Checkpoint.id == Measure.checkpoint_id)
+            .join(Release, Release.id == Reading.release_id)
+            .where(
+                *is_live,
+                Release.writer_id == writer_id,
+                Reading.state == STATE_MISSING,
+                Measure.is_active.is_(True),
+                Measure.source == _ASKED_FOR_SOURCE,
+            )
+        )
+        for reading, measure, checkpoint, release in rows.all():
+            due = due_date(release.release_date, checkpoint.offset_days)
+            if due <= horizon:
+                items.append(
+                    item(
+                        release,
+                        due,
+                        measure,
+                        kind="reading",
+                        version=reading.version,
+                        reading_id=reading.id,
+                        measure_key=measure.key,
+                        measure_unit=measure.unit,
+                    )
+                )
+
+    fields = (
+        await db.execute(
+            select(CustomField, Checkpoint)
+            .join(Checkpoint, Checkpoint.id == CustomField.due_checkpoint_id)
+            .where(
+                CustomField.institution_id == institution.id,
+                CustomField.is_active.is_(True),
+                or_(CustomField.scope == "institution", CustomField.owner_id == user.id),
+            )
+        )
+    ).all()
+    if fields:
+        zone = ZoneInfo(institution.timezone)
+        releases = list(await db.scalars(select(Release).where(*is_live)))
+        for field, checkpoint in fields:
+            created = field.created_at.astimezone(zone).date()
+            for release in releases:
+                if field.scope == "institution" and release.writer_id != writer_id:
+                    continue
+                due = due_date(release.release_date, checkpoint.offset_days)
+                if field.key in release.custom_values or due > horizon or due < created:
+                    continue
+                items.append(
+                    item(
+                        release,
+                        due,
+                        field,
+                        kind="custom",
+                        version=release.field_versions.get(f"custom_values.{field.key}", 0),
+                        field_key=field.key,
+                        field_type=field.field_type,
+                    )
+                )
+    items.sort(key=lambda entry: (entry.due_date, entry.release_code or "", entry.label_en))
+    return items
 
 
 @router.post("/releases", response_model=ReleaseCreated, status_code=status.HTTP_201_CREATED)
@@ -696,6 +807,29 @@ async def release_history(
         .order_by(AuditLog.created_at.desc(), AuditLog.id)
         .limit(limit)
     )
+    entries = rows.all()
+    researcher_ids = {
+        UUID(value)
+        for entry, _ in entries
+        if entry.field == "researcher_id"
+        for value in (entry.old_value, entry.new_value)
+        if value
+    }
+    names = (
+        dict(
+            (
+                await db.execute(
+                    select(Researcher.id, Researcher.name).where(Researcher.id.in_(researcher_ids))
+                )
+            ).all()
+        )
+        if researcher_ids
+        else {}
+    )
+
+    def label(entry: AuditLog, value: Any) -> str | None:
+        return names.get(UUID(value)) if value and entry.field == "researcher_id" else None
+
     return [
         HistoryEntry(
             at=entry.created_at,
@@ -705,9 +839,11 @@ async def release_history(
             field=entry.field,
             old_value=entry.old_value,
             new_value=entry.new_value,
+            old_label=label(entry, entry.old_value),
+            new_label=label(entry, entry.new_value),
             user_id=entry.user_id,
             user_name=(person.full_name or person.email) if person else None,
             user_active=person.is_active if person else None,
         )
-        for entry, person in rows.all()
+        for entry, person in entries
     ]

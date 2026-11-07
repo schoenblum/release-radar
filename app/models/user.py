@@ -18,8 +18,9 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -40,7 +41,7 @@ class User(Record, Base):
     )
     # A password change is recorded, but never the hash.
     __audit_redact__ = frozenset({"password_hash"})
-    __audit_exclude__ = frozenset({"token_version", "last_login_at"})
+    __audit_exclude__ = frozenset({"token_version", "last_login_at", "preferences"})
 
     email: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -58,6 +59,10 @@ class User(Record, Base):
     )
     # Null until the person picks a language. The browser language applies until then.
     language: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    # How this person likes their screens, such as which columns they see. Not a record.
+    preferences: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb")
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     force_password_change: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     # Part of every access token. Raising it invalidates the tokens already issued.

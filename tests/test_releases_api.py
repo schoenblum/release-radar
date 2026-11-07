@@ -1390,3 +1390,257 @@ async def test_the_checkpoints_keep_their_check_on_reminders():
         )
         with pytest.raises(Exception, match="remind_days_before_known"):
             await db.commit()
+
+
+# ---------------------------------------------------------------- what is due
+
+
+DUE = f"{URL}/due"
+
+
+async def _writer_with_release(client, headers, email, release_date, **fields):
+    """A writer's release whose day-28 EurekAlert views apply, dated as asked."""
+    made = await _create(client, headers)
+    made = await _set(client, made, headers, "ea_url", "https://www.eurekalert.org/news-releases/1")
+    made = await _set(client, made, headers, "release_date", release_date.isoformat())
+    for field, value in fields.items():
+        made = await _set(client, made, headers, field, value)
+    return made
+
+
+async def test_what_is_due_is_what_the_writer_has_left_to_enter(client, headers_for):
+    """R7.5.1, with the release 28 days old, so day 28 is today."""
+    editor = await headers_for(UserRole.editor, "writer@example.org")
+    await _link_writer("writer@example.org")
+    today = today_in("Asia/Tokyo")
+    made = await _writer_with_release(
+        client, editor, "writer@example.org", today - timedelta(days=28)
+    )
+
+    items = (await client.get(DUE, headers=editor)).json()
+    assert len(items) == 1
+    item = items[0]
+    assert item["kind"] == "reading"
+    assert item["measure_key"] == "ea_views.d28"
+    assert item["release_id"] == made["id"]
+    assert item["release_code"] == made["code"]
+    assert item["release_title"] == "A release"
+    assert item["due_date"] == today.isoformat()
+    assert item["due_now"] is True
+    assert item["reading_id"] == _reading(made, "ea_views.d28")["id"]
+    assert item["version"] == _reading(made, "ea_views.d28")["version"]
+    # Nothing here judges: there is no notion of late (P5).
+    assert not {"late", "overdue"} & set(item)
+
+
+async def test_entering_it_or_setting_it_na_clears_it(client, headers_for):
+    editor = await headers_for(UserRole.editor, "writer@example.org")
+    await _link_writer("writer@example.org")
+    today = today_in("Asia/Tokyo")
+    first = await _writer_with_release(
+        client, editor, "writer@example.org", today - timedelta(days=30)
+    )
+    second = await _writer_with_release(
+        client, editor, "writer@example.org", today - timedelta(days=31)
+    )
+    assert len((await client.get(DUE, headers=editor)).json()) == 2
+    await _enter(client, _reading(first, "ea_views.d28"), editor, value=5)
+    assert len((await client.get(DUE, headers=editor)).json()) == 1
+    await _enter(client, _reading(second, "ea_views.d28"), editor, state="not_applicable")
+    assert (await client.get(DUE, headers=editor)).json() == []
+
+
+async def test_due_soon_is_included_and_marked_and_further_off_is_not(client, headers_for):
+    editor = await headers_for(UserRole.editor, "writer@example.org")
+    await _link_writer("writer@example.org")
+    today = today_in("Asia/Tokyo")
+    # Falling due today, in 3 days, in 4 days.
+    for days_ago in (28, 25, 24):
+        await _writer_with_release(
+            client, editor, "writer@example.org", today - timedelta(days=days_ago)
+        )
+    items = (await client.get(DUE, headers=editor)).json()
+    assert [(item["due_date"], item["due_now"]) for item in items] == [
+        (today.isoformat(), True),
+        ((today + timedelta(days=3)).isoformat(), False),
+    ]
+
+
+async def test_soonest_comes_first(client, headers_for):
+    editor = await headers_for(UserRole.editor, "writer@example.org")
+    await _link_writer("writer@example.org")
+    today = today_in("Asia/Tokyo")
+    for days_ago in (30, 40, 35):
+        await _writer_with_release(
+            client, editor, "writer@example.org", today - timedelta(days=days_ago)
+        )
+    items = (await client.get(DUE, headers=editor)).json()
+    dates = [item["due_date"] for item in items]
+    assert dates == sorted(dates)
+
+
+async def test_changing_the_writer_moves_the_due_items(client, headers_for):
+    """R7.5.2."""
+    one = await headers_for(UserRole.editor, "one@example.org")
+    two = await headers_for(UserRole.editor, "two@example.org")
+    await _link_writer("one@example.org", "One")
+    second = await _link_writer("two@example.org", "Two")
+    today = today_in("Asia/Tokyo")
+    made = await _writer_with_release(client, one, "one@example.org", today - timedelta(days=30))
+    assert len((await client.get(DUE, headers=one)).json()) == 1
+    assert (await client.get(DUE, headers=two)).json() == []
+    await _set(client, made, one, "writer_id", str(second.id))
+    assert (await client.get(DUE, headers=one)).json() == []
+    assert len((await client.get(DUE, headers=two)).json()) == 1
+
+
+async def test_a_checkpoint_before_the_release_can_be_due_before_it(client, headers_for):
+    """R6.5.3."""
+    admin = await headers_for(UserRole.admin, "writer@example.org")
+    await _link_writer("writer@example.org")
+    checkpoint = (
+        await client.post(
+            "/api/v1/checkpoints",
+            headers=admin,
+            json={"values": {"label_en": "Before", "offset_days": -3}},
+        )
+    ).json()
+    await client.post(
+        "/api/v1/measures",
+        headers=admin,
+        json={"metric": "altmetric", "checkpoint_id": checkpoint["id"], "label_en": "Before"},
+    )
+    today = today_in("Asia/Tokyo")
+    made = await _create(client, admin)
+    made = await _set(client, made, admin, "doi", DOI)
+    await _set(client, made, admin, "release_date", (today + timedelta(days=3)).isoformat())
+    items = (await client.get(DUE, headers=admin)).json()
+    early = next(item for item in items if item["measure_key"] == "altmetric.d-3")
+    assert (early["due_date"], early["due_now"]) == (today.isoformat(), True)
+
+
+async def test_automatic_measures_ask_nobody(client, headers_for):
+    editor = await headers_for(UserRole.editor, "writer@example.org")
+    await _link_writer("writer@example.org")
+    today = today_in("Asia/Tokyo")
+    made = await _create(client, editor)
+    made = await _set(client, made, editor, "website_url", "https://news.example.org/a")
+    made = await _set(
+        client, made, editor, "release_date", (today - timedelta(days=30)).isoformat()
+    )
+    assert _reading(made, "hp_views.d28")["display_state"] == "missing"
+    assert (await client.get(DUE, headers=editor)).json() == []
+
+
+async def test_a_removed_release_or_someone_elses_is_not_asked_for(client, headers_for):
+    editor = await headers_for(UserRole.editor, "writer@example.org")
+    other = await headers_for(UserRole.editor, "other@example.org")
+    await _link_writer("writer@example.org", "Mine")
+    today = today_in("Asia/Tokyo")
+    made = await _writer_with_release(
+        client, editor, "writer@example.org", today - timedelta(days=30)
+    )
+    await _writer_with_release(client, other, "other@example.org", today - timedelta(days=30))
+    assert len((await client.get(DUE, headers=editor)).json()) == 1
+    await client.delete(f"{URL}/{made['id']}", headers=editor)
+    assert (await client.get(DUE, headers=editor)).json() == []
+
+
+async def test_a_viewer_or_someone_with_no_writer_entry_is_asked_for_nothing(client, headers_for):
+    editor = await headers_for(UserRole.editor)
+    viewer = await headers_for(UserRole.viewer)
+    today = today_in("Asia/Tokyo")
+    await _writer_with_release(client, editor, "", today - timedelta(days=30))
+    assert (await client.get(DUE, headers=editor)).json() == []
+    assert (await client.get(DUE, headers=viewer)).json() == []
+
+
+async def _due_field(client, headers, scope="personal", **values):
+    checkpoints = (await client.get("/api/v1/checkpoints", headers=headers)).json()
+    d0 = next(row for row in checkpoints if row["key"] == "d0")
+    return await _custom_field(
+        client, headers, scope=scope, due_checkpoint_id=d0["id"], label_en="Clicks", **values
+    )
+
+
+async def test_a_personal_field_asks_its_owner_on_any_release(client, headers_for):
+    """R7.5.1: "or, for personal fields, the owner"."""
+    owner = await headers_for(UserRole.editor, "owner@example.org")
+    writer = await headers_for(UserRole.editor, "writer@example.org")
+    await _link_writer("writer@example.org")
+    field = await _due_field(client, owner)
+    today = today_in("Asia/Tokyo")
+    made = await _create(client, writer)
+    made = await _set(client, made, writer, "release_date", today.isoformat())
+
+    items = (await client.get(DUE, headers=owner)).json()
+    assert [(item["kind"], item["field_key"], item["field_type"]) for item in items] == [
+        ("custom", field["key"], "integer")
+    ]
+    assert items[0]["release_id"] == made["id"]
+    assert items[0]["label_en"] == "Clicks"
+    assert items[0]["version"] == 0
+    assert (await client.get(DUE, headers=writer)).json() == []
+
+    await _custom(client, made, field["key"], owner, value=3)
+    assert (await client.get(DUE, headers=owner)).json() == []
+
+
+async def test_na_counts_as_an_answer_for_a_custom_field(client, headers_for):
+    owner = await headers_for(UserRole.editor, "owner@example.org")
+    field = await _due_field(client, owner)
+    made = await _create(client, owner)
+    made = await _set(client, made, owner, "release_date", today_in("Asia/Tokyo").isoformat())
+    await _custom(client, made, field["key"], owner, state="not_applicable")
+    assert (await client.get(DUE, headers=owner)).json() == []
+
+
+async def test_an_institution_field_asks_the_writer(client, headers_for):
+    admin = await headers_for(UserRole.admin)
+    writer = await headers_for(UserRole.editor, "writer@example.org")
+    other = await headers_for(UserRole.editor, "other@example.org")
+    await _link_writer("writer@example.org")
+    await _due_field(client, admin, scope="institution")
+    made = await _create(client, writer)
+    await _set(client, made, writer, "release_date", today_in("Asia/Tokyo").isoformat())
+    assert len((await client.get(DUE, headers=writer)).json()) == 1
+    assert (await client.get(DUE, headers=other)).json() == []
+    assert (await client.get(DUE, headers=admin)).json() == []
+
+
+async def test_a_field_does_not_ask_for_dates_before_it_existed(client, headers_for):
+    """Otherwise a new field would ask for every old release at once."""
+    owner = await headers_for(UserRole.editor, "owner@example.org")
+    await _due_field(client, owner)
+    made = await _create(client, owner)
+    last_year = today_in("Asia/Tokyo") - timedelta(days=365)
+    await _set(client, made, owner, "release_date", last_year.isoformat())
+    assert (await client.get(DUE, headers=owner)).json() == []
+
+
+async def test_a_retired_field_asks_nobody(client, headers_for):
+    owner = await headers_for(UserRole.editor, "owner@example.org")
+    field = await _due_field(client, owner)
+    made = await _create(client, owner)
+    await _set(client, made, owner, "release_date", today_in("Asia/Tokyo").isoformat())
+    await client.patch(
+        f"/api/v1/custom-fields/{field['id']}",
+        headers=owner,
+        json={"field": "is_active", "value": False, "version": 0},
+    )
+    assert (await client.get(DUE, headers=owner)).json() == []
+
+
+async def test_history_names_the_researcher(client, admin_headers):
+    institution = await _institution()
+    one = await _add(Researcher(institution_id=institution.id, name="First Person"))
+    two = await _add(Researcher(institution_id=institution.id, name="Second Person"))
+    made = await _create(client, admin_headers)
+    made = await _set(client, made, admin_headers, "researcher_id", str(one.id))
+    await _set(client, made, admin_headers, "researcher_id", str(two.id))
+    history = (await client.get(f"{URL}/{made['id']}/history", headers=admin_headers)).json()
+    changes = [entry for entry in history if entry["field"] == "researcher_id"]
+    assert [(entry["old_label"], entry["new_label"]) for entry in changes] == [
+        ("First Person", "Second Person"),
+        (None, "First Person"),
+    ]

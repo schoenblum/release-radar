@@ -25,10 +25,22 @@ class UserOut(BaseModel):
     created_at: datetime
 
 
+class DataColumns(BaseModel):
+    """Differences from the default columns, so a column added later still shows up."""
+
+    hidden: list[str] = Field(default=[], max_length=500)
+    shown: list[str] = Field(default=[], max_length=500)
+
+
+class UserPreferences(BaseModel):
+    data_columns: DataColumns = DataColumns()
+
+
 class CurrentUserOut(UserOut):
     """The signed-in person, with where they land after signing in."""
 
     landing: str = "all"
+    preferences: UserPreferences = UserPreferences()
 
 
 class UserCreate(BaseModel):
@@ -56,6 +68,7 @@ class UserAdminUpdate(BaseModel):
 class UserSelfUpdate(BaseModel):
     full_name: str | None = Field(default=None, max_length=255)
     language: Language | None = None
+    preferences: UserPreferences | None = None
 
 
 class PasswordResetByAdmin(BaseModel):

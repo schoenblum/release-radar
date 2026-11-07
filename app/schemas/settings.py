@@ -156,6 +156,7 @@ class CustomFieldOut(_Out):
     is_active: bool
     due_checkpoint_id: UUID | None
     score_eligible: bool
+    created_at: datetime
     field_versions: dict[str, int]
 
 
@@ -232,6 +233,7 @@ class ResearcherCreate(BaseModel):
     family_name: str | None = None
     name_ja: str | None = None
     current_unit_id: UUID | None = None
+    orcid: str | None = None
     gender: str = "not_recorded"
     status: str = "incomplete"
 

@@ -128,6 +128,26 @@ class DoiLookupOut(BaseModel):
     authors: list[dict[str, Any]]
 
 
+class DueItem(BaseModel):
+    """Something this person is asked for (R7.5.1). Never called late or overdue (P5)."""
+
+    kind: Literal["reading", "custom"]
+    release_id: UUID
+    release_code: str | None
+    release_title: str | None
+    due_date: date
+    # False means it is coming up in the next few days.
+    due_now: bool
+    label_en: str
+    label_ja: str | None
+    version: int
+    reading_id: UUID | None = None
+    measure_key: str | None = None
+    measure_unit: str | None = None
+    field_key: str | None = None
+    field_type: str | None = None
+
+
 class HistoryEntry(BaseModel):
     at: datetime
     action: str
@@ -138,6 +158,9 @@ class HistoryEntry(BaseModel):
     field: str | None
     old_value: Any
     new_value: Any
+    # The researcher's name, where the value is an ID the screen has no list for.
+    old_label: str | None = None
+    new_label: str | None = None
     user_id: UUID | None
     user_name: str | None
     user_active: bool | None

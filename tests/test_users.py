@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 
 from app.database import SessionLocal
-from app.models import Institution, RefreshToken, User, UserRole
+from app.models import AuditLog, Institution, RefreshToken, User, UserRole
 from app.services.security import hash_password
 from tests.conftest import bearer, plain_body, sign_in
 
@@ -197,3 +197,40 @@ async def test_admins_see_and_change_only_their_own_institution(client, admin_he
         f"/api/v1/users/{outsider.id}", headers=admin_headers, json={"is_active": False}
     )
     assert changed.status_code == 404
+
+
+# ---------------------------------------------------------------- preferences
+
+
+async def test_a_person_keeps_their_column_choice(client, headers_for):
+    headers = await headers_for(UserRole.editor)
+    me = (await client.get("/api/v1/auth/me", headers=headers)).json()
+    assert me["preferences"] == {"data_columns": {"hidden": [], "shown": []}}
+
+    choice = {"data_columns": {"hidden": ["unit"], "shown": ["journal"]}}
+    saved = await client.patch("/api/v1/users/me", headers=headers, json={"preferences": choice})
+    assert saved.status_code == 200
+    assert saved.json()["preferences"] == choice
+    me = (await client.get("/api/v1/auth/me", headers=headers)).json()
+    assert me["preferences"] == choice
+
+
+async def test_preferences_are_checked_and_are_not_a_record_change(client, headers_for):
+    headers = await headers_for(UserRole.editor, "tidy@example.org")
+    bad = await client.patch(
+        "/api/v1/users/me",
+        headers=headers,
+        json={"preferences": {"data_columns": {"hidden": "unit"}}},
+    )
+    assert bad.status_code == 422
+    await client.patch(
+        "/api/v1/users/me",
+        headers=headers,
+        json={"preferences": {"data_columns": {"hidden": ["unit"]}}},
+    )
+    async with SessionLocal() as db:
+        user_id = await db.scalar(select(User.id).where(User.email == "tidy@example.org"))
+        entry = await db.scalar(
+            select(AuditLog).where(AuditLog.entity_id == user_id, AuditLog.field == "preferences")
+        )
+    assert entry is None
