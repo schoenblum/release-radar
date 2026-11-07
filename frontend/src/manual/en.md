@@ -20,6 +20,43 @@ Open the menu with your name at the top right and choose **Change password**. Ot
 
 Use the button next to your name at the top right to switch between English and Japanese. Release Radar remembers your choice.
 
+## The Data page
+
+**Data** is where releases live. **Mine** shows the releases you write, and **All** shows everyone's. You can fill in any of them.
+
+### Add a release
+
+Paste a DOI or type a title in the top row and press Enter. With a DOI, Release Radar fills in the journal, paper title, date and authors. Everything else can follow, and adding several in a row is just doing this again. A release gets its code when its release date is first entered.
+
+### Fill in the numbers
+
+**Due now**, at the top of **Mine**, lists what is waiting for you and what comes up in the next three days. Type a number and press Enter, and the next one is ready. Choose **N/A** if it doesn't apply. Nothing here is ever late: items simply wait until you get to them.
+
+### Work in the grid
+
+The grid works like a spreadsheet, and everything saves by itself.
+
+- Select a cell and type to replace it, or press Enter to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back.
+- Arrow keys move around. Hold Shift to select a range, or drag across cells.
+- Type `-` or `N/A` in a number cell to mark it as not applicable, and press Delete to clear it.
+- Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole.
+
+A tinted cell is due and empty. **N/A** on grey means the number can't exist for this release, such as Altmetric without a DOI. A plain empty cell is simply not due yet.
+
+If something can't be saved, the cell turns pink and keeps what you typed, and selecting it says why. Nothing else is held up.
+
+### Paste a column
+
+Copy cells from a spreadsheet or a web page, select the first cell to fill, and press Cmd/Ctrl+V. If you select a range and paste one value, it fills the range. Each cell is checked on its own, so one bad value costs only that cell, and a message says how it went. Thousands separators such as `1,234` are fine.
+
+### The full record
+
+Click a title, or press Shift+Enter on a row, to open its full record beside the grid: every field, the paper's details, all the numbers with their notes, and the history of who changed what. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
+
+### Choose your columns
+
+**Columns** chooses what the grid shows. Release Radar remembers your choice.
+
 ## My fields
 
 Numbers you track for yourself, such as clicks on your own links, go here. Open the menu with your name and choose **My fields**, then add a field. Set **Due at** to get a reminder at that checkpoint. Colleagues can see your fields next to your name, and only you can change them.

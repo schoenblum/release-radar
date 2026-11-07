@@ -17,9 +17,15 @@ export interface User {
   created_at: string;
 }
 
+export interface UserPreferences {
+  /** Differences from the default columns, so a column added later still shows up. */
+  data_columns: { hidden: string[]; shown: string[] };
+}
+
 /** The signed-in person, with where they land after signing in. */
 export interface CurrentUser extends User {
   landing: LandingView;
+  preferences: UserPreferences;
 }
 
 export interface TokenResponse {
@@ -225,6 +231,7 @@ export interface CustomField {
   is_active: boolean;
   due_checkpoint_id: string | null;
   score_eligible: boolean;
+  created_at: string;
   field_versions: FieldVersions;
 }
 
@@ -372,6 +379,25 @@ export interface DoiLookupResult {
   authors: Author[];
 }
 
+/** Something this person is asked for. There is no notion of late. */
+export interface DueItem {
+  kind: "reading" | "custom";
+  release_id: string;
+  release_code: string | null;
+  release_title: string | null;
+  due_date: string;
+  /** False means it is coming up in the next few days. */
+  due_now: boolean;
+  label_en: string;
+  label_ja: string | null;
+  version: number;
+  reading_id: string | null;
+  measure_key: string | null;
+  measure_unit: string | null;
+  field_key: string | null;
+  field_type: CustomFieldType | null;
+}
+
 export interface HistoryEntry {
   at: string;
   action: "create" | "update" | "delete";
@@ -380,6 +406,8 @@ export interface HistoryEntry {
   field: string | null;
   old_value: unknown;
   new_value: unknown;
+  old_label: string | null;
+  new_label: string | null;
   user_id: string | null;
   user_name: string | null;
   user_active: boolean | null;

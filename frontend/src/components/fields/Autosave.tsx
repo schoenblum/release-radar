@@ -188,6 +188,8 @@ export function TextField({
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): void {
     if (event.key === "Escape") {
+      // With something to take back, Esc does only that, and a panel around it stays open.
+      if (draft !== textFromServer(value)) event.stopPropagation();
       revert();
     } else if (event.key === "Enter" && !multiline) {
       event.preventDefault();

@@ -13,6 +13,7 @@ import MyFields from "./pages/MyFields";
 import Placeholder from "./pages/Placeholder";
 import Researchers from "./pages/Researchers";
 import ResetPassword from "./pages/ResetPassword";
+import DataPage from "./pages/data/DataPage";
 import CheckpointsSettings from "./pages/settings/Checkpoints";
 import DataSettings from "./pages/settings/Data";
 import FormSettings from "./pages/settings/Form";
@@ -73,8 +74,7 @@ export default function App() {
             }
           >
             <Route index element={<Home />} />
-            <Route path="my-releases" element={<Placeholder page="my_releases" />} />
-            <Route path="releases" element={<Placeholder page="all_releases" />} />
+            <Route path="data" element={<DataPage />} />
             <Route path="writers" element={<Placeholder page="writers" />} />
             <Route path="manual" element={<Manual />} />
             <Route

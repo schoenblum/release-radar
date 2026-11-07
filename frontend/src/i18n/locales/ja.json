@@ -7,12 +7,11 @@
   },
   "nav": {
     "main": "メイン",
-    "my_releases": "担当リリース",
-    "all_releases": "全リリース",
     "writers": "ライター",
     "settings": "設定",
     "manual": "マニュアル",
-    "researchers": "研究者"
+    "researchers": "研究者",
+    "data": "データ"
   },
   "language": {
     "switch_to": "English",
@@ -67,8 +66,6 @@
   },
   "placeholder": {
     "title": "このページは準備中です",
-    "my_releases": "担当リリースと入力予定の数値がここに表示されます。",
-    "all_releases": "全リリースの検索、絞り込み、エクスポートがここでできるようになります。",
     "writers": "ライターごとの月別リリース数がここに表示されます。"
   },
   "errors": {
@@ -120,7 +117,8 @@
     "release_moved": "選択したリリースのいずれかはすでに移動されています。もう一度ご確認ください。",
     "split_into_self": "これらのリリースはすでにそのレコードにあります。",
     "researcher_not_merged": "このレコードは他のレコードに統合されていません。",
-    "researcher_in_use": "このレコードは使用中のため、削除できません。"
+    "researcher_in_use": "このレコードは使用中のため、削除できません。",
+    "researcher_needs_choosing": "氏名だけではレコードを特定できません。セルで選択してください。"
   },
   "common": {
     "saving": "保存中…",
@@ -456,5 +454,83 @@
     "ea_top_page": "EurekAlert トップページ掲載",
     "ea_top_position": "トップページの掲載順",
     "notes": "メモ"
+  },
+  "data": {
+    "views": {
+      "mine": "自分の担当",
+      "all": "すべて"
+    },
+    "view_label": "表示するリリース",
+    "grid_label": "リリース",
+    "new_release": "＋ 新しいリリース：DOI を貼り付けるかタイトルを入力して Enter",
+    "columns": "表示項目",
+    "columns_not_saved": "表示項目の選択を保存できませんでした。このページを離れるまでは適用されます。",
+    "column_groups": {
+      "release": "リリース",
+      "paper": "論文",
+      "numbers": "数値",
+      "custom": "個人用・機関共通の項目",
+      "colleagues": "同僚の項目"
+    },
+    "count": "{{total}} 件中 {{count}} 件を表示",
+    "keys_hint": "入力で編集、Enter で保存して下へ、Esc で取り消し、Shift+Enter で詳細、Cmd/Ctrl+Z で元に戻します。",
+    "empty": "リリースはまだありません。上の欄に DOI を貼り付けるかタイトルを入力してください。",
+    "empty_read_only": "リリースはまだありません。",
+    "empty_no_writer": "ライターとして登録されていないため、担当のリリースはありません。管理者が 設定 → リスト → ライター で紐付けできます。",
+    "code_hint": "リリース日を初めて入力したときに付与されます。",
+    "not_applicable": "該当なし",
+    "due_on": "入力時期 {{date}}",
+    "coming_up": "まもなく {{date}}",
+    "due_title": "入力時期を迎えた項目",
+    "due_count": "入力時期を迎えた項目：{{count}} 件",
+    "caught_up": "すべて入力済みです。現在入力が必要な項目はありません。",
+    "open_to_fill": "開いて入力",
+    "failed_hint": "Enter で修正、Esc で元の値に戻します。",
+    "paste_result": "{{saved}} 件を保存、{{invalid}} 件は入力できませんでした。色の付いたセルをご確認ください。",
+    "paste_skipped": "{{count}} 件はここでは変更できません。",
+    "paste_overflow": "{{count}} 件は範囲に収まりませんでした。",
+    "undid": "元に戻しました：{{count}} 件",
+    "undo_failed": "元に戻せませんでした。他の方が変更した可能性があります。",
+    "owned_by": "{{label}}（{{owner}}）",
+    "crossref_found": "論文が見つかりました：{{title}}",
+    "crossref_not_found": "Crossref にこの DOI は登録されていません。リリースは保存されています。論文情報は手入力できます。",
+    "crossref_unavailable": "現在 Crossref に接続できません。リリースは保存されています。論文情報は後からリリースの詳細で取得できます。",
+    "researcher_search": "氏名を検索または入力",
+    "researcher_authors": "論文の著者",
+    "researcher_directory": "研究者",
+    "researcher_create": "新しいレコードを作成：{{name}}",
+    "researcher_clear": "研究者を外す",
+    "close": "閉じる",
+    "change": "変更",
+    "remove": "このリリースを削除",
+    "removed": "{{name}} を削除しました。",
+    "refetch": "Crossref から再取得",
+    "refetch_question": "雑誌名、論文タイトル、日付、著者を Crossref の情報に置き換えますか？",
+    "authors_hint": "1 行に 1 名ずつ入力してください。",
+    "still_needed": "未入力：{{fields}}",
+    "set_na": "該当なしにする",
+    "clear_na": "該当なしを解除",
+    "reading_note": "{{measure}} のメモ",
+    "reading_note_placeholder": "メモ（任意）",
+    "reading_states": {
+      "value": "入力済み",
+      "not_applicable": "該当なし",
+      "missing": "数値の入力待ち",
+      "not_yet_due": "入力時期前"
+    },
+    "drawer_release": "リリース",
+    "drawer_paper": "論文",
+    "drawer_numbers": "数値",
+    "drawer_custom": "その他の項目",
+    "drawer_history": "履歴",
+    "history_created": "リリースを作成",
+    "history_removed": "削除",
+    "history_system": "Release Radar",
+    "history_note": "{{measure}} のメモ",
+    "warnings": {
+      "ea_url_unusual": "EurekAlert のリリースのリンクではないようです。このまま保存されています。",
+      "website_off_domain": "ニュースサイト上のページではないため、ウェブサイトの閲覧数は対象外です。このまま保存されています。"
+    },
+    "not_a_number": "数値を入力してください。該当しない場合は - を入力してください。"
   }
 }

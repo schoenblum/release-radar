@@ -25,7 +25,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 /** Where someone lands after signing in (D10), as set per role in Settings. */
 export function homePath(user: Pick<CurrentUser, "landing">): string {
-  return user.landing === "mine" ? "/my-releases" : "/releases";
+  return `/data?view=${user.landing}`;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

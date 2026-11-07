@@ -20,8 +20,7 @@ export default function Layout() {
   });
 
   const items = [
-    { to: "/my-releases", label: t("nav.my_releases") },
-    { to: "/releases", label: t("nav.all_releases") },
+    { to: "/data", label: t("nav.data") },
     { to: "/writers", label: t("nav.writers") },
     ...(user?.role === "editor" ? [{ to: "/researchers", label: t("nav.researchers") }] : []),
     ...(user?.role === "admin" ? [{ to: "/settings", label: t("nav.settings") }] : []),

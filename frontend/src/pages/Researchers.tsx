@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { http } from "../api/client";
@@ -16,6 +16,8 @@ import type {
 import { useAuth } from "../auth";
 import { useBrand } from "../brand";
 import AddEntry from "../components/AddEntry";
+import RecordSummary from "../components/RecordSummary";
+import SidePanel from "../components/SidePanel";
 import { SelectField, TextField } from "../components/fields/Autosave";
 import { useFieldSaver } from "../components/fields/useFieldSaver";
 import { useToast } from "../components/Toast";
@@ -37,46 +39,6 @@ function useDebounced<T>(value: T, delayMs: number): T {
   return debounced;
 }
 
-/**
- * Opens beside the table, not inside it: the table is wide and scrolls sideways, which would
- * carry a panel in one of its rows out of view.
- */
-function SidePanel({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  const { t } = useTranslation();
-  const panel = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (!panel.current?.contains(document.activeElement)) panel.current?.focus();
-  }, []);
-  return (
-    <aside
-      ref={panel}
-      role="dialog"
-      aria-label={title}
-      tabIndex={-1}
-      className="side-panel"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") onClose();
-      }}
-    >
-      <div className="mb-3xs flex items-start justify-between gap-4xs">
-        <h2 className="font-semibold">{title}</h2>
-        <button type="button" className="btn-small" onClick={onClose}>
-          {t("common.cancel")}
-        </button>
-      </div>
-      {children}
-    </aside>
-  );
-}
-
 /** Records to choose from, with what tells namesakes apart beside each name. */
 function useRecordSearch(term: string, exclude: string) {
   const debounced = useDebounced(term, 250);
@@ -87,24 +49,6 @@ function useRecordSearch(term: string, exclude: string) {
     enabled: debounced.trim().length > 0,
   });
   return (data?.items ?? []).filter((item) => item.id !== exclude);
-}
-
-function RecordSummary({ record, units }: { record: Researcher; units: Unit[] }) {
-  const { t, i18n } = useTranslation();
-  const unit = units.find((item) => item.id === record.current_unit_id);
-  const unitName = unit ? (i18n.language === "ja" && unit.name_ja) || unit.name_en : null;
-  const details = [
-    unitName,
-    record.orcid,
-    record.notes,
-    t("researchers.release_total", { count: record.release_count }),
-  ].filter(Boolean);
-  return (
-    <span>
-      {record.name}{" "}
-      <span className="text-sm text-content-secondary">{details.join(" · ")}</span>
-    </span>
-  );
 }
 
 function MergePanel({

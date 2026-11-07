@@ -133,6 +133,256 @@
     @apply sticky right-0 bg-surface-primary;
   }
 
+  /* The data grid. Row heights are kept in step with ReleaseGrid.tsx. */
+  .grid-scroll {
+    @apply relative max-h-[70vh] overflow-auto rounded border border-line-disabled outline-none;
+  }
+
+  .grid-scroll:focus-visible {
+    @apply border-line-primary;
+  }
+
+  .grid-table {
+    @apply table-fixed border-separate text-sm;
+    border-spacing: 0;
+  }
+
+  .grid-head-row th {
+    @apply sticky top-0 z-10 h-12 overflow-hidden border-b border-line-disabled bg-surface-tertiary px-4xs text-left align-middle font-semibold leading-tight text-content-secondary;
+  }
+
+  .grid-head-row th.text-right {
+    text-align: right;
+  }
+
+  .grid-head-row th.grid-head-frozen {
+    @apply z-20;
+  }
+
+  .grid-new-row th {
+    @apply sticky top-12 z-10 h-[3.25rem] border-b border-line-disabled bg-surface-secondary p-0 font-normal;
+  }
+
+  .grid-new-box {
+    @apply sticky left-0 flex w-[36rem] max-w-[90vw] items-center gap-4xs px-4xs;
+  }
+
+  .grid-new-input {
+    @apply w-full rounded-sm border border-line-disabled bg-surface-primary px-3xs py-5xs;
+  }
+
+  .grid-new-input:focus {
+    @apply border-line-primary;
+  }
+
+  .grid-cell {
+    @apply h-9 overflow-hidden text-ellipsis whitespace-nowrap border-b border-r border-line-disabled bg-surface-primary px-4xs;
+  }
+
+  .grid-cell-frozen {
+    @apply z-[5] md:sticky;
+  }
+
+  /* On a phone the frozen columns would fill the screen, leaving nothing to scroll to. */
+  @media (max-width: 767px) {
+    .grid-scroll {
+      scroll-padding-left: 0 !important;
+    }
+
+    .grid-head-row th.grid-head-frozen {
+      left: auto !important;
+    }
+  }
+
+  .grid-cell.is-read-only {
+    @apply text-content-secondary;
+  }
+
+  .grid-cell.tone-due {
+    @apply bg-tag-1;
+  }
+
+  .grid-cell.tone-na {
+    @apply bg-surface-tertiary text-content-secondary;
+  }
+
+  .grid-cell.tone-later {
+    @apply bg-surface-primary;
+  }
+
+  .grid-cell.tone-muted {
+    @apply text-content-secondary;
+  }
+
+  .grid-cell.in-range {
+    @apply bg-accent-10;
+  }
+
+  .grid-cell.is-active {
+    box-shadow: inset 0 0 0 2px var(--border-primary);
+  }
+
+  .grid-cell.is-editing {
+    @apply overflow-visible p-0;
+  }
+
+  .grid-cell.is-saving {
+    @apply text-content-secondary;
+  }
+
+  .grid-cell.is-saved {
+    box-shadow: inset 0 -2px 0 0 var(--border-primary);
+  }
+
+  .grid-cell.is-failed {
+    @apply bg-surface-alert;
+  }
+
+  .grid-cell.has-message {
+    @apply relative z-[6] overflow-visible;
+  }
+
+  .grid-text {
+    @apply block overflow-hidden text-ellipsis;
+  }
+
+  .grid-title {
+    @apply block w-full overflow-hidden text-ellipsis text-left hover:underline;
+  }
+
+  .grid-editor {
+    @apply h-full w-full border-0 bg-surface-primary px-4xs outline-none;
+  }
+
+  .grid-message {
+    @apply absolute left-0 top-full z-30 w-72 whitespace-normal rounded border border-line-disabled bg-surface-primary p-4xs text-left text-sm text-content-primary shadow-md;
+  }
+
+  .grid-message-above {
+    @apply bottom-full top-auto;
+  }
+
+  .grid-empty {
+    @apply sticky left-0 w-full max-w-2xl p-xs text-content-secondary;
+  }
+
+  .view-toggle {
+    @apply inline-flex overflow-hidden rounded border border-line-disabled text-sm;
+  }
+
+  .view-toggle-on {
+    @apply bg-surface-accent px-3xs py-5xs font-semibold text-content-on-accent;
+  }
+
+  .view-toggle-off {
+    @apply bg-surface-primary px-3xs py-5xs hover:bg-surface-secondary;
+  }
+
+  .column-chooser {
+    @apply absolute right-0 top-full z-30 mt-5xs max-h-[60vh] w-72 overflow-y-auto rounded border border-line-disabled bg-surface-primary p-3xs text-sm shadow-md;
+  }
+
+  /* What is due. A neutral tint: nothing here is late (P5). */
+  .due-strip {
+    @apply mb-3xs rounded border border-tag-1-line bg-surface-secondary p-3xs;
+  }
+
+  .due-caught-up {
+    @apply text-sm text-content-secondary;
+  }
+
+  .due-list {
+    @apply max-h-44 space-y-5xs overflow-y-auto;
+  }
+
+  .due-item {
+    @apply flex flex-wrap items-center gap-x-3xs gap-y-5xs text-sm;
+  }
+
+  .due-title {
+    @apply min-w-40 flex-1 truncate text-left hover:underline;
+  }
+
+  .due-measure {
+    @apply w-52 truncate;
+  }
+
+  .due-date {
+    @apply w-40 text-content-secondary;
+  }
+
+  .due-soon {
+    @apply italic;
+  }
+
+  .due-controls {
+    @apply flex items-center gap-5xs;
+  }
+
+  .due-input {
+    @apply w-28 rounded-sm border border-tag-1-line bg-surface-primary px-4xs py-5xs text-right;
+  }
+
+  .due-input:focus {
+    @apply border-line-primary;
+  }
+
+  .due-error {
+    @apply w-full;
+  }
+
+  .picker {
+    @apply relative h-full w-full;
+  }
+
+  .picker-input {
+    @apply h-full min-h-9 w-full border-0 bg-surface-primary px-4xs outline-none;
+  }
+
+  .picker-list {
+    @apply absolute left-0 top-full z-30 max-h-72 w-96 max-w-[90vw] overflow-y-auto whitespace-normal rounded border border-line-disabled bg-surface-primary py-5xs text-left text-sm shadow-md;
+  }
+
+  .picker-heading {
+    @apply px-4xs pb-5xs pt-4xs text-xs font-semibold text-content-secondary;
+  }
+
+  .picker-option {
+    @apply block w-full px-4xs py-5xs text-left hover:bg-surface-secondary;
+  }
+
+  .picker-option.is-active {
+    @apply bg-accent-10;
+  }
+
+  .drawer-section {
+    @apply mb-2xs border-t border-line-disabled pt-3xs;
+  }
+
+  .drawer-heading {
+    @apply mb-4xs text-lg;
+  }
+
+  .drawer-field {
+    @apply mb-3xs;
+  }
+
+  .drawer-reading {
+    @apply mb-3xs;
+  }
+
+  .drawer-reading-side {
+    @apply flex flex-wrap items-center justify-between gap-4xs;
+  }
+
+  .drawer-warning {
+    @apply -mt-4xs mb-3xs rounded bg-tag-1 px-4xs py-5xs text-sm;
+  }
+
+  .drawer-history {
+    @apply space-y-4xs text-sm;
+  }
+
   .chip {
     @apply inline-block rounded-full border border-tag-1-line bg-tag-1 px-4xs text-sm;
   }

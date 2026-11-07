@@ -49,14 +49,10 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:login.password` | Password | パスワード | pending |
 | `frontend:login.submit` | Sign in | サインイン | pending |
 | `frontend:login.title` | Sign in | サインイン | pending |
-| `frontend:nav.all_releases` | All releases | 全リリース | pending |
 | `frontend:nav.main` | Main | メイン | pending |
 | `frontend:nav.manual` | Manual | マニュアル | pending |
-| `frontend:nav.my_releases` | My releases | 担当リリース | pending |
 | `frontend:nav.settings` | Settings | 設定 | pending |
 | `frontend:nav.writers` | Writers | ライター | pending |
-| `frontend:placeholder.all_releases` | All releases, with search, filters and export, will appear here. | 全リリースの検索、絞り込み、エクスポートがここでできるようになります。 | pending |
-| `frontend:placeholder.my_releases` | Your releases and the numbers due will appear here. | 担当リリースと入力予定の数値がここに表示されます。 | pending |
 | `frontend:placeholder.title` | This page is on its way | このページは準備中です | pending |
 | `frontend:placeholder.writers` | Monthly release counts per writer will appear here. | ライターごとの月別リリース数がここに表示されます。 | pending |
 | `frontend:reset.confirm_password` | Repeat the new password | 新しいパスワード（確認） | pending |
@@ -417,3 +413,73 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.checkpoints.remind_day_before` | The day before | 前日 | pending |
 | `frontend:settings.checkpoints.remind_on_day` | On the day | 当日 | pending |
 | `frontend:errors.researcher_in_use` | This record is still in use, so it stays. | このレコードは使用中のため、削除できません。 | pending |
+| `frontend:data.authors_hint` | One per line. | 1 行に 1 名ずつ入力してください。 | pending |
+| `frontend:data.caught_up` | All caught up. Nothing is due. | すべて入力済みです。現在入力が必要な項目はありません。 | pending |
+| `frontend:data.change` | Change | 変更 | pending |
+| `frontend:data.clear_na` | Clear N/A | 該当なしを解除 | pending |
+| `frontend:data.close` | Close | 閉じる | pending |
+| `frontend:data.code_hint` | Assigned when a release date is first entered. | リリース日を初めて入力したときに付与されます。 | pending |
+| `frontend:data.column_groups.colleagues` | Colleagues' fields | 同僚の項目 | pending |
+| `frontend:data.column_groups.custom` | Your fields and the institution's | 個人用・機関共通の項目 | pending |
+| `frontend:data.column_groups.numbers` | Numbers | 数値 | pending |
+| `frontend:data.column_groups.paper` | Paper | 論文 | pending |
+| `frontend:data.column_groups.release` | Release | リリース | pending |
+| `frontend:data.columns` | Columns | 表示項目 | pending |
+| `frontend:data.columns_not_saved` | Your column choice couldn't be saved. It applies until you leave this page. | 表示項目の選択を保存できませんでした。このページを離れるまでは適用されます。 | pending |
+| `frontend:data.coming_up` | Coming up {{date}} | まもなく {{date}} | pending |
+| `frontend:data.count` | Showing {{count}} of {{total}} | {{total}} 件中 {{count}} 件を表示 | pending |
+| `frontend:data.crossref_found` | Found the paper: {{title}} | 論文が見つかりました：{{title}} | pending |
+| `frontend:data.crossref_not_found` | Crossref doesn't know this DOI. The release is saved, and the paper details can be typed in. | Crossref にこの DOI は登録されていません。リリースは保存されています。論文情報は手入力できます。 | pending |
+| `frontend:data.crossref_unavailable` | Crossref can't be reached just now. The release is saved. You can fetch the paper details later from the release. | 現在 Crossref に接続できません。リリースは保存されています。論文情報は後からリリースの詳細で取得できます。 | pending |
+| `frontend:data.drawer_custom` | Other fields | その他の項目 | pending |
+| `frontend:data.drawer_history` | History | 履歴 | pending |
+| `frontend:data.drawer_numbers` | Numbers | 数値 | pending |
+| `frontend:data.drawer_paper` | Paper | 論文 | pending |
+| `frontend:data.drawer_release` | Release | リリース | pending |
+| `frontend:data.due_count` | Due now: {{count}} | 入力時期を迎えた項目：{{count}} 件 | pending |
+| `frontend:data.due_on` | Due {{date}} | 入力時期 {{date}} | pending |
+| `frontend:data.due_title` | Due now | 入力時期を迎えた項目 | pending |
+| `frontend:data.empty` | No releases here yet. Paste a DOI or type a title above. | リリースはまだありません。上の欄に DOI を貼り付けるかタイトルを入力してください。 | pending |
+| `frontend:data.empty_no_writer` | Nothing is yours yet, as you have no writer entry. An admin can link one under Settings → Lists → Writers. | ライターとして登録されていないため、担当のリリースはありません。管理者が 設定 → リスト → ライター で紐付けできます。 | pending |
+| `frontend:data.empty_read_only` | No releases here yet. | リリースはまだありません。 | pending |
+| `frontend:data.failed_hint` | Press Enter to change it, or Esc to go back to what was there. | Enter で修正、Esc で元の値に戻します。 | pending |
+| `frontend:data.grid_label` | Releases | リリース | pending |
+| `frontend:data.history_created` | Release created | リリースを作成 | pending |
+| `frontend:data.history_note` | Note on {{measure}} | {{measure}} のメモ | pending |
+| `frontend:data.history_removed` | Removed | 削除 | pending |
+| `frontend:data.history_system` | Release Radar | Release Radar | pending |
+| `frontend:data.keys_hint` | Type to edit, Enter to save and go down, Esc to go back, Shift+Enter for the full record, Cmd/Ctrl+Z to undo. | 入力で編集、Enter で保存して下へ、Esc で取り消し、Shift+Enter で詳細、Cmd/Ctrl+Z で元に戻します。 | pending |
+| `frontend:data.new_release` | ＋ New release: paste a DOI or type a title, then press Enter | ＋ 新しいリリース：DOI を貼り付けるかタイトルを入力して Enter | pending |
+| `frontend:data.not_applicable` | N/A | 該当なし | pending |
+| `frontend:data.open_to_fill` | Open to fill in | 開いて入力 | pending |
+| `frontend:data.owned_by` | {{label}} ({{owner}}) | {{label}}（{{owner}}） | pending |
+| `frontend:data.paste_overflow` | {{count}} didn't fit. | {{count}} 件は範囲に収まりませんでした。 | pending |
+| `frontend:data.paste_result` | {{saved}} saved, {{invalid}} invalid: see the highlighted cells. | {{saved}} 件を保存、{{invalid}} 件は入力できませんでした。色の付いたセルをご確認ください。 | pending |
+| `frontend:data.paste_skipped` | {{count}} can't be changed here. | {{count}} 件はここでは変更できません。 | pending |
+| `frontend:data.reading_note` | Note on {{measure}} | {{measure}} のメモ | pending |
+| `frontend:data.reading_note_placeholder` | Note (optional) | メモ（任意） | pending |
+| `frontend:data.reading_states.missing` | Waiting for a number | 数値の入力待ち | pending |
+| `frontend:data.reading_states.not_applicable` | Doesn't apply | 該当なし | pending |
+| `frontend:data.reading_states.not_yet_due` | Not yet due | 入力時期前 | pending |
+| `frontend:data.reading_states.value` | Recorded | 入力済み | pending |
+| `frontend:data.refetch` | Fetch again from Crossref | Crossref から再取得 | pending |
+| `frontend:data.refetch_question` | Replace the journal, paper title, date and authors with Crossref's? | 雑誌名、論文タイトル、日付、著者を Crossref の情報に置き換えますか？ | pending |
+| `frontend:data.remove` | Remove this release | このリリースを削除 | pending |
+| `frontend:data.removed` | {{name}} was removed. | {{name}} を削除しました。 | pending |
+| `frontend:data.researcher_authors` | Authors of the paper | 論文の著者 | pending |
+| `frontend:data.researcher_clear` | Remove the researcher | 研究者を外す | pending |
+| `frontend:data.researcher_create` | Create a new record: {{name}} | 新しいレコードを作成：{{name}} | pending |
+| `frontend:data.researcher_directory` | Researchers | 研究者 | pending |
+| `frontend:data.researcher_search` | Search or type a name | 氏名を検索または入力 | pending |
+| `frontend:data.set_na` | Set N/A | 該当なしにする | pending |
+| `frontend:data.still_needed` | Still needed: {{fields}} | 未入力：{{fields}} | pending |
+| `frontend:data.undid` | Undone: {{count}} | 元に戻しました：{{count}} 件 | pending |
+| `frontend:data.undo_failed` | That couldn't be undone. Someone may have changed it since. | 元に戻せませんでした。他の方が変更した可能性があります。 | pending |
+| `frontend:data.view_label` | Which releases to show | 表示するリリース | pending |
+| `frontend:data.views.all` | All | すべて | pending |
+| `frontend:data.views.mine` | Mine | 自分の担当 | pending |
+| `frontend:data.warnings.ea_url_unusual` | This doesn't look like a EurekAlert release link. It's saved anyway. | EurekAlert のリリースのリンクではないようです。このまま保存されています。 | pending |
+| `frontend:data.warnings.website_off_domain` | This isn't on your news website, so website views won't apply. It's saved anyway. | ニュースサイト上のページではないため、ウェブサイトの閲覧数は対象外です。このまま保存されています。 | pending |
+| `frontend:errors.researcher_needs_choosing` | A name alone can't say which record is meant. Please choose one in the cell. | 氏名だけではレコードを特定できません。セルで選択してください。 | pending |
+| `frontend:nav.data` | Data | データ | pending |
+| `frontend:data.not_a_number` | Please enter a number, or - if it doesn't apply. | 数値を入力してください。該当しない場合は - を入力してください。 | pending |

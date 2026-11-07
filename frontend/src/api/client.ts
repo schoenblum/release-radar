@@ -1,5 +1,6 @@
 import type { Language } from "../i18n";
 import type {
+  UserPreferences,
   Brand,
   CurrentUser,
   FieldSaved,
@@ -159,7 +160,11 @@ export const api = {
     request<ForgotPasswordResult>("/auth/forgot-password", post({ email }), true),
   resetPassword: (token: string, newPassword: string) =>
     request<void>("/auth/reset-password", post({ token, new_password: newPassword }), true),
-  updateMe: (changes: { language?: Language; full_name?: string }) =>
+  updateMe: (changes: {
+    language?: Language;
+    full_name?: string;
+    preferences?: UserPreferences;
+  }) =>
     request<CurrentUser>("/users/me", { method: "PATCH", body: JSON.stringify(changes) }),
   brand: () => request<Brand>("/brand", {}, true),
   health: () => request<Health>("/health", {}, true),

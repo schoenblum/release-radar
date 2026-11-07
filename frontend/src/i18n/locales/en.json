@@ -7,12 +7,11 @@
   },
   "nav": {
     "main": "Main",
-    "my_releases": "My releases",
-    "all_releases": "All releases",
     "writers": "Writers",
     "settings": "Settings",
     "manual": "Manual",
-    "researchers": "Researchers"
+    "researchers": "Researchers",
+    "data": "Data"
   },
   "language": {
     "switch_to": "日本語",
@@ -67,8 +66,6 @@
   },
   "placeholder": {
     "title": "This page is on its way",
-    "my_releases": "Your releases and the numbers due will appear here.",
-    "all_releases": "All releases, with search, filters and export, will appear here.",
     "writers": "Monthly release counts per writer will appear here."
   },
   "errors": {
@@ -120,7 +117,8 @@
     "release_moved": "One of these releases has already moved. Please look again.",
     "split_into_self": "These releases are already on that record.",
     "researcher_not_merged": "This record isn't merged into another one.",
-    "researcher_in_use": "This record is still in use, so it stays."
+    "researcher_in_use": "This record is still in use, so it stays.",
+    "researcher_needs_choosing": "A name alone can't say which record is meant. Please choose one in the cell."
   },
   "common": {
     "saving": "Saving…",
@@ -456,5 +454,83 @@
     "ea_top_page": "EurekAlert top page",
     "ea_top_position": "Top page position",
     "notes": "Notes"
+  },
+  "data": {
+    "views": {
+      "mine": "Mine",
+      "all": "All"
+    },
+    "view_label": "Which releases to show",
+    "grid_label": "Releases",
+    "new_release": "＋ New release: paste a DOI or type a title, then press Enter",
+    "columns": "Columns",
+    "columns_not_saved": "Your column choice couldn't be saved. It applies until you leave this page.",
+    "column_groups": {
+      "release": "Release",
+      "paper": "Paper",
+      "numbers": "Numbers",
+      "custom": "Your fields and the institution's",
+      "colleagues": "Colleagues' fields"
+    },
+    "count": "Showing {{count}} of {{total}}",
+    "keys_hint": "Type to edit, Enter to save and go down, Esc to go back, Shift+Enter for the full record, Cmd/Ctrl+Z to undo.",
+    "empty": "No releases here yet. Paste a DOI or type a title above.",
+    "empty_read_only": "No releases here yet.",
+    "empty_no_writer": "Nothing is yours yet, as you have no writer entry. An admin can link one under Settings → Lists → Writers.",
+    "code_hint": "Assigned when a release date is first entered.",
+    "not_applicable": "N/A",
+    "due_on": "Due {{date}}",
+    "coming_up": "Coming up {{date}}",
+    "due_title": "Due now",
+    "due_count": "Due now: {{count}}",
+    "caught_up": "All caught up. Nothing is due.",
+    "open_to_fill": "Open to fill in",
+    "failed_hint": "Press Enter to change it, or Esc to go back to what was there.",
+    "paste_result": "{{saved}} saved, {{invalid}} invalid: see the highlighted cells.",
+    "paste_skipped": "{{count}} can't be changed here.",
+    "paste_overflow": "{{count}} didn't fit.",
+    "undid": "Undone: {{count}}",
+    "undo_failed": "That couldn't be undone. Someone may have changed it since.",
+    "owned_by": "{{label}} ({{owner}})",
+    "crossref_found": "Found the paper: {{title}}",
+    "crossref_not_found": "Crossref doesn't know this DOI. The release is saved, and the paper details can be typed in.",
+    "crossref_unavailable": "Crossref can't be reached just now. The release is saved. You can fetch the paper details later from the release.",
+    "researcher_search": "Search or type a name",
+    "researcher_authors": "Authors of the paper",
+    "researcher_directory": "Researchers",
+    "researcher_create": "Create a new record: {{name}}",
+    "researcher_clear": "Remove the researcher",
+    "close": "Close",
+    "change": "Change",
+    "remove": "Remove this release",
+    "removed": "{{name}} was removed.",
+    "refetch": "Fetch again from Crossref",
+    "refetch_question": "Replace the journal, paper title, date and authors with Crossref's?",
+    "authors_hint": "One per line.",
+    "still_needed": "Still needed: {{fields}}",
+    "set_na": "Set N/A",
+    "clear_na": "Clear N/A",
+    "reading_note": "Note on {{measure}}",
+    "reading_note_placeholder": "Note (optional)",
+    "reading_states": {
+      "value": "Recorded",
+      "not_applicable": "Doesn't apply",
+      "missing": "Waiting for a number",
+      "not_yet_due": "Not yet due"
+    },
+    "drawer_release": "Release",
+    "drawer_paper": "Paper",
+    "drawer_numbers": "Numbers",
+    "drawer_custom": "Other fields",
+    "drawer_history": "History",
+    "history_created": "Release created",
+    "history_removed": "Removed",
+    "history_system": "Release Radar",
+    "history_note": "Note on {{measure}}",
+    "warnings": {
+      "ea_url_unusual": "This doesn't look like a EurekAlert release link. It's saved anyway.",
+      "website_off_domain": "This isn't on your news website, so website views won't apply. It's saved anyway."
+    },
+    "not_a_number": "Please enter a number, or - if it doesn't apply."
   }
 }
