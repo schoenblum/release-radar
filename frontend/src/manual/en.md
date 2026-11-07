@@ -38,7 +38,7 @@ To combine two records of the same person, choose **Merge** on the record you wa
 - **Users:** invite people and set their role. To remove someone, switch off **Active**: their name stays in the history. If they tracked personal fields, pass those on or make them institution fields here.
 - **Lists:** units, fields, writers and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
 - **Form:** rename, hide, require or reorder the fields on a release, and add your own.
-- **Checkpoints & reminders:** when numbers are collected and which numbers those are.
+- **Checkpoints & reminders:** when numbers are collected and which numbers those are. A checkpoint can fall before the release date: use a negative number, so −3 is three days before. Choose whether its reminder comes at the start of that day or the day before. The reminder emails themselves arrive in a later phase.
 - **Data:** backups, a full copy of your data, and what the automatic jobs have been doing.
 
 Release codes are assigned by Release Radar and can't be edited. A release gets its code when its release date is first entered, and keeps it even if the date later moves to another academic year.

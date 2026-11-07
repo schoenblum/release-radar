@@ -385,3 +385,12 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:csv.problem_value` | “{{value}}” can't be used. {{reason}} | 「{{value}}」は使用できません。{{reason}} | pending |
 | `frontend:csv.skipped_did` | These were skipped. The rest of each row was applied: | 以下はスキップしました。各行のその他の内容は適用しました： | pending |
 | `frontend:csv.skipped_would` | These would be skipped. The rest of each row still applies: | 以下はスキップされます。各行のその他の内容は適用されます： | pending |
+| `frontend:errors.invalid_doi` | Please enter a DOI like 10.1234/example, or a doi.org link. | 10.1234/example の形式の DOI、または doi.org のリンクを入力してください。 | pending |
+| `frontend:errors.invalid_time` | Please enter a time like 09:30. | 09:30 の形式で時刻を入力してください。 | pending |
+| `frontend:errors.invalid_url` | Please enter a web address starting with https://. | https:// で始まるウェブアドレスを入力してください。 | pending |
+| `frontend:errors.title_or_doi_required` | A release needs a title or a DOI. | リリースにはタイトルまたは DOI が必要です。 | pending |
+| `frontend:errors.whole_number_required` | Please enter a whole number. | 整数を入力してください。 | pending |
+| `frontend:settings.checkpoints.offset_help` | A negative number falls before the release date: −3 is three days before. Reminders go out at the start of the day you choose. | 負の数はリリース日より前の日を表します。−3 は 3 日前です。リマインダーは選択した日の朝に送信されます。 | pending |
+| `frontend:settings.checkpoints.remind` | Remind | リマインダー | pending |
+| `frontend:settings.checkpoints.remind_day_before` | The day before | 前日 | pending |
+| `frontend:settings.checkpoints.remind_on_day` | On the day | 当日 | pending |

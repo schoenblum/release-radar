@@ -111,7 +111,12 @@
     "personal_field_read_only": "個人用の項目は所有者のみ変更できます。",
     "owner_must_edit": "引き継ぎ先は、有効な編集者または管理者のみです。",
     "score_eligible_numeric_only": "スコアに使えるのは数値の項目のみです。",
-    "backup_not_configured": "このサーバーではバックアップが設定されていません。"
+    "backup_not_configured": "このサーバーではバックアップが設定されていません。",
+    "invalid_doi": "10.1234/example の形式の DOI、または doi.org のリンクを入力してください。",
+    "invalid_url": "https:// で始まるウェブアドレスを入力してください。",
+    "invalid_time": "09:30 の形式で時刻を入力してください。",
+    "title_or_doi_required": "リリースにはタイトルまたは DOI が必要です。",
+    "whole_number_required": "整数を入力してください。"
   },
   "common": {
     "saving": "保存中…",
@@ -174,7 +179,7 @@
       "lists": "選択肢となる値です。使わなくなった項目は「有効」をオフにしてください。その項目を使っているリリースはそのまま残ります。",
       "researchers": "リリースに登場する研究者です。氏名の整理、識別子の追加、重複の統合ができます。リリースは氏名ではなくレコードを参照するため、統計には影響しません。",
       "form": "リリースの項目を調整します。名称変更、非表示、必須、並べ替え、独自項目の追加ができます。",
-      "checkpoints": "リリース後に数値を収集する時点と、収集する数値を設定します。",
+      "checkpoints": "リリースの前後で数値を収集する時点と、収集する数値を設定します。",
       "data": "バックアップ、全データのエクスポート、自動処理の実行状況を確認できます。"
     },
     "institution": {
@@ -274,7 +279,7 @@
       "measures_help": "各チェックポイントで収集する数値です。無効にしても、記録済みの値は保持されます。",
       "label_en": "名称（英語）",
       "label_ja": "名称（日本語）",
-      "offset": "リリース後の日数",
+      "offset": "リリース日からの日数",
       "add": "チェックポイントを追加",
       "source": "取得元",
       "applies": "対象",
@@ -284,7 +289,7 @@
       "at_checkpoint": "チェックポイント",
       "add_measure": "測定項目を追加",
       "reminders_title": "リマインダー",
-      "reminders_later": "リマインダーの設定は、今後のフェーズで機能とともに追加されます。",
+      "reminders_later": "上記の選択はすでに保存されています。リマインダーメールの送信は、今後のフェーズで開始します。",
       "metrics": {
         "ea_views": "EurekAlert 閲覧数",
         "altmetric": "Altmetric スコア",
@@ -301,7 +306,11 @@
         "has_doi": "DOI のあるリリース",
         "has_ea_url": "EurekAlert のリンクがあるリリース",
         "website_on_domain": "自機関サイト上のリリース"
-      }
+      },
+      "offset_help": "負の数はリリース日より前の日を表します。−3 は 3 日前です。リマインダーは選択した日の朝に送信されます。",
+      "remind": "リマインダー",
+      "remind_on_day": "当日",
+      "remind_day_before": "前日"
     },
     "data": {
       "backup_title": "バックアップ",

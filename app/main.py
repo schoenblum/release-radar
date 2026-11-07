@@ -21,6 +21,7 @@ from app.routers import (
     custom_fields,
     data_export,
     lists,
+    releases,
     researchers,
     system,
     users,
@@ -85,6 +86,7 @@ async def field_conflict(_: Request, exc: FieldConflict) -> JSONResponse:
             "field": exc.field,
             "current_value": to_json(exc.current_value),
             "current_version": exc.current_version,
+            **exc.extra,
         },
         status_code=status.HTTP_409_CONFLICT,
     )
@@ -111,6 +113,7 @@ app.include_router(system.router, prefix=API_PREFIX)
 app.include_router(settings_router.router, prefix=API_PREFIX)
 app.include_router(lists.router, prefix=API_PREFIX)
 app.include_router(researchers.router, prefix=API_PREFIX)
+app.include_router(releases.router, prefix=API_PREFIX)
 app.include_router(custom_fields.router, prefix=API_PREFIX)
 app.include_router(data_export.router, prefix=API_PREFIX)
 app.include_router(brand.api_router, prefix=API_PREFIX)

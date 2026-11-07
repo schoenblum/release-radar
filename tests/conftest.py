@@ -10,6 +10,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from urllib.parse import unquote
 
 import asyncpg
 from cryptography.fernet import Fernet
@@ -57,6 +58,7 @@ os.environ.update(
 
 from collections.abc import AsyncIterator, Awaitable, Callable  # noqa: E402
 
+import httpx  # noqa: E402
 import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
@@ -67,6 +69,7 @@ from app.config import get_settings  # noqa: E402
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Institution, User, UserRole  # noqa: E402
+from app.services import crossref  # noqa: E402
 from app.services.security import hash_password  # noqa: E402
 from app.services.theme import load_theme  # noqa: E402
 
@@ -131,6 +134,22 @@ async def _clean_database() -> AsyncIterator[None]:
 @pytest.fixture(autouse=True)
 def _fresh_theme() -> None:
     load_theme.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def crossref_answers(monkeypatch: pytest.MonkeyPatch) -> dict:
+    """The suite never reaches the real Crossref. A test sets what it answers, by DOI."""
+    answers: dict = {"status": 503, "works": {}, "requests": []}
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        answers["requests"].append(request)
+        doi = unquote(request.url.raw_path.decode().rsplit("/", 1)[1])
+        if doi in answers["works"]:
+            return httpx.Response(200, json={"message": answers["works"][doi]})
+        return httpx.Response(answers["status"])
+
+    monkeypatch.setattr(crossref, "_transport", httpx.MockTransport(answer))
+    return answers
 
 
 @pytest_asyncio.fixture

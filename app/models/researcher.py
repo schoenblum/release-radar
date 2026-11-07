@@ -7,7 +7,7 @@ email-like identifiers are personal data, so tests and fixtures use synthetic va
 import uuid
 
 from sqlalchemy import CheckConstraint, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -16,6 +16,8 @@ from app.models.mixins import FieldVersioned, Record
 
 class Researcher(Record, FieldVersioned, Base):
     __tablename__ = "researchers"
+    # The moves it lists reach the audit log one by one.
+    __audit_exclude__ = frozenset({"merge_details"})
     __table_args__ = (
         CheckConstraint("gender IN ('M', 'F', 'other', 'not_recorded')", name="gender_known"),
         CheckConstraint("status IN ('incomplete', 'unverified', 'verified')", name="status_known"),
@@ -39,3 +41,5 @@ class Researcher(Record, FieldVersioned, Base):
     merged_into_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("researchers.id", ondelete="RESTRICT"), nullable=True
     )
+    # What a merge did, so it can be undone: {"release_ids": [...], "filled": {field: value}}.
+    merge_details: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

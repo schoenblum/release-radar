@@ -93,6 +93,7 @@ class CheckpointOut(_Out):
     label_en: str
     label_ja: str | None
     offset_days: int
+    remind_days_before: int
     field_versions: dict[str, int]
 
 
@@ -178,6 +179,7 @@ class TransferOwner(BaseModel):
 
 class ResearcherOut(_Out):
     id: UUID
+    merged_into_id: UUID | None
     name: str
     given_name: str | None
     family_name: str | None
@@ -191,11 +193,37 @@ class ResearcherOut(_Out):
     created_at: datetime
     field_versions: dict[str, int]
     release_count: int = 0
+    # Other records with the same name, which are different people until merged (R6.3.1).
+    same_name_count: int = 0
+    # Records merged into this one, whose merge can still be undone.
+    merged_count: int = 0
 
 
 class ResearcherPage(BaseModel):
     items: list[ResearcherOut]
     total: int
+
+
+class ResearcherRelease(_Out):
+    """Enough to recognise a release by."""
+
+    id: UUID
+    code: str | None
+    title: str | None
+    paper_title: str | None
+    release_date: date | None
+
+
+class MergedRecord(_Out):
+    id: UUID
+    name: str
+    updated_at: datetime
+    release_count: int = 0
+
+
+class ResearcherDetail(ResearcherOut):
+    releases: list[ResearcherRelease] = []
+    merged_records: list[MergedRecord] = []
 
 
 class ResearcherCreate(BaseModel):
@@ -210,3 +238,23 @@ class ResearcherCreate(BaseModel):
 
 class MergeResearchers(BaseModel):
     into_id: UUID
+
+
+class SplitResearcher(BaseModel):
+    """Move these releases to another record: an existing one, or a new one."""
+
+    release_ids: list[UUID] = Field(min_length=1)
+    into_id: UUID | None = None
+    name: str | None = None
+    notes: str | None = None
+
+
+class SplitResult(BaseModel):
+    source: ResearcherOut
+    target: ResearcherOut
+    created: bool
+
+
+class UnmergeResult(BaseModel):
+    restored: ResearcherOut
+    survivor: ResearcherOut

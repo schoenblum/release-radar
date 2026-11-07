@@ -153,7 +153,10 @@ export interface Checkpoint {
   key: string;
   label_en: string;
   label_ja: string | null;
+  /** Negative falls before the release date. */
   offset_days: number;
+  /** When the reminder goes out: 0 at the start of the due day, 1 the day before. */
+  remind_days_before: 0 | 1;
   field_versions: FieldVersions;
 }
 
@@ -227,6 +230,7 @@ export interface CustomField {
 
 export interface Researcher {
   id: string;
+  merged_into_id: string | null;
   name: string;
   given_name: string | null;
   family_name: string | null;
@@ -240,11 +244,145 @@ export interface Researcher {
   created_at: string;
   field_versions: FieldVersions;
   release_count: number;
+  /** Other records with the same name, which are different people until merged. */
+  same_name_count: number;
+  merged_count: number;
 }
 
 export interface ResearcherPage {
   items: Researcher[];
   total: number;
+}
+
+export interface ResearcherRelease {
+  id: string;
+  code: string | null;
+  title: string | null;
+  paper_title: string | null;
+  release_date: string | null;
+}
+
+export interface MergedRecord {
+  id: string;
+  name: string;
+  updated_at: string;
+  release_count: number;
+}
+
+export interface ResearcherDetail extends Researcher {
+  releases: ResearcherRelease[];
+  merged_records: MergedRecord[];
+}
+
+export interface SplitResult {
+  source: Researcher;
+  target: Researcher;
+  created: boolean;
+}
+
+export interface UnmergeResult {
+  restored: Researcher;
+  survivor: Researcher;
+}
+
+export type StoredReadingState = "value" | "not_applicable" | "missing";
+
+export interface Reading {
+  id: string;
+  measure_id: string;
+  measure_key: string;
+  value: number | null;
+  state: StoredReadingState;
+  display_state: StoredReadingState | "not_yet_due";
+  source: "manual" | "auto";
+  due_date: string | null;
+  remind_on: string | null;
+  note: string | null;
+  version: number;
+  entered_at: string | null;
+}
+
+export interface Author {
+  given: string | null;
+  family: string | null;
+  name: string | null;
+  orcid: string | null;
+}
+
+export type CustomValue = { state: "value"; value: unknown } | { state: "not_applicable" };
+
+export interface Release {
+  id: string;
+  /** Assigned by the system when a release date is first entered, then never changed. */
+  code: string | null;
+  title: string | null;
+  title_ja: string | null;
+  writer_id: string | null;
+  researcher_id: string | null;
+  researcher_name: string | null;
+  also_featured: string | null;
+  unit_id: string | null;
+  field_id: string | null;
+  doi: string | null;
+  journal: string | null;
+  paper_title: string | null;
+  publication_date: string | null;
+  authors: Author[];
+  embargoed: boolean;
+  release_date: string | null;
+  /** From the date, never from the code. */
+  academic_year: number | null;
+  release_time_et: string | null;
+  ea_url: string | null;
+  website_url: string | null;
+  ea_top_page: boolean;
+  ea_top_position: number | null;
+  notes: string | null;
+  custom_values: Record<string, CustomValue>;
+  field_versions: FieldVersions;
+  created_at: string;
+  updated_at: string;
+  readings: Reading[];
+  warnings: ("ea_url_unusual" | "website_off_domain")[];
+  missing_required: string[];
+}
+
+export interface ReleasePage {
+  items: Release[];
+  total: number;
+  has_writer_entry: boolean;
+}
+
+export type CrossrefStatus = "found" | "not_found" | "unavailable";
+
+export interface ReleaseCreated extends Release {
+  crossref: CrossrefStatus | null;
+}
+
+export interface ReleaseSaved extends FieldSaved {
+  release: Release;
+}
+
+export interface DoiLookupResult {
+  doi: string;
+  status: CrossrefStatus;
+  journal: string | null;
+  paper_title: string | null;
+  publication_date: string | null;
+  authors: Author[];
+}
+
+export interface HistoryEntry {
+  at: string;
+  action: "create" | "update" | "delete";
+  entity: "release" | "reading";
+  measure_key: string | null;
+  field: string | null;
+  old_value: unknown;
+  new_value: unknown;
+  user_id: string | null;
+  user_name: string | null;
+  user_active: boolean | null;
 }
 
 export interface JobRun {

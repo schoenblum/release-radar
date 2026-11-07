@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { TFunction } from "i18next";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { http } from "../../api/client";
 import { errorMessage } from "../../api/errors";
 import type { Checkpoint, Measure } from "../../api/types";
-import { TextField, ToggleField } from "../../components/fields/Autosave";
+import { SelectField, TextField, ToggleField } from "../../components/fields/Autosave";
 import { useFieldSaver } from "../../components/fields/useFieldSaver";
 import { translate } from "../../i18n";
 import { SectionHeader, SubHeading } from "./SettingsLayout";
@@ -14,6 +15,13 @@ const CHECKPOINTS_KEY = ["checkpoints"];
 const MEASURES_KEY = ["measures"];
 // Metrics that exist at more than one moment, so they can be read at a new checkpoint.
 const EXTENDABLE_METRICS = ["ea_views", "altmetric", "hp_views"];
+
+function reminderOptions(t: TFunction) {
+  return [
+    { value: "0", label: t("settings.checkpoints.remind_on_day") },
+    { value: "1", label: t("settings.checkpoints.remind_day_before") },
+  ];
+}
 
 function CheckpointRow({ checkpoint }: { checkpoint: Checkpoint }) {
   const { t } = useTranslation();
@@ -46,6 +54,15 @@ function CheckpointRow({ checkpoint }: { checkpoint: Checkpoint }) {
           save={saver("offset_days")}
         />
       </td>
+      <td className="w-44">
+        <SelectField
+          label={t("settings.checkpoints.remind")}
+          value={String(checkpoint.remind_days_before)}
+          version={versions.remind_days_before}
+          save={saver("remind_days_before")}
+          options={reminderOptions(t)}
+        />
+      </td>
     </tr>
   );
 }
@@ -56,6 +73,7 @@ function NewCheckpoint() {
   const [labelEn, setLabelEn] = useState("");
   const [labelJa, setLabelJa] = useState("");
   const [offset, setOffset] = useState("");
+  const [remind, setRemind] = useState("0");
   const [error, setError] = useState<unknown>(null);
 
   async function submit(event: FormEvent): Promise<void> {
@@ -63,11 +81,17 @@ function NewCheckpoint() {
     setError(null);
     try {
       await http.post("/checkpoints", {
-        values: { label_en: labelEn, label_ja: labelJa, offset_days: offset },
+        values: {
+          label_en: labelEn,
+          label_ja: labelJa,
+          offset_days: offset,
+          remind_days_before: remind,
+        },
       });
       setLabelEn("");
       setLabelJa("");
       setOffset("");
+      setRemind("0");
       await queryClient.invalidateQueries({ queryKey: CHECKPOINTS_KEY });
     } catch (failure) {
       setError(failure);
@@ -93,15 +117,26 @@ function NewCheckpoint() {
           onChange={(event) => setLabelJa(event.target.value)}
         />
         <input
-          className="input max-w-32"
+          className="input max-w-44"
           type="number"
-          min="0"
           required
           aria-label={t("settings.checkpoints.offset")}
           placeholder={t("settings.checkpoints.offset")}
           value={offset}
           onChange={(event) => setOffset(event.target.value)}
         />
+        <select
+          className="input max-w-44"
+          aria-label={t("settings.checkpoints.remind")}
+          value={remind}
+          onChange={(event) => setRemind(event.target.value)}
+        >
+          {reminderOptions(t).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="btn-quiet">
           {t("settings.checkpoints.add")}
         </button>
@@ -266,13 +301,17 @@ export default function CheckpointsSettings() {
         help={t("settings.help.checkpoints")}
       />
       <SubHeading>{t("settings.checkpoints.checkpoints_title")}</SubHeading>
-      <div className="table-scroll max-w-3xl">
+      <p className="mb-4xs max-w-3xl text-content-secondary">
+        {t("settings.checkpoints.offset_help")}
+      </p>
+      <div className="table-scroll max-w-4xl">
         <table className="data-table">
           <thead>
             <tr>
               <th>{t("settings.checkpoints.label_en")}</th>
               <th>{t("settings.checkpoints.label_ja")}</th>
               <th>{t("settings.checkpoints.offset")}</th>
+              <th>{t("settings.checkpoints.remind")}</th>
             </tr>
           </thead>
           <tbody>

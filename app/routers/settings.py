@@ -69,7 +69,8 @@ def _parse_domain(value: Any) -> str | None:
 
 
 def _parse_code_pattern(value: Any) -> str:
-    if not isinstance(value, str) or len(value) > 64:
+    # A code is never longer than its pattern, and codes are stored in 32 characters.
+    if not isinstance(value, str) or len(value) > 32:
         raise field_error("invalid_code_pattern")
     value = value.strip()
     placeholders = re.findall(r"\{[^}]*\}", value)
@@ -101,8 +102,11 @@ INSTITUTION_SPECS: dict[str, FieldSpec] = {
 CHECKPOINT_SPECS: dict[str, FieldSpec] = {
     "label_en": field_patch.text(required=True),
     "label_ja": field_patch.text(),
-    "offset_days": field_patch.integer(0, 3650),
+    # Negative falls before the release date (R6.5.3).
+    "offset_days": field_patch.integer(-365, 3650),
+    "remind_days_before": field_patch.integer(0, 1),
 }
+CHECKPOINT_DEFAULTS: dict[str, Any] = {"remind_days_before": 0}
 MEASURE_SPECS: dict[str, FieldSpec] = {
     "label_en": field_patch.text(required=True),
     "label_ja": field_patch.text(),
@@ -174,7 +178,12 @@ async def create_checkpoint(
     db: AsyncSession = Depends(get_db),
 ) -> Checkpoint:
     values = {
-        field: await clean_value(db, admin.institution_id, spec, payload.values.get(field))
+        field: await clean_value(
+            db,
+            admin.institution_id,
+            spec,
+            payload.values.get(field, CHECKPOINT_DEFAULTS.get(field)),
+        )
         for field, spec in CHECKPOINT_SPECS.items()
     }
     checkpoint = Checkpoint(

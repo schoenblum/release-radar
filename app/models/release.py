@@ -23,7 +23,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.database import Base
 from app.models.mixins import FieldVersioned, Record
@@ -46,7 +46,7 @@ class Release(Record, FieldVersioned, Base):
     __audit_expand__ = frozenset({"custom_values"})
 
     # Null while a draft has no release date, because the number comes from the academic
-    # year of that date. Assigned once, then immutable.
+    # year of that date. Assigned once, then immutable (D35).
     code: Mapped[str | None] = mapped_column(String(32), nullable=True)
     title: Mapped[str | None] = mapped_column(Text, nullable=True)
     title_ja: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -90,6 +90,14 @@ class Release(Record, FieldVersioned, Base):
     # {"state": "value", "value": ...}, an explicit N/A is {"state": "not_applicable"},
     # and a key that is absent is missing. Reassign the dict to change it.
     custom_values: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    # Removed from view but kept, so Undo works and its code is never used again (D35).
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    @validates("code")
+    def _code_never_changes(self, _key: str, value: str | None) -> str | None:
+        if self.code is not None and value != self.code:
+            raise ValueError("A release code never changes (D35)")
+        return value
 
 
 class Checkpoint(Record, FieldVersioned, Base):
@@ -98,13 +106,18 @@ class Checkpoint(Record, FieldVersioned, Base):
     __tablename__ = "checkpoints"
     __table_args__ = (
         UniqueConstraint("institution_id", "key", name="uq_checkpoints_key"),
-        CheckConstraint("offset_days >= 0", name="offset_not_negative"),
+        CheckConstraint("remind_days_before IN (0, 1)", name="remind_days_before_known"),
     )
 
     key: Mapped[str] = mapped_column(String(32), nullable=False)
     label_en: Mapped[str] = mapped_column(String(255), nullable=False)
     label_ja: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Negative means before the release date, for example a score read before it goes out.
     offset_days: Mapped[int] = mapped_column(Integer, nullable=False)
+    # When the reminder goes out: 0 at the start of the due day, 1 the day before.
+    remind_days_before: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
 
 
 class Measure(Record, FieldVersioned, Base):

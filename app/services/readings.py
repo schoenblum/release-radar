@@ -45,7 +45,7 @@ def _host(url: str) -> str:
         return ""
 
 
-def _on_domain(release: Release, domain: str | None) -> bool:
+def on_domain(release: Release, domain: str | None) -> bool:
     # Exact host: a parent domain or a sibling such as an older site does not count (D23).
     if not _present(release.website_url) or not _present(domain):
         return False
@@ -68,7 +68,7 @@ def measure_applies(measure: Measure, release: Release, website_domain: str | No
     if rule == "has_ea_url":
         return _present(release.ea_url)
     if rule == "website_on_domain":
-        return _on_domain(release, website_domain)
+        return on_domain(release, website_domain)
     return True
 
 
@@ -153,6 +153,11 @@ def due_date(release_date: date | None, offset_days: int | None) -> date | None:
     if release_date is None or offset_days is None:
         return None
     return release_date + timedelta(days=offset_days)
+
+
+def reminder_date(due: date | None, remind_days_before: int) -> date | None:
+    """The day a reminder goes out: the due day itself, or the day before (R6.5.3)."""
+    return None if due is None else due - timedelta(days=remind_days_before)
 
 
 def today_in(timezone_name: str, now: datetime | None = None) -> date:

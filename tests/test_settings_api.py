@@ -360,3 +360,58 @@ async def test_landing_can_be_configured_per_role(client, admin_headers, make_us
     assert body["user"]["landing"] == "all"
     me = await client.get("/api/v1/auth/me", headers=bearer(body["access_token"]))
     assert me.json()["landing"] == "all"
+
+
+# ---------------------------------------------------------------- checkpoints before release
+
+
+async def test_a_checkpoint_can_fall_before_the_release_date(client, admin_headers):
+    """R6.5.3, for example to read a score before the release goes out."""
+    created = await client.post(
+        "/api/v1/checkpoints",
+        headers=admin_headers,
+        json={"values": {"label_en": "Three days before", "offset_days": -3}},
+    )
+    assert created.status_code == 201, created.text
+    checkpoint = created.json()
+    assert (checkpoint["key"], checkpoint["offset_days"]) == ("d-3", -3)
+    assert checkpoint["remind_days_before"] == 0
+
+    rows = (await client.get("/api/v1/checkpoints", headers=admin_headers)).json()
+    assert [row["offset_days"] for row in rows] == [-3, 0, 28]
+
+
+async def test_an_existing_checkpoint_can_move_before_the_release_date(client, admin_headers):
+    rows = (await client.get("/api/v1/checkpoints", headers=admin_headers)).json()
+    d0 = next(row for row in rows if row["key"] == "d0")
+    moved = await _patch(
+        client, f"/api/v1/checkpoints/{d0['id']}", admin_headers, "offset_days", "-1"
+    )
+    assert (moved.status_code, moved.json()["value"]) == (200, -1)
+
+
+@pytest.mark.parametrize("offset", [-366, 3651, "soon"])
+async def test_an_offset_stays_within_reason(client, admin_headers, offset):
+    response = await client.post(
+        "/api/v1/checkpoints",
+        headers=admin_headers,
+        json={"values": {"label_en": "Far off", "offset_days": offset}},
+    )
+    assert response.status_code == 422
+
+
+async def test_a_reminder_goes_out_on_the_day_or_the_day_before(client, admin_headers):
+    created = await client.post(
+        "/api/v1/checkpoints",
+        headers=admin_headers,
+        json={"values": {"label_en": "Before", "offset_days": -1, "remind_days_before": 1}},
+    )
+    assert created.json()["remind_days_before"] == 1
+    url = f"/api/v1/checkpoints/{created.json()['id']}"
+    version = created.json()["field_versions"].get("remind_days_before", 0)
+    back = await _patch(client, url, admin_headers, "remind_days_before", "0", version)
+    assert back.json()["value"] == 0
+    refused = await _patch(
+        client, url, admin_headers, "remind_days_before", 2, back.json()["version"]
+    )
+    assert refused.status_code == 422

@@ -9,11 +9,14 @@ affects any other, because each field is saved on its own.
 """
 
 import re
+import unicodedata
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, time
+from decimal import Decimal
 from typing import Any
+from urllib.parse import urlsplit
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, EmailStr, TypeAdapter, ValidationError
@@ -35,11 +38,18 @@ class FieldPatch(BaseModel):
 class FieldConflict(Exception):
     """Someone else changed this field. Turned into a 409 by a handler in ``app.main``."""
 
-    def __init__(self, field: str, current_value: Any, current_version: int) -> None:
+    def __init__(
+        self,
+        field: str,
+        current_value: Any,
+        current_version: int,
+        extra: dict[str, Any] | None = None,
+    ) -> None:
         super().__init__(field)
         self.field = field
         self.current_value = current_value
         self.current_version = current_version
+        self.extra = extra or {}
 
 
 def field_error(code: str) -> HTTPException:
@@ -98,6 +108,17 @@ def integer(minimum: int, maximum: int) -> FieldSpec:
     return FieldSpec(parse)
 
 
+def optional_integer(minimum: int, maximum: int) -> FieldSpec:
+    required = integer(minimum, maximum).parse
+
+    def parse(value: Any) -> int | None:
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return None
+        return required(value)
+
+    return FieldSpec(parse)
+
+
 def choice(*options: str, required: bool = True) -> FieldSpec:
     def parse(value: Any) -> str | None:
         if value in (None, "") and not required:
@@ -129,12 +150,60 @@ def string_list() -> FieldSpec:
 
 def iso_date() -> FieldSpec:
     def parse(value: Any) -> date | None:
-        if value in (None, ""):
+        if value is None or (isinstance(value, str) and not value.strip()):
             return None
         try:
-            return date.fromisoformat(value)
-        except (TypeError, ValueError) as exc:
+            return date.fromisoformat(value.strip())
+        except (AttributeError, TypeError, ValueError) as exc:
             raise field_error("field_invalid") from exc
+
+    return FieldSpec(parse)
+
+
+_CLOCK = re.compile(r"^(\d{1,2}):(\d{2})(?::(\d{2}))?$")
+
+
+def clock_time() -> FieldSpec:
+    """A time of day. Padded and short forms work, as they arrive by paste: "  0:10"."""
+
+    def parse(value: Any) -> time | None:
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return None
+        match = _CLOCK.match(value.strip()) if isinstance(value, str) else None
+        if match is None:
+            raise field_error("invalid_time")
+        try:
+            return time(*(int(part) for part in match.groups(default="0")))
+        except ValueError as exc:
+            raise field_error("invalid_time") from exc
+
+    return FieldSpec(parse)
+
+
+def web_address(max_length: int = 2000) -> FieldSpec:
+    """An http or https address, so it is safe to show as a link. Spaces around it go."""
+
+    def parse(value: Any) -> str | None:
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return None
+        if not isinstance(value, str):
+            raise field_error("invalid_url")
+        value = value.strip()
+        if "://" not in value:
+            value = f"https://{value}"
+        try:
+            parts = urlsplit(value)
+            host = parts.hostname or ""
+        except ValueError as exc:
+            raise field_error("invalid_url") from exc
+        if (
+            len(value) > max_length
+            or any(character.isspace() for character in value)
+            or parts.scheme.lower() not in ("http", "https")
+            or "." not in host
+        ):
+            raise field_error("invalid_url")
+        return value
 
     return FieldSpec(parse)
 
@@ -161,6 +230,20 @@ def reference(model: type) -> FieldSpec:
             raise field_error("field_invalid") from exc
 
     return FieldSpec(parse, reference=model)
+
+
+_PLAIN_NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
+_GROUPED_NUMBER = re.compile(r"^-?\d{1,3}(,\d{3})+(\.\d+)?$")
+
+
+def parse_number(value: Any) -> Decimal:
+    """A number as a person or a paste writes it: 1,234 or １２３４. 1,5 is refused, not guessed."""
+    if isinstance(value, bool) or not isinstance(value, int | float | Decimal | str):
+        raise field_error("field_invalid")
+    written = unicodedata.normalize("NFKC", str(value)).strip().replace("\u2212", "-")
+    if not (_PLAIN_NUMBER.match(written) or _GROUPED_NUMBER.match(written)):
+        raise field_error("field_invalid")
+    return Decimal(written.replace(",", ""))
 
 
 def slugify(label: str, fallback: str = "item") -> str:

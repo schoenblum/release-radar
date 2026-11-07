@@ -111,7 +111,12 @@
     "personal_field_read_only": "Only its owner can change a personal field.",
     "owner_must_edit": "A field can only pass to an active editor or admin.",
     "score_eligible_numeric_only": "Only number fields can count in scores.",
-    "backup_not_configured": "Backups aren't set up on this server."
+    "backup_not_configured": "Backups aren't set up on this server.",
+    "invalid_doi": "Please enter a DOI like 10.1234/example, or a doi.org link.",
+    "invalid_url": "Please enter a web address starting with https://.",
+    "invalid_time": "Please enter a time like 09:30.",
+    "title_or_doi_required": "A release needs a title or a DOI.",
+    "whole_number_required": "Please enter a whole number."
   },
   "common": {
     "saving": "Saving…",
@@ -174,7 +179,7 @@
       "lists": "The values people choose from. To retire an entry, switch off Active: releases that use it keep it.",
       "researchers": "Everyone named on a release. Tidy up names, add identifiers and merge duplicates. Nothing here changes any statistics, because releases refer to the record and not the name.",
       "form": "Adapt the fields on a release: rename, hide, require or reorder them, or add your own.",
-      "checkpoints": "The moments after a release when numbers are collected, and which numbers those are.",
+      "checkpoints": "The moments around a release when numbers are collected, and which numbers those are.",
       "data": "Your backups, a full copy of your data, and what the automatic jobs have been doing."
     },
     "institution": {
@@ -274,7 +279,7 @@
       "measures_help": "The numbers collected at each checkpoint. Switching one off keeps what was recorded.",
       "label_en": "Name (EN)",
       "label_ja": "Name (JA)",
-      "offset": "Days after release",
+      "offset": "Days from release",
       "add": "Add checkpoint",
       "source": "Comes from",
       "applies": "Applies to",
@@ -284,7 +289,7 @@
       "at_checkpoint": "At checkpoint",
       "add_measure": "Add measure",
       "reminders_title": "Reminders",
-      "reminders_later": "Reminder settings arrive with the reminders themselves, in a later phase.",
+      "reminders_later": "The choice above is saved already. The reminder emails themselves arrive in a later phase.",
       "metrics": {
         "ea_views": "EurekAlert views",
         "altmetric": "Altmetric score",
@@ -301,7 +306,11 @@
         "has_doi": "Releases with a DOI",
         "has_ea_url": "Releases with a EurekAlert link",
         "website_on_domain": "Releases on your website"
-      }
+      },
+      "offset_help": "A negative number falls before the release date: −3 is three days before. Reminders go out at the start of the day you choose.",
+      "remind": "Remind",
+      "remind_on_day": "On the day",
+      "remind_day_before": "The day before"
     },
     "data": {
       "backup_title": "Backups",
