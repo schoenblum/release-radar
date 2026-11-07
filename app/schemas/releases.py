@@ -4,7 +4,7 @@ from datetime import date, datetime, time
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReadingOut(BaseModel):
@@ -65,9 +65,13 @@ class ReleaseOut(BaseModel):
 
 class ReleasePage(BaseModel):
     items: list[ReleaseOut]
+    # How many match the filters, of how many in the view (Mine or All) as a whole.
     total: int
+    view_total: int
     # Whether this person has a writer entry at all, which "mine" depends on.
     has_writer_entry: bool
+    # Every academic year that has releases, newest first, for the year filter.
+    academic_years: list[int] = []
 
 
 class ReleaseCreate(BaseModel):
@@ -164,3 +168,27 @@ class HistoryEntry(BaseModel):
     user_id: UUID | None
     user_name: str | None
     user_active: bool | None
+
+
+class ReleaseExportFilters(BaseModel):
+    """The filters on the Data page, with the same names as ``GET /releases``."""
+
+    view: Literal["all", "mine"] = "all"
+    academic_year: int | None = Field(default=None, ge=1900, le=2999)
+    field_id: UUID | None = None
+    unit_id: UUID | None = None
+    researcher_id: UUID | None = None
+    writer_id: UUID | None = None
+    q: str | None = Field(default=None, max_length=200)
+
+
+class ReleaseExportRequest(BaseModel):
+    """R7.6.2. Without filters, everything: all releases, as if nothing were chosen."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    file_format: Literal["xlsx", "csv"] = Field(default="xlsx", alias="format")
+    language: Literal["en", "ja"] = "en"
+    filters: ReleaseExportFilters | None = None
+    # The order on screen, which the grid chose. Releases not named follow, newest first.
+    order: list[UUID] = Field(default_factory=list, max_length=20000)

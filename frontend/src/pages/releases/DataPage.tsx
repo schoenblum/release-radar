@@ -1,68 +1,77 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 
 import { api } from "../../api/client";
-import type { CrossrefStatus, Release, UserPreferences } from "../../api/types";
+import type { CrossrefStatus, ReleaseFilters, UserPreferences } from "../../api/types";
 import { useAuth } from "../../auth";
 import { PageLoading } from "../../components/Spinner";
 import { useToast } from "../../components/Toast";
 import ColumnChooser from "./ColumnChooser";
 import type { ColumnChoice, Commit } from "./columns";
 import DueStrip from "./DueStrip";
+import ExportMenu from "./ExportMenu";
+import FilterBar from "./FilterBar";
 import NewReleaseRow from "./NewReleaseRow";
 import ReleaseDrawer from "./ReleaseDrawer";
 import ReleaseGrid from "./ReleaseGrid";
 import { useCellSaves } from "./useCellSaves";
 import { useGridColumns } from "./useGridContext";
-import { useReleaseActions, useReleaseList, type DataView } from "./useReleaseData";
+import {
+  useCreatedReleases,
+  useReleaseActions,
+  useReleaseList,
+  type DataView,
+} from "./useReleaseData";
+import { useSteadyOrder } from "./useSteadyOrder";
+import {
+  compareBy,
+  filterQuery,
+  filtersFrom,
+  hasFilters,
+  nextSort,
+  SORT_PARAM,
+  sortFrom,
+  sortText,
+  withFilter,
+  withoutFilters,
+} from "./viewState";
 
 const NO_CHOICE: ColumnChoice = { hidden: [], shown: [] };
 
-/**
- * Keeps rows where they are while someone works: changing a date must not make the row jump
- * away. A new release goes on top, and the order is fresh when the view changes or the page
- * loads.
- */
-function useSteadyOrder(view: DataView, releases: Release[] | undefined): Release[] {
-  const [order, setOrder] = useState<{ view: DataView; ids: string[] }>({ view, ids: [] });
-  const list = useMemo(() => releases ?? [], [releases]);
-  const incoming = new Set(list.map((release) => release.id));
-  const sameView = order.view === view;
-  const known = new Set(sameView ? order.ids : []);
-  const differs =
-    !sameView ||
-    list.some((release) => !known.has(release.id)) ||
-    order.ids.some((id) => !incoming.has(id));
-  if (differs && releases) {
-    const kept = sameView ? order.ids.filter((id) => incoming.has(id)) : [];
-    const keptSet = new Set(kept);
-    const fresh = list.filter((release) => !keptSet.has(release.id)).map((release) => release.id);
-    setOrder({ view, ids: [...fresh, ...kept] });
-  }
-  return useMemo(() => {
-    const byId = new Map(list.map((release) => [release.id, release]));
-    return order.ids.flatMap((id) => {
-      const release = byId.get(id);
-      return release ? [release] : [];
-    });
-  }, [list, order.ids]);
-}
-
 /** The home page for most visits (D10, D30): what is due, the grid, and a drawer per release. */
 export default function DataPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, setUser } = useAuth();
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const requested = params.get("view");
   const view: DataView = requested === "mine" || requested === "all" ? requested : (user?.landing ?? "all");
   const openId = params.get("release");
+  const filters = useMemo(() => filtersFrom(params), [params]);
+  const sort = useMemo(() => sortFrom(params), [params]);
 
-  const { data: page, isLoading } = useReleaseList(view);
+  const { data: page, isLoading, isPlaceholderData } = useReleaseList(view, filters);
   const { columns, context } = useGridColumns();
   const actions = useReleaseActions();
-  const rows = useSteadyOrder(view, page?.items);
+
+  const sortColumn = sort ? columns?.find((column) => column.id === sort.column) : undefined;
+  const compare = useMemo(
+    () => (sort && sortColumn ? compareBy(sortColumn, sort.desc, i18n.language) : null),
+    [sort, sortColumn, i18n.language],
+  );
+  const orderKey = [view, filterQuery(filters), sortText(sort), compare ? "sorted" : ""].join("|");
+  const created = useCreatedReleases();
+  const forgetCreated = actions.forgetCreated;
+  useEffect(() => {
+    forgetCreated();
+  }, [orderKey, forgetCreated]);
+  const items = useMemo(() => {
+    if (!page) return undefined;
+    const listed = new Set(page.items.map((release) => release.id));
+    return [...created.filter((release) => !listed.has(release.id)), ...page.items];
+  }, [page, created]);
+  const rows = useSteadyOrder(orderKey, items, !isPlaceholderData, compare);
 
   const [choice, setChoice] = useState<ColumnChoice>(
     () => user?.preferences?.data_columns ?? NO_CHOICE,
@@ -111,6 +120,24 @@ export default function DataPage() {
     );
   }
 
+  function setFilter(key: keyof ReleaseFilters, value: string | number | null): void {
+    // Typing a search replaces the address as it goes, rather than adding a step per pause.
+    setParams((current) => withFilter(current, key, value), { replace: key === "q" });
+  }
+
+  const onSort = useCallback(
+    (columnId: string) => {
+      setParams((current) => {
+        const next = new URLSearchParams(current);
+        const chosen = sortText(nextSort(sortFrom(current), columnId));
+        if (chosen) next.set(SORT_PARAM, chosen);
+        else next.delete(SORT_PARAM);
+        return next;
+      });
+    },
+    [setParams],
+  );
+
   const openRelease = useCallback(
     (releaseId: string) => {
       setParams(
@@ -129,10 +156,16 @@ export default function DataPage() {
   if (isLoading || !columns || !context) return <PageLoading />;
 
   const canEdit = context.canEdit;
+  const narrowed = hasFilters(filters);
   const opened = openId ? rows.find((release) => release.id === openId) : undefined;
   const focusGrid = (): void => {
     document.querySelector<HTMLElement>("[role=grid]")?.focus();
   };
+  const empty = narrowed
+    ? t("data.empty_filtered")
+    : view === "mine" && page && !page.has_writer_entry
+      ? t("data.empty_no_writer")
+      : t(canEdit ? "data.empty" : "data.empty_read_only");
 
   return (
     <div>
@@ -153,12 +186,25 @@ export default function DataPage() {
             ))}
           </div>
           <ColumnChooser columns={columns} choice={choice} onChange={chooseColumns} />
+          <ExportMenu
+            view={view}
+            filters={filters}
+            order={rows.map((release) => release.id)}
+            shown={page?.total ?? rows.length}
+          />
         </div>
       </div>
 
-      {view === "mine" && canEdit && (
-        <DueStrip onOpen={openRelease} />
-      )}
+      {view === "mine" && canEdit && <DueStrip onOpen={openRelease} />}
+
+      <FilterBar
+        filters={filters}
+        years={page?.academic_years ?? []}
+        showWriter={view === "all"}
+        context={context}
+        onChange={setFilter}
+        onClear={() => setParams((current) => withoutFilters(current))}
+      />
 
       <ReleaseGrid
         rows={rows}
@@ -167,19 +213,19 @@ export default function DataPage() {
         canEdit={canEdit}
         saves={saves}
         units={context.units}
+        sort={sort}
+        onSort={onSort}
         onOpen={openRelease}
         onRefresh={actions.refreshList}
-        empty={
-          view === "mine" && page && !page.has_writer_entry
-            ? t("data.empty_no_writer")
-            : t(canEdit ? "data.empty" : "data.empty_read_only")
-        }
+        empty={empty}
         newRow={
           canEdit ? <NewReleaseRow create={actions.create} onLeaveDown={focusGrid} /> : null
         }
       />
-      <p className="mt-4xs text-sm text-content-secondary">
-        {t("data.count", { count: rows.length, total: page?.total ?? rows.length })}
+      <p className="mt-4xs text-sm text-content-secondary" aria-live="polite">
+        {narrowed
+          ? t("data.count_filtered", { count: page?.total ?? 0, total: page?.view_total ?? 0 })
+          : t("data.count", { count: rows.length, total: page?.total ?? rows.length })}
         {canEdit ? ` · ${t("data.keys_hint")}` : ""}
       </p>
 

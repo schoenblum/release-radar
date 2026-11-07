@@ -17,7 +17,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, false, func, or_, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -54,7 +54,7 @@ from app.schemas.releases import (
     ReleasePage,
     ReleaseSaved,
 )
-from app.services import crossref, custom_values, field_patch
+from app.services import crossref, custom_values, field_patch, release_filters
 from app.services.field_patch import (
     FieldConflict,
     FieldPatch,
@@ -81,6 +81,7 @@ from app.services.readings import (
     today_in,
 )
 from app.services.release_codes import academic_year, assign_code
+from app.services.release_filters import ReleaseFilters
 
 router = APIRouter(tags=["releases"])
 
@@ -309,46 +310,63 @@ def _fill_from_paper(release: Release, paper: crossref.Paper, *, overwrite: bool
 # ---------------------------------------------------------------- reading and creating
 
 
+def filters_from_query(
+    view: Literal["all", "mine"] = Query(default="all"),
+    academic_year: int | None = Query(default=None, ge=1900, le=2999),
+    field_id: UUID | None = Query(default=None),
+    unit_id: UUID | None = Query(default=None),
+    researcher_id: UUID | None = Query(default=None),
+    writer_id: UUID | None = Query(default=None),
+    q: str | None = Query(default=None, max_length=200),
+) -> ReleaseFilters:
+    return ReleaseFilters(
+        view=view,
+        academic_year=academic_year,
+        field_id=field_id,
+        unit_id=unit_id,
+        researcher_id=researcher_id,
+        writer_id=writer_id,
+        search=q,
+    )
+
+
+# Newest first, with drafts on top.
+NEWEST_FIRST = (Release.release_date.desc().nulls_first(), Release.created_at.desc(), Release.id)
+
+
 @router.get("/releases", response_model=ReleasePage)
 async def list_releases(
-    view: Literal["all", "mine"] = Query(default="all"),
-    researcher_id: UUID | None = Query(default=None),
+    filters: ReleaseFilters = Depends(filters_from_query),
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReleasePage:
-    """Newest first, with drafts on top. Step 1.6 adds filters, search and sorting."""
+    """A view of the releases, newest first (R7.6.1). The grid sorts what it shows itself."""
     institution = await db.get(Institution, user.institution_id)
-    writer_id = await db.scalar(
-        select(Writer.id).where(
-            Writer.institution_id == user.institution_id, Writer.user_id == user.id
+    writer_id = await release_filters.own_writer_id(db, user)
+    where = release_filters.conditions(institution, filters, writer_id)
+    total = await db.scalar(select(func.count()).select_from(Release).where(*where))
+    if filters.narrowed:
+        whole_view = ReleaseFilters(view=filters.view)
+        view_total = await db.scalar(
+            select(func.count())
+            .select_from(Release)
+            .where(*release_filters.conditions(institution, whole_view, writer_id))
         )
-    )
-    conditions = [Release.institution_id == user.institution_id, Release.deleted_at.is_(None)]
-    if view == "mine":
-        # With no writer entry nothing is theirs, rather than everything without a writer.
-        conditions.append(Release.writer_id == writer_id if writer_id else false())
-    if researcher_id is not None:
-        conditions.append(Release.researcher_id == researcher_id)
-    total = await db.scalar(select(func.count()).select_from(Release).where(*conditions))
+    else:
+        view_total = total
     releases = list(
         await db.scalars(
-            select(Release)
-            .where(*conditions)
-            .order_by(
-                Release.release_date.desc().nulls_first(),
-                Release.created_at.desc(),
-                Release.id,
-            )
-            .limit(limit)
-            .offset(offset)
+            select(Release).where(*where).order_by(*NEWEST_FIRST).limit(limit).offset(offset)
         )
     )
     return ReleasePage(
         items=await _present(db, institution, releases),
         total=total or 0,
+        view_total=view_total or 0,
         has_writer_entry=writer_id is not None,
+        academic_years=await release_filters.academic_years(db, institution),
     )
 
 
@@ -381,7 +399,7 @@ async def due_items(
         return DueItem(
             release_id=release.id,
             release_code=release.code,
-            release_title=release.title or release.paper_title,
+            release_title=release.title,
             due_date=due,
             due_now=due <= today,
             label_en=label.label_en,

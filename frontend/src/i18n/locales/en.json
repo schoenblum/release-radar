@@ -531,6 +531,42 @@
       "ea_url_unusual": "This doesn't look like a EurekAlert release link. It's saved anyway.",
       "website_off_domain": "This isn't on your news website, so website views won't apply. It's saved anyway."
     },
-    "not_a_number": "Please enter a number, or - if it doesn't apply."
+    "not_a_number": "Please enter a number, or - if it doesn't apply.",
+    "no_title": "No title yet",
+    "paste_saved": "{{count}} saved.",
+    "sort_hint": "Sort by {{column}}. Click again to reverse, and a third time for newest first.",
+    "empty_filtered": "No releases match these filters.",
+    "count_filtered": "{{count}} of {{total}} match",
+    "filters": {
+      "label": "Filters",
+      "search": "Search releases",
+      "search_placeholder": "Search titles, names, DOIs, notes",
+      "year": "Academic year",
+      "any_year": "Any year",
+      "field": "Field",
+      "any_field": "Any field",
+      "unit": "Unit",
+      "any_unit": "Any unit",
+      "writer": "Writer",
+      "any_writer": "Any writer",
+      "researcher": "Researcher",
+      "researcher_placeholder": "Any researcher",
+      "clear_one": "Stop filtering by {{name}}",
+      "clear": "Clear filters"
+    },
+    "export": {
+      "button": "Export",
+      "title": "Export releases",
+      "rows": "Releases",
+      "this_view": "As shown ({{count}})",
+      "everything": "Everything",
+      "format": "Format",
+      "xlsx": "Excel, with the lists and a Read me sheet",
+      "csv": "CSV (UTF-8)",
+      "language": "Language",
+      "personal_data": "The file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need.",
+      "download": "Download",
+      "preparing": "Preparing…"
+    }
   }
 }

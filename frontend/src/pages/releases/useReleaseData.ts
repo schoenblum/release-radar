@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { http } from "../../api/client";
@@ -8,24 +8,51 @@ import type {
   Reading,
   Release,
   ReleaseCreated,
+  ReleaseFilters,
   ReleasePage,
   ReleaseSaved,
 } from "../../api/types";
 import type { Commit } from "./columns";
+import { filterQuery } from "./viewState";
 
 export type DataView = "mine" | "all";
 
 const LIST_KEY = ["releases", "list"];
+// Releases added on this page, kept on screen even where the filters would hide them, so a
+// new draft does not vanish the moment it is made. Shaped as a page, so edits reach it too.
+const CREATED_KEY = [...LIST_KEY, "created"];
+const NO_PAGE: ReleasePage = {
+  items: [],
+  total: 0,
+  view_total: 0,
+  has_writer_entry: false,
+  academic_years: [],
+};
 export const DUE_KEY = ["releases", "due"];
 const historyKey = (id: string) => ["releases", "history", id];
 const PAGE_SIZE = 500;
 
-export function useReleaseList(view: DataView) {
+export function useReleaseList(view: DataView, filters: ReleaseFilters = {}) {
+  const query = filterQuery(filters);
   return useQuery({
-    queryKey: [...LIST_KEY, view],
-    queryFn: () => http.get<ReleasePage>(`/releases?view=${view}&limit=${PAGE_SIZE}`),
+    queryKey: [...LIST_KEY, view, query],
+    queryFn: () =>
+      http.get<ReleasePage>(`/releases?view=${view}&limit=${PAGE_SIZE}${query ? `&${query}` : ""}`),
     refetchInterval: 60_000,
+    // The last view stays on screen while the next one loads, rather than a blank page.
+    placeholderData: keepPreviousData,
   });
+}
+
+/** What was added here since the view last changed. */
+export function useCreatedReleases(): Release[] {
+  const { data } = useQuery({
+    queryKey: CREATED_KEY,
+    queryFn: () => NO_PAGE,
+    enabled: false,
+    initialData: NO_PAGE,
+  });
+  return data.items;
 }
 
 export function useReleaseHistory(id: string) {
@@ -134,6 +161,10 @@ export function useReleaseActions() {
       async create(payload: { title?: string; doi?: string }): Promise<ReleaseCreated> {
         const created = await http.post<ReleaseCreated>("/releases", payload);
         mapPages(queryClient, (items) => [created, ...items]);
+        queryClient.setQueryData<ReleasePage>(CREATED_KEY, (page) => ({
+          ...(page ?? NO_PAGE),
+          items: [created, ...(page ?? NO_PAGE).items.filter((item) => item.id !== created.id)],
+        }));
         void queryClient.invalidateQueries({ queryKey: LIST_KEY });
         return created;
       },
@@ -150,6 +181,10 @@ export function useReleaseActions() {
         refreshDueSoon(queryClient);
       },
       refreshList: () => void queryClient.invalidateQueries({ queryKey: LIST_KEY }),
+      /** A new view shows what belongs in it, new releases included. */
+      forgetCreated: () => {
+        queryClient.setQueryData(CREATED_KEY, NO_PAGE);
+      },
       storeRelease: (release: Release) => storeRelease(queryClient, release),
       storeReading: (releaseId: string, reading: Reading) =>
         storeReading(queryClient, releaseId, reading),

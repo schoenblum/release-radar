@@ -262,6 +262,76 @@
     @apply bottom-full top-auto;
   }
 
+  .grid-message-right {
+    @apply left-auto right-0;
+  }
+
+  /* While the grid does not have the focus, its selection is shown as resting. */
+  .grid-scroll:not(:focus-within) .grid-cell.is-active {
+    box-shadow: inset 0 0 0 2px var(--border-disabled);
+  }
+
+  .grid-scroll:not(:focus-within) .grid-cell.in-range {
+    @apply bg-surface-secondary;
+  }
+
+  .grid-sort {
+    @apply flex h-full w-full items-center gap-5xs text-left font-semibold hover:text-content-primary;
+  }
+
+  .grid-head-row th.text-right .grid-sort {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .grid-sort-label {
+    @apply line-clamp-2;
+  }
+
+  .grid-sort-mark {
+    @apply shrink-0 text-xs text-content-accent;
+  }
+
+  /* Narrowing the view: search, then one choice per filter (R7.6.1). */
+  .filter-bar {
+    @apply mb-3xs flex flex-wrap items-center gap-4xs;
+  }
+
+  .filter-search {
+    @apply w-72 max-w-full rounded-sm border border-line-disabled bg-surface-primary px-4xs py-5xs text-sm;
+  }
+
+  .filter-search:focus,
+  .filter-select:focus {
+    @apply border-line-primary outline-none;
+  }
+
+  .filter-researcher {
+    @apply w-48;
+  }
+
+  .filter-select {
+    @apply max-w-[14rem] rounded-sm border border-line-disabled bg-surface-primary px-4xs py-5xs text-sm;
+  }
+
+  .filter-select.is-set,
+  .filter-chip {
+    @apply border-line-primary bg-accent-10;
+  }
+
+  .filter-chip {
+    @apply inline-flex max-w-[16rem] items-center gap-5xs rounded-sm border py-5xs pl-4xs pr-5xs text-sm;
+  }
+
+  .filter-chip-clear {
+    @apply rounded-sm px-5xs leading-none hover:bg-surface-primary;
+  }
+
+  /* A small panel that opens under its button. */
+  .popover {
+    @apply absolute right-0 top-full z-30 mt-5xs w-80 max-w-[calc(100vw-2rem)] rounded border border-line-disabled bg-surface-primary p-3xs text-sm shadow-md;
+  }
+
   .grid-empty {
     @apply sticky left-0 w-full max-w-2xl p-xs text-content-secondary;
   }

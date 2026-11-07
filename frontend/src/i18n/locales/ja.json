@@ -531,6 +531,42 @@
       "ea_url_unusual": "EurekAlert のリリースのリンクではないようです。このまま保存されています。",
       "website_off_domain": "ニュースサイト上のページではないため、ウェブサイトの閲覧数は対象外です。このまま保存されています。"
     },
-    "not_a_number": "数値を入力してください。該当しない場合は - を入力してください。"
+    "not_a_number": "数値を入力してください。該当しない場合は - を入力してください。",
+    "no_title": "タイトル未入力",
+    "paste_saved": "{{count}} 件を保存しました。",
+    "sort_hint": "{{column}}で並べ替えます。もう一度クリックすると逆順、3 回目で新しい順に戻ります。",
+    "empty_filtered": "条件に合うリリースはありません。",
+    "count_filtered": "{{total}} 件中 {{count}} 件が該当",
+    "filters": {
+      "label": "絞り込み",
+      "search": "リリースを検索",
+      "search_placeholder": "タイトル、氏名、DOI、メモを検索",
+      "year": "年度",
+      "any_year": "すべての年度",
+      "field": "分野",
+      "any_field": "すべての分野",
+      "unit": "部局",
+      "any_unit": "すべての部局",
+      "writer": "ライター",
+      "any_writer": "すべてのライター",
+      "researcher": "研究者",
+      "researcher_placeholder": "すべての研究者",
+      "clear_one": "「{{name}}」での絞り込みをやめる",
+      "clear": "絞り込みを解除"
+    },
+    "export": {
+      "button": "エクスポート",
+      "title": "リリースをエクスポート",
+      "rows": "対象",
+      "this_view": "表示中のリリース（{{count}} 件）",
+      "everything": "すべてのリリース",
+      "format": "形式",
+      "xlsx": "Excel（リストと説明シート付き）",
+      "csv": "CSV（UTF-8）",
+      "language": "言語",
+      "personal_data": "ファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。",
+      "download": "ダウンロード",
+      "preparing": "準備中…"
+    }
   }
 }

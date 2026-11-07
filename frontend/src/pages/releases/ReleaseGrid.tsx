@@ -28,7 +28,7 @@ import type { Release, Unit } from "../../api/types";
 import { useToast } from "../../components/Toast";
 import CellEditor, { type Move } from "./CellEditor";
 import { parseClipboard, toClipboard } from "./clipboard";
-import { isVisible, type ColumnChoice, type GridColumn, type Tone } from "./columns";
+import { isVisible, type ColumnChoice, type GridColumn, type SortState, type Tone } from "./columns";
 import { parseBoolean } from "./parse";
 import { planPaste, type CellRange } from "./paste";
 import type { PendingCell, PendingCells, useCellSaves } from "./useCellSaves";
@@ -42,7 +42,6 @@ const ROW_HEIGHT = 36;
 const HEADER_HEIGHT = 48;
 const NEW_ROW_HEIGHT = 52;
 const OVERSCAN_ROWS = 10;
-const LAST_ROWS_FLIP = 3;
 
 interface CellId {
   row: string;
@@ -68,17 +67,43 @@ function displayedValue(pending: PendingCell | undefined): pending is PendingCel
   return !!pending && pending.status !== "saved";
 }
 
-function CellMessage({
-  pending,
-  column,
-  flip,
-}: {
-  pending: PendingCell;
-  column: GridColumn;
-  flip: boolean;
-}) {
+/**
+ * Where a cell's message fits: below the cell, or above it when the visible part of the grid
+ * ends too soon, and from the cell's right edge near the right side. Measured, because the
+ * grid scrolls inside itself and the page scrolls too. It only places the box, so it sets
+ * the classes itself rather than rendering again.
+ */
+function useFittingPlace(box: React.RefObject<HTMLDivElement | null>, deps: unknown[]): void {
+  useLayoutEffect(() => {
+    const element = box.current;
+    const cell = element?.parentElement;
+    const frame = element?.closest<HTMLElement>(".grid-scroll");
+    if (!element || !cell || !frame) return;
+    const area = frame.getBoundingClientRect();
+    const head = frame.querySelector("thead")?.getBoundingClientRect().height ?? 0;
+    const own = element.getBoundingClientRect();
+    const at = cell.getBoundingClientRect();
+    const top = Math.max(area.top + head, 0);
+    const bottom = Math.min(area.bottom, window.innerHeight);
+    const right = Math.min(area.right, window.innerWidth);
+    element.classList.toggle(
+      "grid-message-above",
+      at.bottom + own.height > bottom && at.top - own.height >= top,
+    );
+    element.classList.toggle(
+      "grid-message-right",
+      at.left + own.width > right && at.right - own.width >= area.left,
+    );
+    // Measured once per message: what it says decides its size.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+}
+
+function CellMessage({ pending, column }: { pending: PendingCell; column: GridColumn }) {
   const { t } = useTranslation();
-  const className = flip ? "grid-message grid-message-above" : "grid-message";
+  const box = useRef<HTMLDivElement>(null);
+  useFittingPlace(box, [pending.code, pending.conflict?.version]);
+  const className = "grid-message";
   if (pending.conflict) {
     const { value, state } = pending.conflict;
     const shown =
@@ -90,7 +115,7 @@ function CellMessage({
             ? JSON.stringify(value)
             : String(value);
     return (
-      <div role="alert" className={className}>
+      <div ref={box} role="alert" className={className}>
         <p>{t("conflict.message", { value: shown })}</p>
         <div className="mt-5xs flex gap-5xs">
           <button type="button" className="btn-small" data-action="keep">
@@ -104,7 +129,7 @@ function CellMessage({
     );
   }
   return (
-    <div role="alert" className={className}>
+    <div ref={box} role="alert" className={className}>
       <p>
         {column.editor === "number" && pending.code === "field_invalid"
           ? t("data.not_a_number")
@@ -118,7 +143,6 @@ function CellMessage({
 interface RowProps {
   release: Release;
   index: number;
-  total: number;
   columns: GridColumn[];
   offsets: number[];
   /** The columns of the selected range in this row, as [first, last]. */
@@ -127,16 +151,15 @@ interface RowProps {
   editing: Editing | null;
   pending: Record<string, PendingCell> | undefined;
   units: Unit[];
-  onCommit: (text: string, move: Move) => void;
+  onCommit: (text: string, move: Move, next?: EventTarget | null) => void;
   onPickResearcher: (record: { id: string; name: string } | null) => void;
-  onCancel: () => void;
+  onCancel: (next?: EventTarget | null) => void;
 }
 
 /** Rows re-render on their own, so moving around a long list stays quick. */
 const GridRow = memo(function GridRow({
   release,
   index,
-  total,
   columns,
   offsets,
   range,
@@ -148,7 +171,6 @@ const GridRow = memo(function GridRow({
   onPickResearcher,
   onCancel,
 }: RowProps) {
-  const flip = index >= total - LAST_ROWS_FLIP && total > LAST_ROWS_FLIP;
   return (
     <tr role="row" aria-rowindex={index + 2} data-row={index}>
       {columns.map((column, position) => {
@@ -219,7 +241,7 @@ const GridRow = memo(function GridRow({
               <span className="grid-text">{text}</span>
             )}
             {isActive && !isEditing && cellPending?.status === "failed" && (
-              <CellMessage pending={cellPending} column={column} flip={flip} />
+              <CellMessage pending={cellPending} column={column} />
             )}
           </td>
         );
@@ -237,6 +259,8 @@ export default function ReleaseGrid({
   units,
   newRow,
   empty,
+  sort = null,
+  onSort,
   onOpen,
   onRefresh,
 }: {
@@ -248,6 +272,9 @@ export default function ReleaseGrid({
   units: Unit[];
   newRow: ReactNode;
   empty: ReactNode;
+  sort?: SortState | null;
+  /** A header was clicked: sort by it, turn it round, or stop sorting. */
+  onSort?: (columnId: string) => void;
   onOpen: (releaseId: string) => void;
   onRefresh: () => void;
 }) {
@@ -312,6 +339,8 @@ export default function ReleaseGrid({
   const [active, setActive] = useState<CellId | null>(null);
   const [anchor, setAnchor] = useState<CellId | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
+  // Where the selection was before it was let go, so the arrow keys carry on from there.
+  const lastActive = useRef<CellId | null>(null);
 
   const rowIndex = useMemo(() => new Map(rows.map((row, index) => [row.id, index])), [rows]);
   const columnIndex = useMemo(
@@ -370,11 +399,26 @@ export default function ReleaseGrid({
     scroller.current?.focus({ preventScroll: true });
   }, []);
 
+  /** After an editor closes. If it closed because focus went somewhere else, it stays there. */
+  const refocus = useCallback(
+    (next?: EventTarget | null) => {
+      if (!next || next === scroller.current) focusGrid();
+    },
+    [focusGrid],
+  );
+
+  const letGo = useCallback(() => {
+    if (active) lastActive.current = active;
+    setActive(null);
+    setAnchor(null);
+  }, [active]);
+
   const commitCell = useCallback(
     (release: Release, column: GridColumn, text: string) => {
       const parsed = column.parse(text, release);
       if (parsed.ok) void saves.save([{ release, column, text, commit: parsed.commit }]);
-      else saves.markProblem({ release, column, text, code: parsed.code });
+      // Undo drops it again, as it would a value that was saved.
+      else void saves.save([], [{ release, column, text, code: parsed.code }]);
     },
     [saves],
   );
@@ -402,7 +446,7 @@ export default function ReleaseGrid({
   });
 
   const onCommit = useCallback(
-    (text: string, move: Move) => {
+    (text: string, move: Move, next?: EventTarget | null) => {
       const now = latest.current;
       setEditing(null);
       if (now.editing) {
@@ -419,15 +463,18 @@ export default function ReleaseGrid({
           }
         }
       }
-      focusGrid();
+      refocus(next);
     },
-    [focusGrid],
+    [refocus],
   );
 
-  const onCancel = useCallback(() => {
-    setEditing(null);
-    focusGrid();
-  }, [focusGrid]);
+  const onCancel = useCallback(
+    (next?: EventTarget | null) => {
+      setEditing(null);
+      refocus(next);
+    },
+    [refocus],
+  );
 
   const onPickResearcher = useCallback(
     (record: { id: string; name: string } | null) => {
@@ -500,7 +547,10 @@ export default function ReleaseGrid({
     if (!active || !range) {
       if (rows.length > 0 && event.key.startsWith("Arrow")) {
         event.preventDefault();
-        moveTo(0, 0);
+        const last = lastActive.current;
+        const row = last ? rowIndex.get(last.row) : undefined;
+        const column = last ? columnIndex.get(last.column) : undefined;
+        moveTo(row ?? 0, column ?? 0);
       }
       return;
     }
@@ -564,8 +614,11 @@ export default function ReleaseGrid({
       case "Escape":
         if (saves.pending[release.id]?.[column.id]?.status === "failed") {
           saves.drop(release.id, column.id);
-        } else {
+        } else if (range.top !== range.bottom || range.left !== range.right) {
           setAnchor(active);
+        } else {
+          // Nothing selected any more, so nothing is pasted over by mistake.
+          letGo();
         }
         return;
       case "Backspace":
@@ -589,29 +642,35 @@ export default function ReleaseGrid({
     }
   }
 
+  /** Only the grid's own: a paste or copy in the new-release box or an editor is theirs. */
+  function isForTheGrid(event: ClipboardEvent<HTMLDivElement>): boolean {
+    return event.target === scroller.current || event.target === catcher.current;
+  }
+
   function onPaste(event: ClipboardEvent<HTMLDivElement>): void {
-    if (editing || !range || !canEdit) return;
+    if (!isForTheGrid(event) || editing || !range || !canEdit) return;
     event.preventDefault();
     const cells = parseClipboard(event.clipboardData.getData("text/plain"));
     const plan = planPaste(cells, range, rows, columns);
-    plan.problems.forEach((problem) => saves.markProblem(problem));
-    void saves.save(plan.saves).then((outcome) => {
+    void saves.save(plan.saves, plan.problems).then((outcome) => {
       const invalid = outcome.failed + plan.problems.length;
       toast({
         text: [
-          t("data.paste_result", { saved: outcome.saved, invalid }),
+          invalid > 0
+            ? t("data.paste_result", { saved: outcome.saved, invalid })
+            : t("data.paste_saved", { count: outcome.saved }),
           plan.skipped > 0 ? t("data.paste_skipped", { count: plan.skipped }) : "",
           plan.overflow > 0 ? t("data.paste_overflow", { count: plan.overflow }) : "",
         ]
           .filter(Boolean)
           .join(" "),
-        undo: outcome.saved > 0 ? () => void runUndo() : undefined,
+        undo: outcome.saved > 0 || invalid > 0 ? () => void runUndo() : undefined,
       });
     });
   }
 
   function onCopy(event: ClipboardEvent<HTMLDivElement>): void {
-    if (editing || !range) return;
+    if (!isForTheGrid(event) || editing || !range) return;
     event.preventDefault();
     const lines: string[][] = [];
     for (let row = range.top; row <= range.bottom; row += 1) {
@@ -719,6 +778,11 @@ export default function ReleaseGrid({
       onPaste={onPaste}
       onCopy={onCopy}
       onFocus={(event) => {
+        // Typing a new release lets go of the selection, so a paste there lands there.
+        if ((event.target as HTMLElement).closest(".grid-new-row")) {
+          letGo();
+          return;
+        }
         // Arriving by Tab starts at the first cell. A click has chosen its own.
         if (event.target === scroller.current && !active && !clicking.current && rows.length > 0) {
           moveTo(0, 0);
@@ -735,21 +799,43 @@ export default function ReleaseGrid({
         </colgroup>
         <thead role="rowgroup">
           <tr role="row" aria-rowindex={1} className="grid-head-row">
-            {columns.map((column, position) => (
-              <th
-                key={column.id}
-                role="columnheader"
-                aria-colindex={position + 1}
-                title={column.label}
-                className={[
-                  column.frozen ? "grid-head-frozen" : "",
-                  column.alignRight ? "text-right" : "",
-                ].join(" ")}
-                style={column.frozen ? { left: offsets[position] } : undefined}
-              >
-                {column.label}
-              </th>
-            ))}
+            {columns.map((column, position) => {
+              const sorted = sort?.column === column.id ? sort : null;
+              return (
+                <th
+                  key={column.id}
+                  role="columnheader"
+                  aria-colindex={position + 1}
+                  aria-sort={sorted ? (sorted.desc ? "descending" : "ascending") : undefined}
+                  title={column.label}
+                  className={[
+                    column.frozen ? "grid-head-frozen" : "",
+                    column.alignRight ? "text-right" : "",
+                  ].join(" ")}
+                  style={column.frozen ? { left: offsets[position] } : undefined}
+                >
+                  {onSort ? (
+                    <button
+                      type="button"
+                      // The grid is a single stop for Tab, so headers are for the mouse.
+                      tabIndex={-1}
+                      className="grid-sort"
+                      title={t("data.sort_hint", { column: column.label })}
+                      onClick={() => onSort(column.id)}
+                    >
+                      <span className="grid-sort-label">{column.label}</span>
+                      {sorted && (
+                        <span aria-hidden="true" className="grid-sort-mark">
+                          {sorted.desc ? "▼" : "▲"}
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    column.label
+                  )}
+                </th>
+              );
+            })}
           </tr>
           {newRow && (
             <tr className="grid-new-row">
@@ -781,7 +867,6 @@ export default function ReleaseGrid({
                 key={release.id}
                 release={release}
                 index={item.index}
-                total={rows.length}
                 columns={columns}
                 offsets={offsets}
                 range={inRows ? rangeColumns : null}

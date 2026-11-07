@@ -120,8 +120,9 @@ export const http = {
       method: "PATCH",
       body: JSON.stringify({ field, value, version }),
     }),
-  async download(path: string, fallbackName: string): Promise<void> {
-    const response = await authorized(path, {}, false);
+  /** Save what the server sends as a file. With a body, the request is a POST. */
+  async download(path: string, fallbackName: string, body?: unknown): Promise<void> {
+    const response = await authorized(path, body === undefined ? {} : post(body), false);
     const disposition = response.headers.get("Content-Disposition") ?? "";
     const name = /filename="([^"]+)"/.exec(disposition)?.[1] ?? fallbackName;
     const url = URL.createObjectURL(await response.blob());

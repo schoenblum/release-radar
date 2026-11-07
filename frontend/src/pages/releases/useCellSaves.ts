@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { ApiError } from "../../api/client";
 import type { Release } from "../../api/types";
@@ -24,9 +24,24 @@ export interface CellSave {
   commit: Commit;
 }
 
+/** A value that cannot be saved as it stands, such as text in a number cell. */
+export interface CellProblem {
+  release: Release;
+  column: GridColumn;
+  text: string;
+  code: string;
+}
+
 export interface SaveOutcome {
   saved: number;
   failed: number;
+}
+
+interface UndoEntry {
+  /** The saves that put the cells back as they were. */
+  commits: { releaseId: string; commit: Commit }[];
+  /** Cells the group left unsaved, with what was typed: undo clears them too. */
+  marks: { releaseId: string; columnId: string; text: string }[];
 }
 
 const SAVED_MARK_MS = 1200;
@@ -36,8 +51,13 @@ export function useCellSaves(
   apply: (releaseId: string, commit: Commit, version?: number) => Promise<void>,
 ) {
   const [pending, setPending] = useState<PendingCells>({});
-  const undoStack = useRef<{ releaseId: string; commit: Commit }[][]>([]);
+  const undoStack = useRef<UndoEntry[]>([]);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  // Undo reads what is on screen now, not what was there when it was set up.
+  const latestPending = useRef(pending);
+  useLayoutEffect(() => {
+    latestPending.current = pending;
+  });
 
   useEffect(() => {
     const running = timers.current;
@@ -115,36 +135,8 @@ export function useCellSaves(
     [apply, clearMark, setCell],
   );
 
-  /** Save a group of cells. Undo takes the whole group back in one go. */
-  const save = useCallback(
-    async (group: CellSave[]): Promise<SaveOutcome> => {
-      const before = group.map((item) => ({
-        releaseId: item.release.id,
-        commit: item.column.snapshot(item.release),
-      }));
-      const results = await Promise.all(
-        group.map((item) => one(item.release.id, item.column.id, item.text, item.commit)),
-      );
-      const undo = before.flatMap((entry, index) =>
-        results[index] && entry.commit ? [{ releaseId: entry.releaseId, commit: entry.commit }] : [],
-      );
-      if (undo.length > 0) undoStack.current.push(undo);
-      const saved = results.filter(Boolean).length;
-      return { saved, failed: results.length - saved };
-    },
-    [one],
-  );
-
-  /** Put back the last group. Returns how many cells it restored, or null with nothing to undo. */
-  const undo = useCallback(async (): Promise<number | null> => {
-    const group = undoStack.current.pop();
-    if (!group) return null;
-    await Promise.all(group.map((entry) => apply(entry.releaseId, entry.commit)));
-    return group.length;
-  }, [apply]);
-
   const markProblem = useCallback(
-    (item: { release: Release; column: GridColumn; text: string; code: string }) => {
+    (item: CellProblem) => {
       setCell(item.release.id, item.column.id, {
         status: "failed",
         text: item.text,
@@ -154,6 +146,51 @@ export function useCellSaves(
     },
     [setCell],
   );
+
+  /**
+   * Save a group of cells, and show the problems that came with it, such as a paste's.
+   * Undo takes the whole group back in one go, unsaved cells included.
+   */
+  const save = useCallback(
+    async (group: CellSave[], problems: CellProblem[] = []): Promise<SaveOutcome> => {
+      problems.forEach(markProblem);
+      const before = group.map((item) => ({
+        releaseId: item.release.id,
+        commit: item.column.snapshot(item.release),
+      }));
+      const results = await Promise.all(
+        group.map((item) => one(item.release.id, item.column.id, item.text, item.commit)),
+      );
+      const commits = before.flatMap((entry, index) =>
+        results[index] && entry.commit ? [{ releaseId: entry.releaseId, commit: entry.commit }] : [],
+      );
+      const marks = [
+        ...group.filter((_, index) => !results[index]),
+        ...problems,
+      ].map((item) => ({ releaseId: item.release.id, columnId: item.column.id, text: item.text }));
+      if (commits.length > 0 || marks.length > 0) undoStack.current.push({ commits, marks });
+      const saved = results.filter(Boolean).length;
+      return { saved, failed: results.length - saved };
+    },
+    [one, markProblem],
+  );
+
+  /** Put back the last group. Returns how many cells it restored, or null with nothing to undo. */
+  const undo = useCallback(async (): Promise<number | null> => {
+    for (;;) {
+      const entry = undoStack.current.pop();
+      if (!entry) return null;
+      // A cell fixed or dropped since needs nothing, and a group with nothing left is skipped.
+      const marks = entry.marks.filter(({ releaseId, columnId, text }) => {
+        const cell = latestPending.current[releaseId]?.[columnId];
+        return cell?.status === "failed" && cell.text === text;
+      });
+      if (entry.commits.length === 0 && marks.length === 0) continue;
+      marks.forEach(({ releaseId, columnId }) => setCell(releaseId, columnId, null));
+      await Promise.all(entry.commits.map(({ releaseId, commit }) => apply(releaseId, commit)));
+      return entry.commits.length + marks.length;
+    }
+  }, [apply, setCell]);
 
   const drop = useCallback(
     (releaseId: string, columnId: string) => setCell(releaseId, columnId, null),

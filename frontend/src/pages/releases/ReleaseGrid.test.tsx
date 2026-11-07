@@ -7,7 +7,7 @@ import { ApiError } from "../../api/client";
 import type { Release } from "../../api/types";
 import { ToastProvider } from "../../components/Toast";
 import { applyLanguage } from "../../i18n";
-import { buildColumns, type Commit } from "./columns";
+import { buildColumns, type Commit, type SortState } from "./columns";
 import ReleaseGrid from "./ReleaseGrid";
 import { context, measure, reading, release, UNIT } from "./testing";
 import { useCellSaves } from "./useCellSaves";
@@ -39,11 +39,17 @@ function Harness({
   onOpen,
   canEdit = true,
   initial,
+  newRow = null,
+  sort = null,
+  onSort,
 }: {
   apply: Apply;
   onOpen: (id: string) => void;
   canEdit?: boolean;
   initial: Release[];
+  newRow?: React.ReactNode;
+  sort?: SortState | null;
+  onSort?: (column: string) => void;
 }) {
   const [list] = useState(initial);
   const saves = useCellSaves(apply);
@@ -56,7 +62,9 @@ function Harness({
       canEdit={canEdit}
       saves={saves}
       units={[UNIT]}
-      newRow={null}
+      newRow={newRow}
+      sort={sort}
+      onSort={onSort}
       empty="Nothing here"
       onOpen={onOpen}
       onRefresh={() => undefined}
@@ -64,9 +72,18 @@ function Harness({
   );
 }
 
-function setup(options: { apply?: Apply; canEdit?: boolean; initial?: Release[] } = {}) {
+function setup(
+  options: {
+    apply?: Apply;
+    canEdit?: boolean;
+    initial?: Release[];
+    newRow?: React.ReactNode;
+    sort?: SortState | null;
+  } = {},
+) {
   const apply = vi.fn<Apply>(options.apply ?? (async () => undefined));
   const onOpen = vi.fn<(id: string) => void>();
+  const onSort = vi.fn<(column: string) => void>();
   render(
     <ToastProvider>
       <Harness
@@ -74,10 +91,22 @@ function setup(options: { apply?: Apply; canEdit?: boolean; initial?: Release[] 
         onOpen={onOpen}
         canEdit={options.canEdit ?? true}
         initial={options.initial ?? rows(6)}
+        newRow={options.newRow}
+        sort={options.sort}
+        onSort={onSort}
       />
     </ToastProvider>,
   );
-  return { apply, onOpen, user: userEvent.setup() };
+  return { apply, onOpen, onSort, user: userEvent.setup() };
+}
+
+/** A server that refuses one value, as it would text in a number cell. */
+function refusing(text: string): Apply {
+  return async (_id, commit) => {
+    if (commit.kind === "reading" && "value" in commit.body && commit.body.value === text) {
+      throw new ApiError(422, "field_invalid", {});
+    }
+  };
 }
 
 const cell = (rowId: string, column: string): HTMLElement => {
@@ -398,5 +427,110 @@ describe("the data grid", () => {
   it("says so when empty", () => {
     setup({ initial: [] });
     expect(screen.getByText("Nothing here")).toBeInTheDocument();
+  });
+
+  it("leaves a paste in the new-release box to the box, and lets go of the selection", async () => {
+    const { apply, user } = setup({ newRow: <input aria-label="New release" /> });
+    await user.click(cell("1", VIEWS));
+    const box = screen.getByRole("textbox", { name: "New release" });
+    await user.click(box);
+    expect(box).toHaveFocus();
+    expect(cell("1", VIEWS)).not.toHaveClass("is-active");
+    const event = fireEvent.paste(box, { clipboardData: { getData: () => "10.1234/abc" } });
+    // Not cancelled, so the text lands in the box as usual.
+    expect(event).toBe(true);
+    expect(apply).not.toHaveBeenCalled();
+    fireEvent.copy(box, { clipboardData: { setData: vi.fn() } });
+    expect(cell("1", VIEWS)).not.toHaveClass("is-failed");
+  });
+
+  it("Esc lets go of one selected cell, and the arrows carry on from where it was", async () => {
+    const { apply, user } = setup();
+    await user.click(cell("3", VIEWS));
+    await user.keyboard("{Escape}");
+    expect(cell("3", VIEWS)).not.toHaveClass("is-active");
+    paste("5");
+    expect(apply).not.toHaveBeenCalled();
+    await user.keyboard("{ArrowDown}");
+    expect(cell("3", VIEWS)).toHaveClass("is-active");
+  });
+
+  it("Esc first shrinks a range to its cell", async () => {
+    const { user } = setup();
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("{Shift>}{ArrowDown}{/Shift}{Escape}");
+    expect(cell("1", VIEWS)).not.toHaveClass("in-range");
+    expect(cell("2", VIEWS)).toHaveClass("is-active");
+  });
+
+  it("an editor closed by clicking elsewhere leaves the focus there", async () => {
+    const { apply, user } = setup({ newRow: <input aria-label="New release" /> });
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("7");
+    await user.click(screen.getByRole("textbox", { name: "New release" }));
+    expect(apply).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("textbox", { name: "New release" })).toHaveFocus();
+  });
+
+  it("undo of a paste also clears the cells it could not save", async () => {
+    const { apply, user } = setup({ apply: refusing("lots") });
+    await user.click(cell("1", VIEWS));
+    paste("4\nlots");
+    await screen.findByText(/1 saved, 1 invalid/);
+    expect(cell("2", VIEWS)).toHaveClass("is-failed");
+    await user.keyboard("{Meta>}z{/Meta}");
+    await waitFor(() => expect(cell("2", VIEWS)).not.toHaveClass("is-failed"));
+    // The saved one went back as well.
+    expect(apply).toHaveBeenCalledTimes(3);
+    expect(await screen.findByText(/Undone: 2/)).toBeInTheDocument();
+  });
+
+  it("undo of a paste clears a value no choice matches, which was never sent", async () => {
+    const { apply, user } = setup();
+    await user.click(cell("1", "unit"));
+    paste("Nowhere");
+    await screen.findByText(/0 saved, 1 invalid/);
+    expect(cell("1", "unit")).toHaveClass("is-failed");
+    await user.keyboard("{Meta>}z{/Meta}");
+    await waitFor(() => expect(cell("1", "unit")).not.toHaveClass("is-failed"));
+    expect(apply).not.toHaveBeenCalled();
+  });
+
+  it("Cmd+Z drops a typed value that cannot be saved, then undoes what came before", async () => {
+    const { apply, user } = setup({ apply: refusing("soon") });
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("3{Enter}");
+    await waitFor(() => expect(apply).toHaveBeenCalledTimes(1));
+    await user.keyboard("soon{Enter}");
+    await waitFor(() => expect(cell("2", VIEWS)).toHaveClass("is-failed"));
+    await user.keyboard("{Meta>}z{/Meta}");
+    await waitFor(() => expect(cell("2", VIEWS)).not.toHaveClass("is-failed"));
+    expect(apply).toHaveBeenCalledTimes(2);
+    await user.keyboard("{Meta>}z{/Meta}");
+    await waitFor(() => expect(apply).toHaveBeenCalledTimes(3));
+    expect(apply.mock.calls[2][0]).toBe("1");
+  });
+
+  it("a value fixed since is not undone twice", async () => {
+    const { apply, user } = setup({ apply: refusing("soon") });
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("soon{Enter}");
+    await waitFor(() => expect(cell("1", VIEWS)).toHaveClass("is-failed"));
+    await user.keyboard("{ArrowUp}{Enter}");
+    await user.keyboard("{Control>}a{/Control}8{Enter}");
+    await waitFor(() => expect(apply).toHaveBeenCalledTimes(2));
+    await user.keyboard("{Meta>}z{/Meta}");
+    await waitFor(() => expect(apply).toHaveBeenCalledTimes(3));
+    // The bad value was replaced by the 8, so nothing of it is left to undo.
+    await user.keyboard("{Meta>}z{/Meta}");
+    expect(apply).toHaveBeenCalledTimes(3);
+  });
+
+  it("sorts by a header click, and says which way", async () => {
+    const { onSort, user } = setup({ sort: { column: VIEWS, desc: true } });
+    const header = screen.getByRole("columnheader", { name: /Views/ });
+    expect(header).toHaveAttribute("aria-sort", "descending");
+    await user.click(within(screen.getByRole("columnheader", { name: /Title/ })).getByRole("button"));
+    expect(onSort).toHaveBeenCalledWith("title");
   });
 });

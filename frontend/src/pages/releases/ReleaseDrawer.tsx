@@ -753,7 +753,7 @@ export default function ReleaseDrawer({
     const field = context.customFields.find((row) => `custom_values.${row.key}` === key);
     return field ? (isJa && field.label_ja) || field.label_en : key;
   });
-  const title = release.title ?? release.paper_title ?? release.doi ?? "";
+  const title = release.title ?? t("data.no_title");
 
   return (
     <SidePanel

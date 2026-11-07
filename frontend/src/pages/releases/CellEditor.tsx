@@ -14,9 +14,10 @@ export interface CellEditorProps {
   initial: string;
   /** Started by typing: the first key replaces what is there, and arrow keys move on. */
   replace: boolean;
-  onCommit: (text: string, move: Move) => void;
+  /** ``next`` is where focus went, when the editor closed because it went there. */
+  onCommit: (text: string, move: Move, next?: EventTarget | null) => void;
   onPickResearcher: (record: { id: string; name: string } | null) => void;
-  onCancel: () => void;
+  onCancel: (next?: EventTarget | null) => void;
 }
 
 /**
@@ -38,10 +39,10 @@ export default function CellEditor({
   const [draft, setDraft] = useState(initial);
   const finished = useRef(false);
 
-  function commit(move: Move): void {
+  function commit(move: Move, next?: EventTarget | null): void {
     if (finished.current) return;
     finished.current = true;
-    onCommit(draft, move);
+    onCommit(draft, move, next);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement | HTMLSelectElement>): void {
@@ -93,7 +94,7 @@ export default function CellEditor({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={onKeyDown}
-        onBlur={() => commit({ rows: 0, columns: 0 })}
+        onBlur={(event) => commit({ rows: 0, columns: 0 }, event.relatedTarget)}
       >
         <option value="">{t("common.none")}</option>
         {/* An entry retired since it was chosen still shows here, and stays unless changed. */}
@@ -124,7 +125,7 @@ export default function CellEditor({
       value={draft}
       onChange={(event) => setDraft(event.target.value)}
       onKeyDown={onKeyDown}
-      onBlur={() => commit({ rows: 0, columns: 0 })}
+      onBlur={(event) => commit({ rows: 0, columns: 0 }, event.relatedTarget)}
     />
   );
 }

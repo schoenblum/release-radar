@@ -32,5 +32,77 @@
       "pickups_all": "ピックアップ数（全体）",
       "pickups_major": "ピックアップ数（主要メディア）"
     }
+  },
+  "export": {
+    "sheets": {
+      "releases": "リリース",
+      "units": "部局",
+      "fields": "分野",
+      "readme": "はじめにお読みください"
+    },
+    "fields": {
+      "code": "コード",
+      "title": "タイトル",
+      "title_ja": "タイトル（日本語）",
+      "writer": "ライター",
+      "researcher": "研究者",
+      "also_featured": "その他の掲載者",
+      "unit": "部局",
+      "field": "分野",
+      "doi": "DOI",
+      "journal": "掲載誌",
+      "paper_title": "論文タイトル",
+      "publication_date": "論文の発表日",
+      "authors": "著者",
+      "embargoed": "エンバーゴあり",
+      "release_date": "リリース日",
+      "release_time_et": "リリース時刻（米国東部時間）",
+      "ea_url": "EurekAlert のリンク",
+      "website_url": "ウェブサイトのリンク",
+      "ea_top_page": "EurekAlert トップページ掲載",
+      "ea_top_position": "トップページの掲載順",
+      "notes": "メモ",
+      "academic_year": "年度"
+    },
+    "values": {
+      "yes": "はい",
+      "no": "いいえ",
+      "not_applicable": "該当なし",
+      "academic_year": "{year}年度"
+    },
+    "owned_by": "{label}（{owner}）",
+    "list_columns": {
+      "key": "キー",
+      "name": "名称",
+      "short_label": "略称",
+      "type": "種別",
+      "default_field": "既定の分野",
+      "active": "有効",
+      "scope_note": "対象範囲"
+    },
+    "unit_types": {
+      "school": "研究科・学部",
+      "institute": "研究所",
+      "center": "センター",
+      "other": "その他"
+    },
+    "readme": {
+      "title": "Release Radar エクスポート",
+      "exported": "{when} に {who} がエクスポートしました。",
+      "scope_all": "対象：すべてのリリース（計 {count} 件）",
+      "scope_view": "対象：データページに表示中のリリース（計 {count} 件）",
+      "filters": "表示条件：{filters}",
+      "view_mine": "自分の担当",
+      "view_all": "すべて",
+      "search": "「{text}」で検索",
+      "separator": "、",
+      "states_heading": "数値の見方",
+      "state_value": "数値：記録済みです。0 は実際にゼロだったことを示します。",
+      "state_na": "該当なし：このリリースには存在しない数値です（例：DOI のないリリースの Altmetric）。",
+      "state_empty": "空欄：まだ記録されていないか、まだ期日前です。",
+      "year": "年度はリリース日から求めています。リリースのコードは付与時の年度のままで、後で日付が変わっても変わりません。",
+      "colleagues": "括弧内に氏名のある列は、その人の個人項目です。",
+      "personal": "このファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。"
+    }
   }
 }

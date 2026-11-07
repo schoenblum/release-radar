@@ -32,5 +32,77 @@
       "pickups_all": "Pickups, all",
       "pickups_major": "Pickups, major outlets"
     }
+  },
+  "export": {
+    "sheets": {
+      "releases": "Releases",
+      "units": "Units",
+      "fields": "Fields",
+      "readme": "Read me"
+    },
+    "fields": {
+      "code": "Code",
+      "title": "Title",
+      "title_ja": "Title (Japanese)",
+      "writer": "Writer",
+      "researcher": "Researcher",
+      "also_featured": "Also featured",
+      "unit": "Unit",
+      "field": "Field",
+      "doi": "DOI",
+      "journal": "Journal",
+      "paper_title": "Paper title",
+      "publication_date": "Publication date",
+      "authors": "Authors",
+      "embargoed": "Embargoed",
+      "release_date": "Release date",
+      "release_time_et": "Release time (ET)",
+      "ea_url": "EurekAlert link",
+      "website_url": "Website link",
+      "ea_top_page": "EurekAlert top page",
+      "ea_top_position": "Top page position",
+      "notes": "Notes",
+      "academic_year": "Academic year"
+    },
+    "values": {
+      "yes": "Yes",
+      "no": "No",
+      "not_applicable": "N/A",
+      "academic_year": "AY{year}"
+    },
+    "owned_by": "{label} ({owner})",
+    "list_columns": {
+      "key": "Key",
+      "name": "Name",
+      "short_label": "Short label",
+      "type": "Type",
+      "default_field": "Default field",
+      "active": "Active",
+      "scope_note": "What belongs here"
+    },
+    "unit_types": {
+      "school": "School",
+      "institute": "Institute",
+      "center": "Center",
+      "other": "Other"
+    },
+    "readme": {
+      "title": "Release Radar export",
+      "exported": "Exported on {when} by {who}.",
+      "scope_all": "Rows: every release, {count} in all.",
+      "scope_view": "Rows: the releases shown on the Data page, {count} in all.",
+      "filters": "Shown: {filters}.",
+      "view_mine": "Mine",
+      "view_all": "All",
+      "search": "search for “{text}”",
+      "separator": ", ",
+      "states_heading": "How to read the numbers",
+      "state_value": "A number was recorded. 0 is a real zero.",
+      "state_na": "N/A: the number can't exist for this release, such as Altmetric without a DOI.",
+      "state_empty": "Empty: not recorded yet, or not due yet.",
+      "year": "The academic year comes from the release date. A release code keeps the year it was given, even if the date moved later.",
+      "colleagues": "A column with a name in brackets is that person's own field.",
+      "personal": "This file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need."
+    }
   }
 }

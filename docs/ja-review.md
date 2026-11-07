@@ -483,3 +483,93 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:errors.researcher_needs_choosing` | A name alone can't say which record is meant. Please choose one in the cell. | 氏名だけではレコードを特定できません。セルで選択してください。 | pending |
 | `frontend:nav.data` | Data | データ | pending |
 | `frontend:data.not_a_number` | Please enter a number, or - if it doesn't apply. | 数値を入力してください。該当しない場合は - を入力してください。 | pending |
+| `frontend:data.count_filtered` | {{count}} of {{total}} match | {{total}} 件中 {{count}} 件が該当 | pending |
+| `frontend:data.empty_filtered` | No releases match these filters. | 条件に合うリリースはありません。 | pending |
+| `frontend:data.export.button` | Export | エクスポート | pending |
+| `frontend:data.export.csv` | CSV (UTF-8) | CSV（UTF-8） | pending |
+| `frontend:data.export.download` | Download | ダウンロード | pending |
+| `frontend:data.export.everything` | Everything | すべてのリリース | pending |
+| `frontend:data.export.format` | Format | 形式 | pending |
+| `frontend:data.export.language` | Language | 言語 | pending |
+| `frontend:data.export.personal_data` | The file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need. | ファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。 | pending |
+| `frontend:data.export.preparing` | Preparing… | 準備中… | pending |
+| `frontend:data.export.rows` | Releases | 対象 | pending |
+| `frontend:data.export.this_view` | As shown ({{count}}) | 表示中のリリース（{{count}} 件） | pending |
+| `frontend:data.export.title` | Export releases | リリースをエクスポート | pending |
+| `frontend:data.export.xlsx` | Excel, with the lists and a Read me sheet | Excel（リストと説明シート付き） | pending |
+| `frontend:data.filters.any_field` | Any field | すべての分野 | pending |
+| `frontend:data.filters.any_unit` | Any unit | すべての部局 | pending |
+| `frontend:data.filters.any_writer` | Any writer | すべてのライター | pending |
+| `frontend:data.filters.any_year` | Any year | すべての年度 | pending |
+| `frontend:data.filters.clear` | Clear filters | 絞り込みを解除 | pending |
+| `frontend:data.filters.clear_one` | Stop filtering by {{name}} | 「{{name}}」での絞り込みをやめる | pending |
+| `frontend:data.filters.field` | Field | 分野 | pending |
+| `frontend:data.filters.label` | Filters | 絞り込み | pending |
+| `frontend:data.filters.researcher` | Researcher | 研究者 | pending |
+| `frontend:data.filters.researcher_placeholder` | Any researcher | すべての研究者 | pending |
+| `frontend:data.filters.search` | Search releases | リリースを検索 | pending |
+| `frontend:data.filters.search_placeholder` | Search titles, names, DOIs, notes | タイトル、氏名、DOI、メモを検索 | pending |
+| `frontend:data.filters.unit` | Unit | 部局 | pending |
+| `frontend:data.filters.writer` | Writer | ライター | pending |
+| `frontend:data.filters.year` | Academic year | 年度 | pending |
+| `frontend:data.no_title` | No title yet | タイトル未入力 | pending |
+| `frontend:data.paste_saved` | {{count}} saved. | {{count}} 件を保存しました。 | pending |
+| `frontend:data.sort_hint` | Sort by {{column}}. Click again to reverse, and a third time for newest first. | {{column}}で並べ替えます。もう一度クリックすると逆順、3 回目で新しい順に戻ります。 | pending |
+| `backend:export.fields.academic_year` | Academic year | 年度 | pending |
+| `backend:export.fields.also_featured` | Also featured | その他の掲載者 | pending |
+| `backend:export.fields.authors` | Authors | 著者 | pending |
+| `backend:export.fields.code` | Code | コード | pending |
+| `backend:export.fields.doi` | DOI | DOI | pending |
+| `backend:export.fields.ea_top_page` | EurekAlert top page | EurekAlert トップページ掲載 | pending |
+| `backend:export.fields.ea_top_position` | Top page position | トップページの掲載順 | pending |
+| `backend:export.fields.ea_url` | EurekAlert link | EurekAlert のリンク | pending |
+| `backend:export.fields.embargoed` | Embargoed | エンバーゴあり | pending |
+| `backend:export.fields.field` | Field | 分野 | pending |
+| `backend:export.fields.journal` | Journal | 掲載誌 | pending |
+| `backend:export.fields.notes` | Notes | メモ | pending |
+| `backend:export.fields.paper_title` | Paper title | 論文タイトル | pending |
+| `backend:export.fields.publication_date` | Publication date | 論文の発表日 | pending |
+| `backend:export.fields.release_date` | Release date | リリース日 | pending |
+| `backend:export.fields.release_time_et` | Release time (ET) | リリース時刻（米国東部時間） | pending |
+| `backend:export.fields.researcher` | Researcher | 研究者 | pending |
+| `backend:export.fields.title` | Title | タイトル | pending |
+| `backend:export.fields.title_ja` | Title (Japanese) | タイトル（日本語） | pending |
+| `backend:export.fields.unit` | Unit | 部局 | pending |
+| `backend:export.fields.website_url` | Website link | ウェブサイトのリンク | pending |
+| `backend:export.fields.writer` | Writer | ライター | pending |
+| `backend:export.list_columns.active` | Active | 有効 | pending |
+| `backend:export.list_columns.default_field` | Default field | 既定の分野 | pending |
+| `backend:export.list_columns.key` | Key | キー | pending |
+| `backend:export.list_columns.name` | Name | 名称 | pending |
+| `backend:export.list_columns.scope_note` | What belongs here | 対象範囲 | pending |
+| `backend:export.list_columns.short_label` | Short label | 略称 | pending |
+| `backend:export.list_columns.type` | Type | 種別 | pending |
+| `backend:export.owned_by` | {label} ({owner}) | {label}（{owner}） | pending |
+| `backend:export.readme.colleagues` | A column with a name in brackets is that person's own field. | 括弧内に氏名のある列は、その人の個人項目です。 | pending |
+| `backend:export.readme.exported` | Exported on {when} by {who}. | {when} に {who} がエクスポートしました。 | pending |
+| `backend:export.readme.filters` | Shown: {filters}. | 表示条件：{filters} | pending |
+| `backend:export.readme.personal` | This file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need. | このファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。 | pending |
+| `backend:export.readme.scope_all` | Rows: every release, {count} in all. | 対象：すべてのリリース（計 {count} 件） | pending |
+| `backend:export.readme.scope_view` | Rows: the releases shown on the Data page, {count} in all. | 対象：データページに表示中のリリース（計 {count} 件） | pending |
+| `backend:export.readme.search` | search for “{text}” | 「{text}」で検索 | pending |
+| `backend:export.readme.separator` | ,  | 、 | pending |
+| `backend:export.readme.state_empty` | Empty: not recorded yet, or not due yet. | 空欄：まだ記録されていないか、まだ期日前です。 | pending |
+| `backend:export.readme.state_na` | N/A: the number can't exist for this release, such as Altmetric without a DOI. | 該当なし：このリリースには存在しない数値です（例：DOI のないリリースの Altmetric）。 | pending |
+| `backend:export.readme.state_value` | A number was recorded. 0 is a real zero. | 数値：記録済みです。0 は実際にゼロだったことを示します。 | pending |
+| `backend:export.readme.states_heading` | How to read the numbers | 数値の見方 | pending |
+| `backend:export.readme.title` | Release Radar export | Release Radar エクスポート | pending |
+| `backend:export.readme.view_all` | All | すべて | pending |
+| `backend:export.readme.view_mine` | Mine | 自分の担当 | pending |
+| `backend:export.readme.year` | The academic year comes from the release date. A release code keeps the year it was given, even if the date moved later. | 年度はリリース日から求めています。リリースのコードは付与時の年度のままで、後で日付が変わっても変わりません。 | pending |
+| `backend:export.sheets.fields` | Fields | 分野 | pending |
+| `backend:export.sheets.readme` | Read me | はじめにお読みください | pending |
+| `backend:export.sheets.releases` | Releases | リリース | pending |
+| `backend:export.sheets.units` | Units | 部局 | pending |
+| `backend:export.unit_types.center` | Center | センター | pending |
+| `backend:export.unit_types.institute` | Institute | 研究所 | pending |
+| `backend:export.unit_types.other` | Other | その他 | pending |
+| `backend:export.unit_types.school` | School | 研究科・学部 | pending |
+| `backend:export.values.academic_year` | AY{year} | {year}年度 | pending |
+| `backend:export.values.no` | No | いいえ | pending |
+| `backend:export.values.not_applicable` | N/A | 該当なし | pending |
+| `backend:export.values.yes` | Yes | はい | pending |

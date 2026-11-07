@@ -116,7 +116,7 @@ export default function DueStrip({ onOpen }: { onOpen: (releaseId: string) => vo
             <li key={key} className="due-item">
               <button type="button" className="due-title" onClick={() => onOpen(item.release_id)}>
                 {item.release_code ? `${item.release_code} · ` : ""}
-                {item.release_title ?? t("researchers.no_title")}
+                {item.release_title ?? t("data.no_title")}
               </button>
               <span className="due-measure">{label(item)}</span>
               <span className={item.due_now ? "due-date" : "due-date due-soon"}>

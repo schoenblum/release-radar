@@ -1,6 +1,6 @@
 """Settings: institution, checkpoints, measures, core fields, landing pages. Synthetic data."""
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pytest
 from sqlalchemy import select
@@ -327,22 +327,36 @@ async def _landing(client, email: str) -> str:
     return (await sign_in(client, email, PASSWORD))["user"]["landing"]
 
 
-async def test_landing_follows_the_role_and_needs_a_writer_entry_for_mine(client, make_user):
+async def test_landing_follows_the_role_and_needs_releases_of_ones_own_for_mine(client, make_user):
     viewer = await make_user("viewer@example.org", PASSWORD, UserRole.viewer)
     editor = await make_user("writes@example.org", PASSWORD, UserRole.editor)
+    starter = await make_user("starter@example.org", PASSWORD, UserRole.editor)
     await make_user("nowriter@example.org", PASSWORD, UserRole.editor)
     async with SessionLocal() as db:
+        writer = Writer(
+            institution_id=editor.institution_id, display_name_en="A. Writer", user_id=editor.id
+        )
+        newcomer = Writer(
+            institution_id=starter.institution_id, display_name_en="B. Writer", user_id=starter.id
+        )
+        db.add_all([writer, newcomer])
+        await db.flush()
+        db.add(Release(institution_id=editor.institution_id, title="Theirs", writer_id=writer.id))
+        # A removed release is not something to land on.
         db.add(
-            Writer(
-                institution_id=editor.institution_id,
-                display_name_en="A. Writer",
-                user_id=editor.id,
+            Release(
+                institution_id=starter.institution_id,
+                title="Gone",
+                writer_id=newcomer.id,
+                deleted_at=datetime.now(UTC),
             )
         )
         await db.commit()
     assert viewer
     assert await _landing(client, "viewer@example.org") == "all"
     assert await _landing(client, "writes@example.org") == "mine"
+    # A writer entry with nothing written yet would land on an empty page.
+    assert await _landing(client, "starter@example.org") == "all"
     assert await _landing(client, "nowriter@example.org") == "all"
 
 

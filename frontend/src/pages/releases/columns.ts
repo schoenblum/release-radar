@@ -56,6 +56,14 @@ export interface CellView {
 
 export type Parsed = { ok: true; commit: Commit } | { ok: false; code: string };
 
+/** What a column sorts by. Empty sorts last, whichever way round. */
+export type SortValue = string | number | null;
+
+export interface SortState {
+  column: string;
+  desc: boolean;
+}
+
 export type ColumnGroup = "release" | "paper" | "numbers" | "custom" | "colleagues";
 
 export interface GridColumn {
@@ -78,6 +86,7 @@ export interface GridColumn {
   parse: (text: string, release: Release) => Parsed;
   /** The save that would put this cell back as it is now, for undo. */
   snapshot: (release: Release) => Commit | null;
+  sortValue: (release: Release) => SortValue;
 }
 
 export interface GridContext {
@@ -218,11 +227,12 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
       return {
         field: key,
         editor: "text",
-        // Created from a DOI alone, it has no title yet. What the paper is called will do.
+        // Created from a DOI alone, it has no title yet. The paper's title is never the
+        // release's, so it does not stand in for one.
         view: (release) =>
           release.title
             ? plain(release.title)
-            : { text: release.paper_title ?? release.doi ?? "", tone: "muted" },
+            : { text: t("data.no_title"), tone: "muted", hint: release.doi ?? undefined },
       };
     case "title_ja":
     case "also_featured":
@@ -302,7 +312,8 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
 }
 
 function coreColumn(context: GridContext, config: CoreField): GridColumn | null {
-  const spec = coreSpec(context, config.key);
+  const key = config.key;
+  const spec = coreSpec(context, key);
   if (!spec) return null;
   const { field, editor, options = [], readOnly = false } = spec;
   const raw = (release: Release): unknown => (release as unknown as Record<string, unknown>)[field];
@@ -361,6 +372,16 @@ function coreColumn(context: GridContext, config: CoreField): GridColumn | null 
     },
     snapshot: (release) =>
       readOnly || editor === "none" ? null : { kind: "field", field, value: raw(release) },
+    sortValue: (release) => {
+      const value = raw(release);
+      if (isBoolean) return value ? 1 : 0;
+      if (key === "doi") return value ? 1 : null;
+      if (options.length > 0 || editor === "researcher" || key === "authors") {
+        return (spec.view ? spec.view(release).text : "") || null;
+      }
+      if (typeof value === "number") return value;
+      return value == null || value === "" ? null : String(value);
+    },
   };
 }
 
@@ -427,6 +448,10 @@ function measureColumn(context: GridContext, measure: Measure): GridColumn {
     snapshot: (release) => {
       const reading = findReading(release, measure.id);
       return reading ? { kind: "reading", readingId: reading.id, body: readingSnapshot(reading) } : null;
+    },
+    sortValue: (release) => {
+      const reading = findReading(release, measure.id);
+      return reading?.state === "value" ? (reading.value ?? 0) : null;
     },
   };
 }
@@ -568,6 +593,13 @@ function customColumn(context: GridContext, field: CustomField): GridColumn {
             ? { state: "not_applicable" }
             : { state: "missing" };
       return { kind: "custom", key: field.key, body };
+    },
+    sortValue: (release) => {
+      const value = release.custom_values[field.key];
+      if (value?.state !== "value") return null;
+      if (typeof value.value === "number") return value.value;
+      if (typeof value.value === "boolean") return value.value ? 1 : 0;
+      return customValueText(value, options, field) || null;
     },
   };
 }

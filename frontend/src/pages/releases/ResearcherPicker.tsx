@@ -47,7 +47,8 @@ export default function ResearcherPicker({
   autoFocus?: boolean;
   onPick: (record: { id: string; name: string }) => void;
   onClear?: () => void;
-  onCancel: () => void;
+  /** ``next`` is where focus went, when it closed because focus went there. */
+  onCancel: (next?: EventTarget | null) => void;
   /** Tab: leave without choosing, in a direction. */
   onLeave?: (backwards: boolean) => void;
 }) {
@@ -177,7 +178,7 @@ export default function ResearcherPicker({
           setCursor(0);
         }}
         onKeyDown={onKeyDown}
-        onBlur={onCancel}
+        onBlur={(event) => onCancel(event.relatedTarget)}
       />
       {(choices.length > 0 || error !== null) && (
         <div className="picker-list">

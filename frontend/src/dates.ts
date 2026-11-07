@@ -23,3 +23,8 @@ export function formatDateTime(value: string, timeZone?: string): string {
     minute: "2-digit",
   }).format(new Date(value));
 }
+
+/** An academic year as people write it: `AY2025`, or `2025年度` in Japanese (R5.4.6). */
+export function academicYearLabel(year: number, language: string): string {
+  return language === "ja" ? `${year}年度` : `AY${year}`;
+}

@@ -22,11 +22,13 @@ Use the button next to your name at the top right to switch between English and 
 
 ## The Data page
 
-**Data** is where releases live. **Mine** shows the releases you write, and **All** shows everyone's. You can fill in any of them.
+**Data** is where releases live. **Mine** shows the releases you write, and **All** shows everyone's. You can fill in any of them. Once you have releases of your own, Release Radar opens on **Mine**; until then it opens on **All**.
 
 ### Add a release
 
-Paste a DOI or type a title in the top row and press Enter. With a DOI, Release Radar fills in the journal, paper title, date and authors. Everything else can follow, and adding several in a row is just doing this again. A release gets its code when its release date is first entered.
+Paste a DOI or type a title in the top row and press Enter. With a DOI, Release Radar fills in the paper's journal, title, publication date and authors, and the release shows *No title yet* until you type its own title. Everything else can follow, and adding several in a row is just doing this again. A new release stays at the top until you change the view, even if your filters would hide it. A release gets its code when its release date is first entered.
+
+The paper's details are in the full record, under **Paper**. If Crossref knows only the month a paper came out, the publication date stays empty, so type it there. You can also show **Publication date** as a column.
 
 ### Fill in the numbers
 
@@ -39,11 +41,12 @@ The grid works like a spreadsheet, and everything saves by itself.
 - Select a cell and type to replace it, or press Enter to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back.
 - Arrow keys move around. Hold Shift to select a range, or drag across cells.
 - Type `-` or `N/A` in a number cell to mark it as not applicable, and press Delete to clear it.
-- Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole.
+- Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole, cells that couldn't be saved included.
+- Esc lets go of the selected cell, so nothing is pasted over by mistake. Clicking into the new-release row does the same.
 
 A tinted cell is due and empty. **N/A** on grey means the number can't exist for this release, such as Altmetric without a DOI. A plain empty cell is simply not due yet.
 
-If something can't be saved, the cell turns pink and keeps what you typed, and selecting it says why. Nothing else is held up.
+If something can't be saved, the cell turns pink and keeps what you typed, and selecting it says why: press Enter to change it, or Esc to go back to what was there. Nothing else is held up.
 
 ### Paste a column
 
@@ -56,6 +59,20 @@ Click a title, or press Shift+Enter on a row, to open its full record beside the
 ### Choose your columns
 
 **Columns** chooses what the grid shows. Release Radar remembers your choice.
+
+### Find releases
+
+Above the grid, type in the search box to find words in titles, researchers' names, DOIs, codes, journals and notes. Every word you type must appear somewhere. Next to it, choose an academic year, a field, a unit, a writer (in **All**) or a researcher, one click each. **Clear filters** shows everything again.
+
+Click a column's heading to sort by it, again to reverse, and a third time to go back to newest first. Rows stay where they are while you work on them, even if you change the value they're sorted by.
+
+What you choose is kept in the page's address, so you can bookmark a view, such as one unit's releases this year, or send the link to a colleague.
+
+### Export for a report
+
+**Export** downloads the releases shown, with your filters and in your order, or everything. Choose Excel or CSV, and English or Japanese: headings and list values follow the language, and titles and notes stay as written. Each release is one row, with a column per number: the number, **N/A** if it can't exist, or empty if it hasn't been recorded or isn't due yet. A colleague's own field has their name in brackets. The Excel file also has sheets with the units and fields and a **Read me** sheet explaining all this.
+
+The file contains personal data, such as researchers' names. Keep it within the office, and delete copies you no longer need.
 
 ## My fields
 

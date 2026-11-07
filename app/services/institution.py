@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.institution import Institution
 from app.models.lists import Writer
+from app.models.release import Release
 from app.models.user import User
 
 
@@ -17,11 +18,20 @@ async def get_institution(db: AsyncSession) -> Institution:
 
 
 async def landing_for(db: AsyncSession, user: User) -> str:
-    """The view this person lands on. Someone with no writer entry has no "mine" to see."""
+    """The view this person lands on. "Mine" only once there is something of theirs to see."""
     institution = await db.get(Institution, user.institution_id)
     landing = institution.landing_pages.get(user.role.value, "all")
     if landing == "mine":
-        writer = await db.scalar(select(Writer.id).where(Writer.user_id == user.id).limit(1))
-        if writer is None:
+        theirs = await db.scalar(
+            select(Release.id)
+            .join(Writer, Writer.id == Release.writer_id)
+            .where(
+                Writer.user_id == user.id,
+                Release.institution_id == user.institution_id,
+                Release.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
+        if theirs is None:
             return "all"
     return landing

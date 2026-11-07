@@ -356,8 +356,30 @@ export interface Release {
 
 export interface ReleasePage {
   items: Release[];
+  /** How many match the filters, of how many in the view (Mine or All) as a whole. */
   total: number;
+  view_total: number;
   has_writer_entry: boolean;
+  /** Every academic year with releases, newest first. */
+  academic_years: number[];
+}
+
+/** What the Data page can narrow a view to (R7.6.1). The names are the API's. */
+export interface ReleaseFilters {
+  academic_year?: number;
+  field_id?: string;
+  unit_id?: string;
+  researcher_id?: string;
+  writer_id?: string;
+  q?: string;
+}
+
+export interface ReleaseExportRequest {
+  format: "xlsx" | "csv";
+  language: "en" | "ja";
+  /** Absent: everything. */
+  filters?: ReleaseFilters & { view: LandingView };
+  order: string[];
 }
 
 export type CrossrefStatus = "found" | "not_found" | "unavailable";
