@@ -448,7 +448,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:data.history_note` | Note on {{measure}} | {{measure}} のメモ | pending |
 | `frontend:data.history_removed` | Removed | 削除 | pending |
 | `frontend:data.history_system` | Release Radar | Release Radar | pending |
-| `frontend:data.keys_hint` | Type to edit, Enter to save and go down, Esc to go back, Shift+Enter for the full record, Cmd/Ctrl+Z to undo. | 入力で編集、Enter で保存して下へ、Esc で取り消し、Shift+Enter で詳細、Cmd/Ctrl+Z で元に戻します。 | pending |
+| `frontend:data.keys_hint` | Type to edit, Enter to save and go down, Esc to go back, double-click or Shift+Enter for the full record, Cmd/Ctrl+Z to undo. | 入力で編集、Enter で保存して下へ、Esc で取り消し、ダブルクリックか Shift+Enter で詳細、Cmd/Ctrl+Z で元に戻します。 | pending |
 | `frontend:data.new_release` | ＋ New release: paste a DOI or type a title, then press Enter | ＋ 新しいリリース：DOI を貼り付けるかタイトルを入力して Enter | pending |
 | `frontend:data.not_applicable` | N/A | 該当なし | pending |
 | `frontend:data.open_to_fill` | Open to fill in | 開いて入力 | pending |
@@ -560,7 +560,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:export.readme.title` | Release Radar export | Release Radar エクスポート | pending |
 | `backend:export.readme.view_all` | All | すべて | pending |
 | `backend:export.readme.view_mine` | Mine | 自分の担当 | pending |
-| `backend:export.readme.year` | The academic year comes from the release date. A release code keeps the year it was given, even if the date moved later. | 年度はリリース日から求めています。リリースのコードは付与時の年度のままで、後で日付が変わっても変わりません。 | pending |
+| `backend:export.readme.year` | Academic year: the year it begins in, so {year} runs from {first} to {last}. It comes from the release date. | 年度：その年度が始まる年の数字です。{year}年度は {first} から {last} までです。リリース日から求めています。 | pending |
 | `backend:export.sheets.fields` | Fields | 分野 | pending |
 | `backend:export.sheets.readme` | Read me | はじめにお読みください | pending |
 | `backend:export.sheets.releases` | Releases | リリース | pending |
@@ -569,7 +569,12 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:export.unit_types.institute` | Institute | 研究所 | pending |
 | `backend:export.unit_types.other` | Other | その他 | pending |
 | `backend:export.unit_types.school` | School | 研究科・学部 | pending |
-| `backend:export.values.academic_year` | AY{year} | {year}年度 | pending |
-| `backend:export.values.no` | No | いいえ | pending |
 | `backend:export.values.not_applicable` | N/A | 該当なし | pending |
-| `backend:export.values.yes` | Yes | はい | pending |
+| `frontend:data.open_hint` | Double-click a release, or press Shift+Enter, for the full record. | リリースをダブルクリックするか Shift+Enter を押すと、詳細を表示します。 | pending |
+| `backend:export.fields.researcher_gender` | Researcher gender | 研究者の性別 | pending |
+| `backend:export.genders.F` | Female | 女性 | pending |
+| `backend:export.genders.M` | Male | 男性 | pending |
+| `backend:export.genders.not_recorded` | Not recorded | 未記録 | pending |
+| `backend:export.genders.other` | Other | その他 | pending |
+| `backend:export.readme.code_year` | A release code keeps the year it was given, even if the date moved later. | リリースコードは付いたときの年度のままです。あとで日付が動いても変わりません。 | pending |
+| `backend:export.readme.flags` | Yes-or-no columns, such as Embargoed: 1 means yes, 0 means no. | 「はい／いいえ」の列（エンバーゴありなど）：1 は「はい」、0 は「いいえ」を表します。 | pending |

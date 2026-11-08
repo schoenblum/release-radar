@@ -3,7 +3,8 @@
 Wide format: the release's fields, then one column per measure, then custom fields, with a
 colleague's personal fields labelled with their name. A measure holds its number, "N/A" when
 it does not apply, and nothing when it is missing or not yet due (R6.5.1). Headers and list
-values follow the chosen language; free text stays as written (R5.4.5).
+values follow the chosen language; free text stays as written (R5.4.5). Whatever can be a
+number is one, so a file needs no converting: the academic year is 2025, a yes or no is 1 or 0.
 
 The full backup-style export is ``app/routers/data_export.py``.
 """
@@ -13,7 +14,7 @@ import io
 import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -49,6 +50,7 @@ _FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
 _WIDTH_SAMPLE_ROWS = 200
 _MIN_WIDTH, _MAX_WIDTH = 8, 60
 _DATE_FORMAT = "yyyy-mm-dd"
+_TIME_FORMAT = "hh:mm"
 
 
 @dataclass
@@ -71,8 +73,9 @@ class Lookups:
         return (self.language == "ja" and ja) or en
 
 
-def _yes_no(language: str, value: bool) -> str:
-    return t(language, "export.values.yes" if value else "export.values.no")
+def _flag(value: bool) -> int:
+    """1 for yes and 0 for no, which every spreadsheet and statistics tool can count."""
+    return 1 if value else 0
 
 
 def _number(value: Decimal | int | float | None) -> int | float | None:
@@ -102,14 +105,16 @@ def _core_value(key: str, release: Release, look: Lookups, start_month: int) -> 
     if key == "academic_year":
         if release.release_date is None:
             return None
-        year = academic_year(release.release_date, start_month)
-        return t(language, "export.values.academic_year", year=year)
+        return academic_year(release.release_date, start_month)
     if key == "writer":
         writer = look.writers.get(release.writer_id)
         return look.named(writer.display_name_en, writer.display_name_ja) if writer else None
     if key == "researcher":
         person = look.researchers.get(release.researcher_id)
         return look.named(person.name, person.name_ja) if person else None
+    if key == "researcher_gender":
+        person = look.researchers.get(release.researcher_id)
+        return t(language, f"export.genders.{person.gender}") if person else None
     if key == "unit":
         unit = look.units.get(release.unit_id)
         return look.named(unit.name_en, unit.name_ja) if unit else None
@@ -119,9 +124,11 @@ def _core_value(key: str, release: Release, look: Lookups, start_month: int) -> 
             look.named(research_field.name_en, research_field.name_ja) if research_field else None
         )
     if key in ("embargoed", "ea_top_page"):
-        return _yes_no(language, bool(getattr(release, key)))
+        return _flag(bool(getattr(release, key)))
     if key == "release_time_et":
-        return release.release_time_et.strftime("%H:%M") if release.release_time_et else None
+        # A time of day, which a spreadsheet keeps as a number; seconds are never entered.
+        moment = release.release_time_et
+        return moment.replace(second=0, microsecond=0, tzinfo=None) if moment else None
     if key == "authors":
         return "; ".join(filter(None, map(_author_name, release.authors))) or None
     return getattr(release, key)
@@ -136,7 +143,7 @@ def _custom_value(custom: CustomField, release: Release, look: Lookups) -> Any:
     value = stored.get("value")
     labels = look.choices.get(custom.key, {})
     if custom.field_type == "boolean":
-        return _yes_no(look.language, bool(value))
+        return _flag(bool(value))
     if custom.field_type == "single_select":
         return labels.get(value, value)
     if custom.field_type == "multi_select":
@@ -200,9 +207,13 @@ async def release_table(
         config.key: (language == "ja" and config.label_ja) or config.label_en for config in configs
     }
     present = [config.key for config in configs]
-    keys = [key for key in _LEADING if key in present or key == "academic_year"] + [
-        key for key in present if key not in _LEADING
-    ]
+    keys = [key for key in _LEADING if key in present or key == "academic_year"]
+    for key in present:
+        if key not in _LEADING:
+            keys.append(key)
+        # Gender belongs to the researcher's record, and counts who the releases reach.
+        if key == "researcher":
+            keys.append("researcher_gender")
     measures = list(
         await db.scalars(
             select(Measure)
@@ -328,22 +339,32 @@ async def list_tables(
                 unit.short_label,
                 t(language, f"export.unit_types.{unit.unit_type}") if unit.unit_type else None,
                 field_names.get(unit.default_field_id),
-                _yes_no(language, unit.is_active),
+                _flag(unit.is_active),
             ]
         )
     field_table = Table(headers=[heading(name) for name in ("name", "scope_note", "active")])
     for row in fields:
-        field_table.rows.append(
-            [field_names[row.id], row.scope_note, _yes_no(language, row.is_active)]
-        )
+        field_table.rows.append([field_names[row.id], row.scope_note, _flag(row.is_active)])
     return {
         t(language, "export.sheets.units"): unit_table,
         t(language, "export.sheets.fields"): field_table,
     }
 
 
-def read_me(language: str, *, when: datetime, who: str, count: int, scope: str | None) -> list[str]:
+def read_me(
+    language: str,
+    *,
+    when: datetime,
+    who: str,
+    count: int,
+    scope: str | None,
+    start_month: int,
+) -> list[str]:
     """What the file is, and how to read it. ``scope`` describes the filters, if any."""
+    example = academic_year(when.date(), start_month)
+    first = f"{example}-{start_month:02d}"
+    last_month = (start_month - 2) % 12 + 1
+    last = f"{example + (1 if last_month < start_month else 0)}-{last_month:02d}"
     lines = [
         t(language, "export.readme.title"),
         t(language, "export.readme.exported", when=when.strftime("%Y-%m-%d %H:%M"), who=who),
@@ -361,8 +382,10 @@ def read_me(language: str, *, when: datetime, who: str, count: int, scope: str |
         t(language, "export.readme.state_value"),
         t(language, "export.readme.state_na"),
         t(language, "export.readme.state_empty"),
+        t(language, "export.readme.flags"),
         "",
-        t(language, "export.readme.year"),
+        t(language, "export.readme.year", year=example, first=first, last=last),
+        t(language, "export.readme.code_year"),
         t(language, "export.readme.colleagues"),
         "",
         t(language, "export.readme.personal"),
@@ -371,7 +394,7 @@ def read_me(language: str, *, when: datetime, who: str, count: int, scope: str |
 
 
 def _display_width(value: Any) -> int:
-    text = value.isoformat() if isinstance(value, date) else str(value)
+    text = value.isoformat() if isinstance(value, date | time) else str(value)
     return sum(2 if unicodedata.east_asian_width(char) in "WF" else 1 for char in text)
 
 
@@ -389,6 +412,8 @@ def _write_sheet(sheet: Any, table: Table) -> None:
                 cell.data_type = "s"
             elif isinstance(value, date):
                 cell.number_format = _DATE_FORMAT
+            elif isinstance(value, time):
+                cell.number_format = _TIME_FORMAT
     for column, header in enumerate(table.headers, start=1):
         sample = [row[column - 1] for row in table.rows[:_WIDTH_SAMPLE_ROWS]]
         widest = max(
@@ -428,6 +453,8 @@ def _csv_cell(value: Any) -> str:
         return ""
     if isinstance(value, date):
         return value.isoformat()
+    if isinstance(value, time):
+        return value.strftime("%H:%M")
     if isinstance(value, str):
         return f"'{value}" if value.startswith(_FORMULA_STARTS) else value
     return str(value)

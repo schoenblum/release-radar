@@ -473,7 +473,8 @@
       "colleagues": "Colleagues' fields"
     },
     "count": "Showing {{count}} of {{total}}",
-    "keys_hint": "Type to edit, Enter to save and go down, Esc to go back, Shift+Enter for the full record, Cmd/Ctrl+Z to undo.",
+    "keys_hint": "Type to edit, Enter to save and go down, Esc to go back, double-click or Shift+Enter for the full record, Cmd/Ctrl+Z to undo.",
+    "open_hint": "Double-click a release, or press Shift+Enter, for the full record.",
     "empty": "No releases here yet. Paste a DOI or type a title above.",
     "empty_read_only": "No releases here yet.",
     "empty_no_writer": "Nothing is yours yet, as you have no writer entry. An admin can link one under Settings → Lists → Writers.",

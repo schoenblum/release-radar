@@ -247,7 +247,12 @@
   }
 
   .grid-title {
-    @apply block w-full overflow-hidden text-ellipsis text-left hover:underline;
+    @apply font-medium;
+  }
+
+  /* The box only shows the value; the cell takes the click. */
+  .grid-check {
+    @apply pointer-events-none;
   }
 
   .grid-editor {

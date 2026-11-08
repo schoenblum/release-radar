@@ -473,7 +473,8 @@
       "colleagues": "同僚の項目"
     },
     "count": "{{total}} 件中 {{count}} 件を表示",
-    "keys_hint": "入力で編集、Enter で保存して下へ、Esc で取り消し、Shift+Enter で詳細、Cmd/Ctrl+Z で元に戻します。",
+    "keys_hint": "入力で編集、Enter で保存して下へ、Esc で取り消し、ダブルクリックか Shift+Enter で詳細、Cmd/Ctrl+Z で元に戻します。",
+    "open_hint": "リリースをダブルクリックするか Shift+Enter を押すと、詳細を表示します。",
     "empty": "リリースはまだありません。上の欄に DOI を貼り付けるかタイトルを入力してください。",
     "empty_read_only": "リリースはまだありません。",
     "empty_no_writer": "ライターとして登録されていないため、担当のリリースはありません。管理者が 設定 → リスト → ライター で紐付けできます。",

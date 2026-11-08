@@ -46,6 +46,7 @@
       "title_ja": "Title (Japanese)",
       "writer": "Writer",
       "researcher": "Researcher",
+      "researcher_gender": "Researcher gender",
       "also_featured": "Also featured",
       "unit": "Unit",
       "field": "Field",
@@ -65,10 +66,13 @@
       "academic_year": "Academic year"
     },
     "values": {
-      "yes": "Yes",
-      "no": "No",
-      "not_applicable": "N/A",
-      "academic_year": "AY{year}"
+      "not_applicable": "N/A"
+    },
+    "genders": {
+      "M": "Male",
+      "F": "Female",
+      "other": "Other",
+      "not_recorded": "Not recorded"
     },
     "owned_by": "{label} ({owner})",
     "list_columns": {
@@ -100,7 +104,9 @@
       "state_value": "A number was recorded. 0 is a real zero.",
       "state_na": "N/A: the number can't exist for this release, such as Altmetric without a DOI.",
       "state_empty": "Empty: not recorded yet, or not due yet.",
-      "year": "The academic year comes from the release date. A release code keeps the year it was given, even if the date moved later.",
+      "flags": "Yes-or-no columns, such as Embargoed: 1 means yes, 0 means no.",
+      "year": "Academic year: the year it begins in, so {year} runs from {first} to {last}. It comes from the release date.",
+      "code_year": "A release code keeps the year it was given, even if the date moved later.",
       "colleagues": "A column with a name in brackets is that person's own field.",
       "personal": "This file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need."
     }

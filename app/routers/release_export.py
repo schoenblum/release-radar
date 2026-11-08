@@ -115,6 +115,7 @@ async def export_releases(
             who=user.full_name or user.email,
             count=len(releases),
             scope=scope,
+            start_month=institution.ay_start_month,
         )
         lists = await release_export.list_tables(db, institution, language)
         content = await asyncio.to_thread(

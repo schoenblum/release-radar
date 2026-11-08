@@ -105,7 +105,7 @@ export interface GridContext {
   vocabularyItems: Record<string, VocabularyItem[]>;
 }
 
-// R7.5.2.
+// R7.5.2, and the paper's date: it decides how soon a release is needed.
 const DEFAULT_CORE = new Set([
   "code",
   "title",
@@ -113,6 +113,7 @@ const DEFAULT_CORE = new Set([
   "researcher",
   "unit",
   "doi",
+  "publication_date",
   "ea_top_page",
 ]);
 const PAPER_FIELDS = new Set(["doi", "journal", "paper_title", "publication_date", "authors"]);
@@ -606,20 +607,25 @@ function customColumn(context: GridContext, field: CustomField): GridColumn {
 
 /**
  * All the columns anyone could show, in order (R7.5.2): the code, title and date first, the
- * built-in fields up to the DOI as Settings orders them, the numbers, the remaining built-in
- * fields, then custom fields, the person's own first. Hidden built-in fields are left out.
+ * built-in fields up to the DOI as Settings orders them, with the paper's date right after the
+ * DOI, the numbers, the remaining built-in fields, then custom fields, the person's own first.
+ * Hidden built-in fields are left out.
  */
 export function buildColumns(context: GridContext): GridColumn[] {
   const core = [...context.coreFields]
     .filter((config) => !config.hidden)
     .sort((a, b) => a.position - b.position);
-  const doiAt = core.findIndex((config) => config.key === "doi");
   const leading = ["code", "title", "release_date"];
   const first = leading
     .map((key) => core.find((config) => config.key === key))
     .filter((config): config is CoreField => !!config);
-  const rest = core.filter((config) => !leading.includes(config.key));
-  const cut = doiAt === -1 ? rest.length : rest.findIndex((config) => config.key === "doi") + 1;
+  const published = core.filter((config) => config.key === "publication_date");
+  const rest = core.filter(
+    (config) => !leading.includes(config.key) && config.key !== "publication_date",
+  );
+  const doiAt = rest.findIndex((config) => config.key === "doi");
+  const head = doiAt === -1 ? [...first, ...rest] : [...first, ...rest.slice(0, doiAt + 1), ...published];
+  const tail = doiAt === -1 ? published : rest.slice(doiAt + 1);
 
   const measures = [...context.measures]
     .filter((measure) => measure.is_active)
@@ -630,9 +636,9 @@ export function buildColumns(context: GridContext): GridColumn[] {
   custom.sort((a, b) => rank(a) - rank(b) || a.position - b.position);
 
   return [
-    ...[...first, ...rest.slice(0, cut)].map((config) => coreColumn(context, config)),
+    ...head.map((config) => coreColumn(context, config)),
     ...measures.map((measure) => measureColumn(context, measure)),
-    ...rest.slice(cut).map((config) => coreColumn(context, config)),
+    ...tail.map((config) => coreColumn(context, config)),
     ...custom.map((field) => customColumn(context, field)),
   ].filter((column): column is GridColumn => column !== null);
 }

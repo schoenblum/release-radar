@@ -618,3 +618,67 @@ async def test_a_bootstrap_user_role_is_stored_by_name():
     async with SessionLocal() as db:
         admin = await db.scalar(select(User).where(User.role == UserRole.admin))
     assert admin.role == UserRole.admin
+
+
+async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves():
+    name = "release_radar_reorder_test"
+    url = _PARSED_URL.set(database=name).render_as_string(hide_password=False)
+    connection = await admin_connection()
+    try:
+        await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        await connection.execute(f'CREATE DATABASE "{name}"')
+    finally:
+        await connection.close()
+
+    import asyncpg
+
+    async def run(statement: str, *arguments):
+        database = await asyncpg.connect(
+            host=_PARSED_URL.host,
+            port=_PARSED_URL.port or 5432,
+            user=_PARSED_URL.username,
+            password=_PARSED_URL.password,
+            database=name,
+        )
+        try:
+            return await database.fetch(statement, *arguments)
+        finally:
+            await database.close()
+
+    try:
+        assert _alembic("upgrade", "0005", database_url=url).returncode == 0
+        institution = (
+            await run(
+                "INSERT INTO institutions (id, name_en, timezone, ay_start_month, settings) "
+                "VALUES (gen_random_uuid(), 'Existing', 'Asia/Tokyo', 4, '{}') RETURNING id"
+            )
+        )[0]["id"]
+        # The old default order, with one field an admin had already moved to the top.
+        old = ["notes", "code", "title", "doi", "journal", "paper_title", "publication_date"]
+        for position, key in enumerate(old):
+            await run(
+                "INSERT INTO core_field_configs (id, institution_id, key, hidden, required, "
+                "position) VALUES (gen_random_uuid(), $1, $2, false, false, $3)",
+                institution,
+                key,
+                position,
+            )
+        upgraded = _alembic("upgrade", "head", database_url=url)
+        assert upgraded.returncode == 0, upgraded.stderr
+        rows = await run("SELECT key FROM core_field_configs ORDER BY position")
+        assert [row["key"] for row in rows] == [
+            "notes",
+            "code",
+            "title",
+            "doi",
+            "publication_date",
+            "journal",
+            "paper_title",
+        ]
+        assert _alembic("downgrade", "0005", database_url=url).returncode == 0
+    finally:
+        connection = await admin_connection()
+        try:
+            await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        finally:
+            await connection.close()

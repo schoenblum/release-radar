@@ -50,9 +50,10 @@ CORE_FIELDS = (
     "unit",
     "field",
     "doi",
+    # Next to the DOI: when the paper came out decides how soon a release is needed.
+    "publication_date",
     "journal",
     "paper_title",
-    "publication_date",
     "authors",
     "embargoed",
     "release_date",

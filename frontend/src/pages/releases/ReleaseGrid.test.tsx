@@ -377,22 +377,38 @@ describe("the data grid", () => {
     expect(apply).toHaveBeenCalledTimes(4);
   });
 
-  it("a click on a title, or Shift+Enter anywhere, opens the full record", async () => {
+  it("one click selects any cell; a double click or Shift+Enter opens the full record", async () => {
     const { onOpen, user } = setup();
-    await user.click(within(cell("2", "title")).getByRole("button"));
+    await user.click(cell("2", "title"));
+    expect(cell("2", "title")).toHaveClass("is-active");
+    expect(onOpen).not.toHaveBeenCalled();
+    await user.dblClick(cell("2", VIEWS));
     expect(onOpen).toHaveBeenCalledWith("2");
+    // Opening is all a double click does: no editor opens behind the record.
+    expect(within(cell("2", VIEWS)).queryByRole("textbox")).toBeNull();
+    await user.dblClick(cell("1", "title"));
+    expect(onOpen).toHaveBeenLastCalledWith("1");
     await user.click(cell("3", VIEWS));
     await user.keyboard("{Shift>}{Enter}{/Shift}");
     expect(onOpen).toHaveBeenLastCalledWith("3");
   });
 
-  it("a box toggles with one click or the space bar", async () => {
-    const { apply, user } = setup();
-    await user.click(within(cell("1", "ea_top_page")).getByRole("checkbox"));
-    expect(apply.mock.calls[0][1]).toEqual({ kind: "field", field: "ea_top_page", value: true });
-    await user.click(cell("2", "ea_top_page"));
+  it("a click on a box selects it, and the space bar changes it", async () => {
+    const { apply, onOpen, user } = setup();
+    await user.click(cell("1", "ea_top_page"));
+    expect(cell("1", "ea_top_page")).toHaveClass("is-active");
+    expect(apply).not.toHaveBeenCalled();
     await user.keyboard(" ");
-    expect(apply.mock.calls[1][0]).toBe("2");
+    expect(apply.mock.calls[0][1]).toEqual({ kind: "field", field: "ea_top_page", value: true });
+    await user.dblClick(cell("2", "ea_top_page"));
+    expect(onOpen).toHaveBeenCalledWith("2");
+    expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it("a tap with a finger opens the full record, as there is no keyboard to type with", async () => {
+    const { onOpen, user } = setup();
+    await user.pointer({ keys: "[TouchA]", target: cell("1", VIEWS) });
+    expect(onOpen).toHaveBeenCalledWith("1");
   });
 
   it("a choice opens as a list, and saves what was picked", async () => {

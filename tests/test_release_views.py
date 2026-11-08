@@ -2,7 +2,8 @@
 
 import csv
 import io
-from datetime import UTC, datetime
+import re
+from datetime import UTC, datetime, time
 
 import openpyxl
 import pytest
@@ -86,7 +87,9 @@ async def lists():
         default_field_id=hss.id,
     )
     await _add(north, south)
-    ada = Researcher(institution_id=institution_id, name="Ada Example", name_ja="例 エイダ")
+    ada = Researcher(
+        institution_id=institution_id, name="Ada Example", name_ja="例 エイダ", gender="F"
+    )
     bo = Researcher(institution_id=institution_id, name="Bo Example")
     one = Writer(institution_id=institution_id, display_name_en="Writer One", display_name_ja="一")
     two = Writer(institution_id=institution_id, display_name_en="Writer Two")
@@ -295,6 +298,8 @@ async def test_the_workbook_has_releases_lists_and_a_read_me(client, admin_heade
         )
         release = await db.get(Release, first["id"])
         release.custom_values = {"clicks": {"state": "value", "value": 12}}
+        release.release_time_et = time(14, 0)
+        release.embargoed = True
         await db.commit()
 
     response = await _export(client, admin_headers, filters={"view": "all"})
@@ -305,26 +310,36 @@ async def test_the_workbook_has_releases_lists_and_a_read_me(client, admin_heade
     assert list(rows[0])[:4] == ["Code", "Academic year", "Release date", "Title"]
     frogs = next(row for row in rows if row["Title"] == "Quantum frogs")
     assert frogs["Code"] == "AY2025-01"
-    assert frogs["Academic year"] == "AY2025"
+    # Whatever can be a number is one, so nothing needs converting afterwards.
+    assert frogs["Academic year"] == 2025
     assert frogs["Release date"].date().isoformat() == "2026-03-31"
+    assert frogs["Release time (ET)"] == time(14, 0)
     assert frogs["Unit"] == "North School"
     assert frogs["Field"] == "Sciences"
     assert frogs["Researcher"] == "Ada Example"
+    assert frogs["Researcher gender"] == "Female"
     assert frogs["Writer"] == "Writer One"
-    assert frogs["Embargoed"] == "No"
+    assert frogs["Embargoed"] == 1
+    assert frogs["EurekAlert top page"] == 0
     # A number, N/A where it cannot exist, and empty where it is still missing.
     assert frogs["EurekAlert views, day 28"] == 1234
-    assert frogs["EurekAlert embargoed views"] == "N/A"
     assert frogs["Altmetric score, day 0"] is None
     # A colleague's personal field carries its owner's name.
     assert frogs["Clicks (Chief Example)"] == 12
     draft = next(row for row in rows if row["Title"] == "Untitled 100% idea")
     assert draft["Code"] is None and draft["Academic year"] is None
+    assert draft["Researcher gender"] is None
+    assert draft["EurekAlert embargoed views"] == "N/A"
+    medieval = next(row for row in rows if row["Title"] == "Medieval maps")
+    assert medieval["Researcher gender"] == "Not recorded"
+    headers = list(rows[0])
+    assert headers.index("Researcher gender") == headers.index("Researcher") + 1
+    assert headers.index("Publication date") == headers.index("DOI") + 1
 
     units = _by_header(_sheet_rows(workbook["Units"]))
-    assert {(u["Name"], u["Type"], u["Default field"]) for u in units} == {
-        ("North School", "School", "Sciences"),
-        ("South Institute", "Institute", "Humanities"),
+    assert {(u["Name"], u["Type"], u["Default field"], u["Active"]) for u in units} == {
+        ("North School", "School", "Sciences", 1),
+        ("South Institute", "Institute", "Humanities", 1),
     }
     assert {row["Name"] for row in _by_header(_sheet_rows(workbook["Fields"]))} == {
         "Sciences",
@@ -333,6 +348,9 @@ async def test_the_workbook_has_releases_lists_and_a_read_me(client, admin_heade
     notes = "\n".join(str(row[0] or "") for row in _sheet_rows(workbook["Read me"]))
     assert "3 in all" in notes
     assert "Shown: All." in notes
+    assert "1 means yes, 0 means no" in notes
+    # The example year is the current one, with the institution's April start.
+    assert re.search(r"so (\d{4}) runs from \1-04 to \d{4}-03\.", notes)
     assert "personal data" in notes
 
 
@@ -348,12 +366,13 @@ async def test_the_workbook_in_japanese(client, admin_headers, lists, three):
     rows = _by_header(_sheet_rows(workbook["リリース"]))
     assert len(rows) == 1
     row = rows[0]
-    assert row["年度"] == "2025年度"
+    assert row["年度"] == 2025
     assert row["部局"] == "北研究科"
     assert row["分野"] == "理系"
     assert row["研究者"] == "例 エイダ"
     assert row["ライター"] == "一"
-    assert row["エンバーゴあり"] == "いいえ"
+    assert row["エンバーゴあり"] == 0
+    assert row["研究者の性別"] == "女性"
     # Not embargoed, so embargoed views cannot exist.
     assert "該当なし" in row.values()
     # Free text stays as written (R5.4.5).

@@ -28,7 +28,7 @@ Use the button next to your name at the top right to switch between English and 
 
 Paste a DOI or type a title in the top row and press Enter. With a DOI, Release Radar fills in the paper's journal, title, publication date and authors, and the release shows *No title yet* until you type its own title. Everything else can follow, and adding several in a row is just doing this again. A new release stays at the top until you change the view, even if your filters would hide it. A release gets its code when its release date is first entered.
 
-The paper's details are in the full record, under **Paper**. If Crossref knows only the month a paper came out, the publication date stays empty, so type it there. You can also show **Publication date** as a column.
+The paper's **Publication date** is a column right after the DOI. If Crossref knows only the month a paper came out, it stays empty, so type it in. The paper's journal, title and authors are in the full record, under **Paper**, and you can change them there.
 
 ### Fill in the numbers
 
@@ -38,7 +38,7 @@ The paper's details are in the full record, under **Paper**. If Crossref knows o
 
 The grid works like a spreadsheet, and everything saves by itself.
 
-- Select a cell and type to replace it, or press Enter to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back.
+- Click a cell to select it, then type to replace it, or press Enter to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back. A box changes with the space bar.
 - Arrow keys move around. Hold Shift to select a range, or drag across cells.
 - Type `-` or `N/A` in a number cell to mark it as not applicable, and press Delete to clear it.
 - Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole, cells that couldn't be saved included.
@@ -54,7 +54,7 @@ Copy cells from a spreadsheet or a web page, select the first cell to fill, and 
 
 ### The full record
 
-Click a title, or press Shift+Enter on a row, to open its full record beside the grid: every field, the paper's details, all the numbers with their notes, and the history of who changed what. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
+Double-click any cell of a release, or press Shift+Enter, to open its full record beside the grid. On a phone or tablet, a tap opens it. The record shows every field, the paper's details, all the numbers with their notes, and the history of who changed what. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
 
 ### Choose your columns
 
@@ -70,7 +70,7 @@ What you choose is kept in the page's address, so you can bookmark a view, such 
 
 ### Export for a report
 
-**Export** downloads the releases shown, with your filters and in your order, or everything. Choose Excel or CSV, and English or Japanese: headings and list values follow the language, and titles and notes stay as written. Each release is one row, with a column per number: the number, **N/A** if it can't exist, or empty if it hasn't been recorded or isn't due yet. A colleague's own field has their name in brackets. The Excel file also has sheets with the units and fields and a **Read me** sheet explaining all this.
+**Export** downloads the releases shown, with your filters and in your order, or everything. Choose Excel or CSV, and English or Japanese: headings and list values follow the language, and titles and notes stay as written. Each release is one row, with a column per number: the number, **N/A** if it can't exist, or empty if it hasn't been recorded or isn't due yet. Whatever can be a number is one, so the file needs no converting: the academic year is `2025`, and a yes-or-no column such as **Embargoed** holds `1` for yes and `0` for no. The researcher's gender has a column of its own, next to their name. A colleague's own field has their name in brackets. The Excel file also has sheets with the units and fields and a **Read me** sheet explaining all this.
 
 The file contains personal data, such as researchers' names. Keep it within the office, and delete copies you no longer need.
 

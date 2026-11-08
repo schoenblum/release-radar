@@ -226,7 +226,7 @@ export default function DataPage() {
         {narrowed
           ? t("data.count_filtered", { count: page?.total ?? 0, total: page?.view_total ?? 0 })
           : t("data.count", { count: rows.length, total: page?.total ?? rows.length })}
-        {canEdit ? ` · ${t("data.keys_hint")}` : ""}
+        {` · ${canEdit ? t("data.keys_hint") : t("data.open_hint")}`}
       </p>
 
       {opened && (

@@ -36,12 +36,24 @@ describe("which columns there are", () => {
       "researcher",
       "unit",
       "doi",
+      "publication_date",
       "measure:ea_views.d0",
       "measure:altmetric.d0",
       "measure:hp_views.d28",
       "ea_top_page",
       "custom:clicks",
     ]);
+  });
+
+  it("puts the paper's date right after the DOI, wherever Settings puts either", () => {
+    const moved = buildColumns(
+      context({ coreFields: coreFields({ publication_date: { position: 99 }, doi: { position: 4 } }) }),
+    );
+    const ids = moved.map((c) => c.id);
+    expect(ids.indexOf("publication_date")).toBe(ids.indexOf("doi") + 1);
+    // Without a DOI column it still has a place.
+    const noDoi = buildColumns(context({ coreFields: coreFields({ doi: { hidden: true } }) }));
+    expect(noDoi.map((c) => c.id)).toContain("publication_date");
   });
 
   it("freezes the first columns and always keeps them", () => {

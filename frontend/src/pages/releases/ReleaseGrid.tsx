@@ -224,19 +224,18 @@ const GridRow = memo(function GridRow({
                 onCancel={onCancel}
               />
             ) : checked ? (
+              // Shows the value only: a click selects the cell, Space changes it.
               <input
                 type="checkbox"
                 tabIndex={-1}
                 readOnly
+                className="grid-check"
                 disabled={!editable}
                 aria-label={column.label}
-                data-action="toggle"
                 checked={shown ? parseBoolean(cellPending.text) === true : view.checked === true}
               />
             ) : column.id === "title" ? (
-              <button type="button" tabIndex={-1} className="grid-title" data-action="open">
-                {text}
-              </button>
+              <span className="grid-text grid-title">{text}</span>
             ) : (
               <span className="grid-text">{text}</span>
             )}
@@ -324,6 +323,8 @@ export default function ReleaseGrid({
   const scroller = useRef<HTMLDivElement>(null);
   const catcher = useRef<HTMLTextAreaElement>(null);
   const clicking = useRef(false);
+  // How the last press came: a mouse, a pen or a finger.
+  const pointer = useRef("mouse");
   // This project does not use the React Compiler, which is what the rule protects.
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
@@ -717,34 +718,32 @@ export default function ReleaseGrid({
     if (found) setActive({ row: found.release.id, column: found.column.id });
   }
 
+  /** The same in every cell: one click selects, a double click opens the full record. */
   function onDoubleClick(event: MouseEvent<HTMLTableSectionElement>): void {
     const element = event.target as HTMLElement;
-    if (element.closest("[data-action]")) return;
+    if (element.closest("[data-action], .grid-editor, .picker, .grid-message")) return;
     const found = cellAt(event.target);
-    if (!found) return;
-    if (found.column.editor === "none") onOpen(found.release.id);
-    else startEditing({ row: found.release.id, column: found.column.id }, false);
+    if (found) onOpen(found.release.id);
   }
 
   function onClick(event: MouseEvent<HTMLTableSectionElement>): void {
     const element = event.target as HTMLElement;
     const action = element.closest<HTMLElement>("[data-action]")?.dataset.action;
-    if (!action) return;
     const found = cellAt(event.target);
     if (!found) return;
     const { release, column } = found;
-    if (action === "open") {
-      onOpen(release.id);
-    } else if (action === "toggle") {
-      event.preventDefault();
-      toggle(release, column);
-    } else {
-      const pending = saves.pending[release.id]?.[column.id];
-      if (action === "keep" && pending) void saves.keepMine(release.id, column.id, pending);
-      if (action === "theirs") {
-        saves.drop(release.id, column.id);
-        onRefresh();
+    if (!action) {
+      // A finger has no keyboard to type into a selected cell, so a tap opens the record.
+      if (pointer.current === "touch" && !element.closest(".grid-editor, .picker")) {
+        onOpen(release.id);
       }
+      return;
+    }
+    const pending = saves.pending[release.id]?.[column.id];
+    if (action === "keep" && pending) void saves.keepMine(release.id, column.id, pending);
+    if (action === "theirs") {
+      saves.drop(release.id, column.id);
+      onRefresh();
     }
   }
 
@@ -847,6 +846,9 @@ export default function ReleaseGrid({
         </thead>
         <tbody
           role="rowgroup"
+          onPointerDown={(event) => {
+            pointer.current = event.pointerType;
+          }}
           onMouseDown={onMouseDown}
           onMouseOver={onMouseOver}
           onDoubleClick={onDoubleClick}
