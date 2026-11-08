@@ -98,6 +98,7 @@
       "filters": "Shown: {filters}.",
       "view_mine": "Mine",
       "view_all": "All",
+      "academic_year": "AY{year}",
       "search": "search for “{text}”",
       "separator": ", ",
       "states_heading": "How to read the numbers",

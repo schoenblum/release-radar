@@ -55,7 +55,7 @@ async def _describe(
 
     parts = [t(language, f"export.readme.view_{filters.view}")]
     if filters.academic_year is not None:
-        parts.append(t(language, "export.values.academic_year", year=filters.academic_year))
+        parts.append(t(language, "export.readme.academic_year", year=filters.academic_year))
     lookups: list[tuple[Any, Any, Any]] = [
         (ResearchField, filters.field_id, lambda row: named(row.name_en, row.name_ja)),
         (Unit, filters.unit_id, lambda row: named(row.name_en, row.name_ja)),

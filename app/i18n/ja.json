@@ -98,6 +98,7 @@
       "filters": "表示条件：{filters}",
       "view_mine": "自分の担当",
       "view_all": "すべて",
+      "academic_year": "{year}年度",
       "search": "「{text}」で検索",
       "separator": "、",
       "states_heading": "数値の見方",

@@ -578,3 +578,4 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:export.genders.other` | Other | その他 | pending |
 | `backend:export.readme.code_year` | A release code keeps the year it was given, even if the date moved later. | リリースコードは付いたときの年度のままです。あとで日付が動いても変わりません。 | pending |
 | `backend:export.readme.flags` | Yes-or-no columns, such as Embargoed: 1 means yes, 0 means no. | 「はい／いいえ」の列（エンバーゴありなど）：1 は「はい」、0 は「いいえ」を表します。 | pending |
+| `backend:export.readme.academic_year` | AY{year} | {year}年度 | pending |

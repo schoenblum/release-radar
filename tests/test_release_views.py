@@ -359,7 +359,12 @@ async def test_the_workbook_in_japanese(client, admin_headers, lists, three):
         client,
         admin_headers,
         language="ja",
-        filters={"view": "all", "unit_id": str(lists["north"]), "q": "frogs"},
+        filters={
+            "view": "all",
+            "unit_id": str(lists["north"]),
+            "q": "frogs",
+            "academic_year": 2025,
+        },
     )
     workbook = openpyxl.load_workbook(io.BytesIO(response.content))
     assert workbook.sheetnames == ["リリース", "部局", "分野", "はじめにお読みください"]
@@ -378,7 +383,7 @@ async def test_the_workbook_in_japanese(client, admin_headers, lists, three):
     # Free text stays as written (R5.4.5).
     assert row["タイトル"] == "Quantum frogs"
     notes = "\n".join(str(r[0] or "") for r in _sheet_rows(workbook["はじめにお読みください"]))
-    assert "すべて、北研究科、「frogs」で検索" in notes
+    assert "すべて、2025年度、北研究科、「frogs」で検索" in notes
 
 
 async def test_a_relabelled_field_is_exported_under_its_new_name(client, admin_headers, three):
