@@ -120,6 +120,7 @@
     "readme": {
       "title": "Release Radar: releases per writer",
       "year": "Academic year {year}: {first} to {last}.",
+      "all_years": "All academic years, {first} to {last}.",
       "counting": "Each number counts releases by their release date. Releases without a release date, and removed releases, are not counted.",
       "totals": "The last column and the last row are totals.",
       "undated": "Not counted yet: {count} release(s) without a release date.",

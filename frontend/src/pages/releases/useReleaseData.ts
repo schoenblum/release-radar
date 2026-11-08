@@ -77,8 +77,25 @@ export function latestRelease(queryClient: QueryClient, id: string): Release | u
 }
 
 function storeRelease(queryClient: QueryClient, release: Release): void {
+  // The gender is the researcher's: their other releases show the change too, at its version.
+  const sameResearcher = (item: Release): boolean =>
+    release.researcher_id !== null &&
+    item.researcher_id === release.researcher_id &&
+    (item.researcher_gender !== release.researcher_gender ||
+      item.field_versions.researcher_gender !== release.field_versions.researcher_gender);
   mapPages(queryClient, (items) =>
-    items.map((item) => (item.id === release.id ? release : item)),
+    items.map((item) => {
+      if (item.id === release.id) return release;
+      if (!sameResearcher(item)) return item;
+      return {
+        ...item,
+        researcher_gender: release.researcher_gender,
+        field_versions: {
+          ...item.field_versions,
+          researcher_gender: release.field_versions.researcher_gender,
+        },
+      };
+    }),
   );
   void queryClient.invalidateQueries({ queryKey: historyKey(release.id) });
 }

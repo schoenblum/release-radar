@@ -14,7 +14,7 @@ from app.services.readings import today_in
 from app.services.release_codes import academic_year
 from app.services.writer_counts import months_of
 
-URL = "/api/v1/writers/monthly"
+URL = "/api/v1/writers/counts"
 
 
 async def _institution() -> Institution:
@@ -92,7 +92,8 @@ def test_the_months_run_from_the_start_month_for_twelve_months():
 async def test_counts_each_writer_by_month_with_totals(client, admin_headers, writers):
     body = await _get(client, admin_headers, academic_year=2025)
     assert body["academic_year"] == 2025
-    assert body["months"][0] == "2025-04" and body["months"][-1] == "2026-03"
+    assert body["period"] == "month"
+    assert body["columns"][0] == "2025-04" and body["columns"][-1] == "2026-03"
     rows = _rows(body)
     ada = rows["Ada Writer"]
     assert ada["counts"][0] == 2  # both April releases
@@ -191,3 +192,43 @@ async def test_the_export_in_japanese_as_csv(client, headers_for, writers):
         "ライター未設定",
         "合計",
     ]
+
+
+async def test_all_years_count_by_academic_year(client, admin_headers, writers):
+    body = await _get(client, admin_headers, all_years="true")
+    assert body["period"] == "year" and body["academic_year"] is None
+    # From the first release's year to the last, oldest first.
+    assert body["columns"] == ["2024", "2025", "2026"]
+    rows = _rows(body)
+    assert rows["Ada Writer"]["counts"] == [0, 3, 1]
+    # Anyone who ever wrote has a row, even after leaving.
+    assert rows["Di Earlier"]["counts"] == [1, 0, 0]
+    assert rows["Cy Former"]["counts"] == [0, 1, 0]
+    assert body["totals"] == [1, 5, 1] and body["total"] == 7
+    assert body["undated"] == 1
+
+
+async def test_all_years_with_nothing_dated_show_the_current_year(client, admin_headers):
+    body = await _get(client, admin_headers, all_years="true")
+    current = academic_year(today_in((await _institution()).timezone), 4)
+    assert body["columns"] == [str(current)] and body["total"] == 0
+
+
+async def test_the_export_of_all_years(client, admin_headers, writers):
+    response = await client.get(
+        f"{URL}/export", headers=admin_headers, params={"all_years": "true", "format": "csv"}
+    )
+    assert response.status_code == 200, response.text
+    assert 'filename="release_radar_writers_all_years_' in response.headers["content-disposition"]
+    rows = list(csv.reader(io.StringIO(response.content.decode("utf-8-sig"))))
+    assert rows[0] == ["Writer", "AY2024", "AY2025", "AY2026", "Total"]
+    assert rows[-1] == ["Total", "1", "5", "1", "7"]
+    response = await client.get(
+        f"{URL}/export", headers=admin_headers, params={"all_years": "true", "language": "ja"}
+    )
+    workbook = openpyxl.load_workbook(io.BytesIO(response.content))
+    assert [cell.value for cell in workbook["ライター"][1]][1] == "2024年度"
+    notes = "\n".join(
+        str(row[0] or "") for row in workbook.worksheets[-1].iter_rows(values_only=True)
+    )
+    assert "すべての年度（2024年度〜2026年度）" in notes

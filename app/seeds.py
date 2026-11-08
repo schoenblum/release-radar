@@ -46,6 +46,8 @@ CORE_FIELDS = (
     "title_ja",
     "writer",
     "researcher",
+    # The researcher's, shown next to them; counts whom releases reach.
+    "researcher_gender",
     "also_featured",
     "unit",
     "field",

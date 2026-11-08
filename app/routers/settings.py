@@ -47,7 +47,8 @@ LANDING_VIEWS = {"mine", "all"}
 # The grid and the date logic rely on these, so they stay visible.
 NOT_HIDEABLE = frozenset({"code", "title", "release_date"})
 # The system assigns the code (D35), so nobody can be asked to fill it in.
-NOT_REQUIRABLE = frozenset({"code"})
+# A gender belongs to the researcher, and is often not known: never required of a release.
+NOT_REQUIRABLE = frozenset({"code", "researcher_gender"})
 
 
 def _parse_timezone(value: Any) -> str:

@@ -663,7 +663,7 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
                 key,
                 position,
             )
-        upgraded = _alembic("upgrade", "head", database_url=url)
+        upgraded = _alembic("upgrade", "0006", database_url=url)
         assert upgraded.returncode == 0, upgraded.stderr
         rows = await run("SELECT key FROM core_field_configs ORDER BY position")
         assert [row["key"] for row in rows] == [
@@ -674,6 +674,26 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
             "publication_date",
             "journal",
             "paper_title",
+        ]
+        # 0007 adds the researcher's gender right after the researcher, shown and optional.
+        await run(
+            "INSERT INTO core_field_configs (id, institution_id, key, hidden, required, "
+            "position) VALUES (gen_random_uuid(), $1, 'researcher', false, true, 2)",
+            institution,
+        )
+        assert _alembic("upgrade", "head", database_url=url).returncode == 0
+        rows = await run(
+            "SELECT key, hidden, required, position FROM core_field_configs ORDER BY position"
+        )
+        keys = [row["key"] for row in rows]
+        assert keys.index("researcher_gender") == keys.index("researcher") + 1
+        assert [row["position"] for row in rows] == list(range(len(rows)))
+        gender = next(row for row in rows if row["key"] == "researcher_gender")
+        assert (gender["hidden"], gender["required"]) == (False, False)
+        # Running it again would add nothing: the row exists.
+        assert _alembic("downgrade", "0006", database_url=url).returncode == 0
+        assert "researcher_gender" not in [
+            row["key"] for row in await run("SELECT key FROM core_field_configs")
         ]
         assert _alembic("downgrade", "0005", database_url=url).returncode == 0
     finally:

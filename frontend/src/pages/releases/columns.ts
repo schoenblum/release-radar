@@ -15,6 +15,7 @@ import type {
   Writer,
 } from "../../api/types";
 import { translate } from "../../i18n";
+import { parseGender } from "./gender";
 import { formatNumber, isNotApplicable, normaliseDate, parseBoolean } from "./parse";
 
 /** How the grid edits a column. "none" is edited in the drawer, as it needs more room. */
@@ -111,6 +112,7 @@ const DEFAULT_CORE = new Set([
   "title",
   "release_date",
   "researcher",
+  "researcher_gender",
   "unit",
   "doi",
   "publication_date",
@@ -126,6 +128,7 @@ const WIDTHS: Record<string, number> = {
   title_ja: 280,
   release_date: 116,
   doi: 64,
+  researcher_gender: 120,
   publication_date: 116,
   embargoed: 90,
   release_time_et: 96,
@@ -158,6 +161,10 @@ interface CoreSpec {
   view?: (release: Release) => CellView;
   editText?: (release: Release) => string;
   clean?: (text: string) => unknown;
+  /** Reads typed or pasted text its own way. */
+  read?: (text: string) => { ok: true; value: unknown } | { ok: false; code: string };
+  /** Only for some releases, such as those with a researcher. */
+  editable?: (release: Release) => boolean;
   /** Only ever shown here, and changed elsewhere. */
   readOnly?: boolean;
 }
@@ -263,6 +270,26 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
         view: (release) => plain(release.researcher_name ?? ""),
         editText: (release) => release.researcher_name ?? "",
       };
+    case "researcher_gender": {
+      // The researcher's, so a change shows on every release of theirs.
+      const label = (release: Release): string =>
+        release.researcher_gender
+          ? translate(t, `researchers.genders.${release.researcher_gender}`)
+          : "";
+      return {
+        field: key,
+        editor: "text",
+        view: (release) => plain(label(release)),
+        editText: label,
+        read: (text) => {
+          const gender = parseGender(text);
+          return gender === undefined
+            ? { ok: false, code: "gender_invalid" }
+            : { ok: true, value: gender };
+        },
+        editable: (release) => release.researcher_id !== null,
+      };
+    }
     case "unit":
       return {
         field: "unit_id",
@@ -344,9 +371,15 @@ function coreColumn(context: GridContext, config: CoreField): GridColumn | null 
         if (options.length > 0) return options.find((o) => o.value === value)?.label ?? "";
         return value == null ? "" : String(value);
       }),
-    isEditable: () => context.canEdit && !readOnly,
+    isEditable: (release) => context.canEdit && !readOnly && (spec.editable?.(release) ?? true),
     parse: (text) => {
       if (readOnly || editor === "none") return { ok: false, code: "field_not_editable" };
+      if (spec.read) {
+        const read = spec.read(text);
+        return read.ok
+          ? { ok: true, commit: { kind: "field", field, value: read.value } }
+          : { ok: false, code: read.code };
+      }
       if (editor === "researcher") {
         // A name alone cannot say which record is meant (R6.3.1), so only clearing works here.
         return text.trim() === ""
@@ -377,7 +410,7 @@ function coreColumn(context: GridContext, config: CoreField): GridColumn | null 
       const value = raw(release);
       if (isBoolean) return value ? 1 : 0;
       if (key === "doi") return value ? 1 : null;
-      if (options.length > 0 || editor === "researcher" || key === "authors") {
+      if (options.length > 0 || editor === "researcher" || key === "authors" || spec.read) {
         return (spec.view ? spec.view(release).text : "") || null;
       }
       if (typeof value === "number") return value;

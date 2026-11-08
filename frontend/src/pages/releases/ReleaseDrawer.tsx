@@ -26,6 +26,7 @@ import {
   customValueText,
   type GridContext,
 } from "./columns";
+import { GENDERS } from "./gender";
 import { normaliseDate } from "./parse";
 import ResearcherPicker from "./ResearcherPicker";
 import { useReleaseActions, useReleaseHistory } from "./useReleaseData";
@@ -36,6 +37,7 @@ const RELEASE_SECTION = new Set([
   "title_ja",
   "writer",
   "researcher",
+  "researcher_gender",
   "also_featured",
   "unit",
   "field",
@@ -692,6 +694,30 @@ export default function ReleaseDrawer({
             )}
           </div>
         );
+      case "researcher_gender": {
+        // The researcher's: a change here shows on all their releases.
+        const id = `drawer-${key}`;
+        const noResearcher = release.researcher_id === null;
+        return (
+          <Labelled key={key} id={id} label={labelOf(key)} required={false}>
+            <SelectField
+              id={id}
+              label={labelOf(key)}
+              className="input"
+              value={release.researcher_gender}
+              version={versions.researcher_gender}
+              disabled={!canEdit || noResearcher}
+              emptyLabel={t("researchers.genders.not_recorded")}
+              options={GENDERS.map((gender) => ({
+                value: gender,
+                label: translate(t, `researchers.genders.${gender}`),
+              }))}
+              save={saver(key)}
+              hint={noResearcher && canEdit ? t("errors.gender_needs_researcher") : undefined}
+            />
+          </Labelled>
+        );
+      }
       case "publication_date":
       case "release_date":
         return text(key, key, { type: "date", clean: normaliseDate });

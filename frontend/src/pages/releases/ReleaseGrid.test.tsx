@@ -527,6 +527,32 @@ describe("the data grid", () => {
     expect(apply.mock.calls[2][0]).toBe("1");
   });
 
+  it("Backspace on a value that could not be saved corrects it, rather than clearing it", async () => {
+    const { apply, user } = setup({ apply: refusing("31x") });
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("31x{Enter}");
+    await waitFor(() => expect(cell("1", VIEWS)).toHaveClass("is-failed"));
+    await user.keyboard("{ArrowUp}{Backspace}");
+    const editor = within(cell("1", VIEWS)).getByRole("textbox");
+    expect(editor).toHaveValue("31");
+    await user.keyboard("0{Enter}");
+    await waitFor(() => expect(cell("1", VIEWS)).not.toHaveClass("is-failed"));
+    expect(apply.mock.calls.at(-1)?.[1]).toEqual({
+      kind: "reading",
+      readingId: expect.any(String) as string,
+      // The server reads the number, as with any typed value.
+      body: { value: "310" },
+    });
+  });
+
+  it("Backspace on a saved value still clears it", async () => {
+    const { apply, user } = setup();
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("{Backspace}");
+    await waitFor(() => expect(apply).toHaveBeenCalledTimes(1));
+    expect(within(cell("1", VIEWS)).queryByRole("textbox")).toBeNull();
+  });
+
   it("a value fixed since is not undone twice", async () => {
     const { apply, user } = setup({ apply: refusing("soon") });
     await user.click(cell("1", VIEWS));

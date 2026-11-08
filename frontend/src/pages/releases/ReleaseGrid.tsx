@@ -425,7 +425,7 @@ export default function ReleaseGrid({
   );
 
   const startEditing = useCallback(
-    (cell: CellId, replace: boolean) => {
+    (cell: CellId, replace: boolean, text?: string) => {
       const index = rowIndex.get(cell.row);
       const release = index === undefined ? undefined : rows[index];
       const column = columns[columnIndex.get(cell.column) ?? -1];
@@ -433,7 +433,7 @@ export default function ReleaseGrid({
       if (column.editor === "boolean" || column.editor === "none") return;
       const failed = saves.pending[release.id]?.[column.id];
       const initial =
-        failed?.status === "failed" ? failed.text : column.editText(release);
+        text ?? (failed?.status === "failed" ? failed.text : column.editText(release));
       // Synchronously, so the editor has focus before the next key arrives.
       flushSync(() => setEditing({ ...cell, initial, replace }));
     },
@@ -622,7 +622,19 @@ export default function ReleaseGrid({
           letGo();
         }
         return;
-      case "Backspace":
+      case "Backspace": {
+        event.preventDefault();
+        // A value that could not be saved is still being typed: Backspace takes off its last
+        // character, so a slip like 31 for 30 is corrected rather than typed again.
+        const failed = saves.pending[release.id]?.[column.id];
+        const single = range.top === range.bottom && range.left === range.right;
+        if (single && failed?.status === "failed") {
+          startEditing(active, false, failed.text.slice(0, -1));
+        } else {
+          clearRange();
+        }
+        return;
+      }
       case "Delete":
         event.preventDefault();
         clearRange();

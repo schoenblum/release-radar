@@ -443,6 +443,67 @@ async def test_a_choice_someone_made_is_never_overwritten(client, admin_headers)
     assert saved["field_id"] == str(chosen_field.id)
 
 
+async def test_the_researchers_gender_is_shown_and_changed_with_the_release(
+    client, admin_headers, headers_for
+):
+    """Daniel, 2026-11-08: gender in the grid. It is the researcher's, so every release follows."""
+    institution = await _institution()
+    researcher = await _add(Researcher(institution_id=institution.id, name="Test Person"))
+    first = await _set(
+        client,
+        await _create(client, admin_headers),
+        admin_headers,
+        "researcher_id",
+        str(researcher.id),
+    )
+    second = await _set(
+        client,
+        await _create(client, admin_headers),
+        admin_headers,
+        "researcher_id",
+        str(researcher.id),
+    )
+    # Not recorded reads as empty, at the researcher's version.
+    assert first["researcher_gender"] is None
+    assert first["field_versions"]["researcher_gender"] == 0
+
+    saved = await _patch(client, first, admin_headers, "researcher_gender", "F")
+    assert saved.status_code == 200, saved.text
+    assert (saved.json()["value"], saved.json()["version"]) == ("F", 1)
+    assert saved.json()["release"]["researcher_gender"] == "F"
+    shown = (await client.get(f"{URL}/{second['id']}", headers=admin_headers)).json()
+    assert shown["researcher_gender"] == "F"
+    assert shown["field_versions"]["researcher_gender"] == 1
+    async with SessionLocal() as db:
+        assert (await db.get(Researcher, researcher.id)).gender == "F"
+        logged = await db.scalar(
+            select(AuditLog).where(AuditLog.entity_id == researcher.id, AuditLog.field == "gender")
+        )
+        assert logged is not None
+
+    # Someone working from the old screen is told, at the version they missed.
+    stale = await _patch(client, second, admin_headers, "researcher_gender", "M")
+    assert stale.status_code == 409
+    assert stale.json()["current_version"] == 1
+
+    # Empty means not recorded again; anything else is refused.
+    cleared = await _patch(client, shown, admin_headers, "researcher_gender", "")
+    assert cleared.json()["release"]["researcher_gender"] is None
+    bad = await _patch(client, cleared.json()["release"], admin_headers, "researcher_gender", "x")
+    assert bad.status_code == 422
+
+    viewer = await headers_for(UserRole.viewer)
+    refused = await _patch(client, shown, viewer, "researcher_gender", "M")
+    assert refused.status_code == 403
+
+
+async def test_a_gender_needs_a_researcher_first(client, admin_headers):
+    made = await _create(client, admin_headers)
+    assert made["researcher_gender"] is None
+    response = await _patch(client, made, admin_headers, "researcher_gender", "F")
+    assert (response.status_code, response.json()["detail"]) == (422, "gender_needs_researcher")
+
+
 async def test_a_merged_researcher_cannot_be_chosen(client, admin_headers):
     institution = await _institution()
     survivor = await _add(Researcher(institution_id=institution.id, name="Survivor"))

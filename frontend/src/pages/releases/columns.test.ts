@@ -34,6 +34,7 @@ describe("which columns there are", () => {
       "title",
       "release_date",
       "researcher",
+      "researcher_gender",
       "unit",
       "doi",
       "publication_date",
@@ -258,6 +259,45 @@ describe("reading what is typed", () => {
     expect(find(columns(), "code").parse("AY2026-99", row).ok).toBe(false);
     const read = buildColumns(context({ canEdit: false, measures: MEASURES }));
     expect(read.some((column) => column.isEditable(row))).toBe(false);
+  });
+});
+
+describe("the researcher's gender", () => {
+  beforeEach(() => applyLanguage("en"));
+  const column = () => find(buildColumns(context()), "researcher_gender");
+
+  it("shows the word, and nothing when it is not recorded", () => {
+    expect(column().view(release("1", { researcher_id: "r", researcher_gender: "F" })).text).toBe(
+      "Female",
+    );
+    expect(column().view(release("1", { researcher_id: "r" })).text).toBe("");
+  });
+
+  it("reads what is typed as forgivingly as a date", () => {
+    const withResearcher = release("1", { researcher_id: "r" });
+    expect(column().parse("fem", withResearcher)).toEqual({
+      ok: true,
+      commit: { kind: "field", field: "researcher_gender", value: "F" },
+    });
+    expect(column().parse("男性", withResearcher)).toEqual({
+      ok: true,
+      commit: { kind: "field", field: "researcher_gender", value: "M" },
+    });
+    expect(column().parse("", withResearcher)).toEqual({
+      ok: true,
+      commit: { kind: "field", field: "researcher_gender", value: null },
+    });
+    expect(column().parse("maybe", withResearcher)).toEqual({ ok: false, code: "gender_invalid" });
+  });
+
+  it("can be changed only once there is a researcher", () => {
+    expect(column().isEditable(release("1"))).toBe(false);
+    expect(column().isEditable(release("1", { researcher_id: "r" }))).toBe(true);
+    expect(
+      find(buildColumns(context({ canEdit: false })), "researcher_gender").isEditable(
+        release("1", { researcher_id: "r" }),
+      ),
+    ).toBe(false);
   });
 });
 

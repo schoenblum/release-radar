@@ -1,23 +1,26 @@
-"""Releases per writer and month of an academic year (R7.7.1).
+"""Releases per writer, by month of one academic year or by academic year (R7.7.1).
 
 Counts only, by release date: no views, scores or pickups (R7.7.2). A release without a date
-belongs to no month yet, and a removed release is not counted.
+belongs to no month or year yet, and a removed release is not counted.
 """
 
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any, Literal
 from uuid import UUID
 
-from sqlalchemy import extract, func, or_, select
+from sqlalchemy import case, extract, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Institution, Release, Writer
 from app.services.release_codes import academic_year
 
+Period = Literal["month", "year"]
+
 
 @dataclass
 class WriterRow:
-    """One writer's counts, a month per place. ``writer_id`` is None for releases with no writer."""
+    """One writer's counts, one per column. ``writer_id`` is None for releases with no writer."""
 
     writer_id: UUID | None
     name_en: str | None
@@ -34,16 +37,19 @@ class WriterRow:
 
 
 @dataclass
-class MonthlyCounts:
-    academic_year: int
-    months: list[date]
+class Counts:
+    period: Period
+    # The first day of each month, or each academic year, in order.
+    columns: list[date] | list[int]
+    # The year shown month by month; None when the columns are years.
+    academic_year: int | None = None
     rows: list[WriterRow] = field(default_factory=list)
-    # Releases with no release date yet, which no month can count.
+    # Releases with no release date yet, which no column counts.
     undated: int = 0
 
     @property
     def totals(self) -> list[int]:
-        return [sum(row.counts[place] for row in self.rows) for place in range(len(self.months))]
+        return [sum(row.counts[place] for row in self.rows) for place in range(len(self.columns))]
 
     @property
     def total(self) -> int:
@@ -65,38 +71,18 @@ def sort_rows(rows: list[WriterRow], language: str) -> list[WriterRow]:
     )
 
 
-async def monthly_counts(db: AsyncSession, institution: Institution, year: int) -> MonthlyCounts:
-    months = months_of(year, institution.ay_start_month)
-    start = months[0]
-    end = date(start.year + 1, start.month, 1)
-    place = {(month.year, month.month): index for index, month in enumerate(months)}
+def current_academic_year(institution: Institution, today: date) -> int:
+    return academic_year(today, institution.ay_start_month)
 
-    counted = await db.execute(
-        select(
-            Release.writer_id,
-            extract("year", Release.release_date),
-            extract("month", Release.release_date),
-            func.count(),
-        )
-        .where(
-            Release.institution_id == institution.id,
-            Release.deleted_at.is_(None),
-            Release.release_date >= start,
-            Release.release_date < end,
-        )
-        .group_by(
-            Release.writer_id,
-            extract("year", Release.release_date),
-            extract("month", Release.release_date),
-        )
-    )
-    counts: dict[UUID | None, list[int]] = {}
-    for writer_id, release_year, release_month, number in counted:
-        counts.setdefault(writer_id, [0] * 12)[place[(int(release_year), int(release_month))]] += (
-            number
-        )
 
-    # Everyone still writing, and anyone who wrote in this year even if they have since left.
+def _in_institution(institution: Institution) -> list[Any]:
+    return [Release.institution_id == institution.id, Release.deleted_at.is_(None)]
+
+
+async def _rows(
+    db: AsyncSession, institution: Institution, counts: dict[UUID | None, list[int]], width: int
+) -> list[WriterRow]:
+    # Everyone still writing, and anyone who wrote in these columns even if they have left since.
     writers = await db.scalars(
         select(Writer).where(
             Writer.institution_id == institution.id,
@@ -109,7 +95,7 @@ async def monthly_counts(db: AsyncSession, institution: Institution, year: int) 
             name_en=writer.display_name_en,
             name_ja=writer.display_name_ja,
             is_active=writer.is_active,
-            counts=counts.get(writer.id, [0] * 12),
+            counts=counts.get(writer.id, [0] * width),
         )
         for writer in writers
     ]
@@ -119,18 +105,74 @@ async def monthly_counts(db: AsyncSession, institution: Institution, year: int) 
                 writer_id=None, name_en=None, name_ja=None, is_active=True, counts=counts[None]
             )
         )
+    return sort_rows(rows, "en")
 
-    undated = await db.scalar(
-        select(func.count()).where(
-            Release.institution_id == institution.id,
-            Release.deleted_at.is_(None),
-            Release.release_date.is_(None),
+
+async def _undated(db: AsyncSession, institution: Institution) -> int:
+    number = await db.scalar(
+        select(func.count()).where(*_in_institution(institution), Release.release_date.is_(None))
+    )
+    return number or 0
+
+
+async def monthly_counts(db: AsyncSession, institution: Institution, year: int) -> Counts:
+    months = months_of(year, institution.ay_start_month)
+    start = months[0]
+    end = date(start.year + 1, start.month, 1)
+    place = {(month.year, month.month): index for index, month in enumerate(months)}
+    release_year = extract("year", Release.release_date)
+    release_month = extract("month", Release.release_date)
+
+    counted = await db.execute(
+        select(Release.writer_id, release_year, release_month, func.count())
+        .where(
+            *_in_institution(institution),
+            Release.release_date >= start,
+            Release.release_date < end,
         )
+        .group_by(Release.writer_id, release_year, release_month)
     )
-    return MonthlyCounts(
-        academic_year=year, months=months, rows=sort_rows(rows, "en"), undated=undated or 0
+    counts: dict[UUID | None, list[int]] = {}
+    for writer_id, number_year, number_month, number in counted:
+        row = counts.setdefault(writer_id, [0] * 12)
+        row[place[(int(number_year), int(number_month))]] += number
+
+    return Counts(
+        period="month",
+        columns=months,
+        academic_year=year,
+        rows=await _rows(db, institution, counts, 12),
+        undated=await _undated(db, institution),
     )
 
 
-def current_academic_year(institution: Institution, today: date) -> int:
-    return academic_year(today, institution.ay_start_month)
+async def yearly_counts(db: AsyncSession, institution: Institution, today: date) -> Counts:
+    """Every academic year from the first release to the last, oldest first."""
+    start_month = institution.ay_start_month
+    release_year = extract("year", Release.release_date) - case(
+        (extract("month", Release.release_date) < start_month, 1), else_=0
+    )
+    counted = (
+        await db.execute(
+            select(Release.writer_id, release_year, func.count())
+            .where(*_in_institution(institution), Release.release_date.is_not(None))
+            .group_by(Release.writer_id, release_year)
+        )
+    ).all()
+    years_seen = [int(year) for _, year, _ in counted]
+    years = (
+        list(range(min(years_seen), max(years_seen) + 1))
+        if years_seen
+        else [current_academic_year(institution, today)]
+    )
+    place = {year: index for index, year in enumerate(years)}
+    counts: dict[UUID | None, list[int]] = {}
+    for writer_id, year, number in counted:
+        counts.setdefault(writer_id, [0] * len(years))[place[int(year)]] += number
+
+    return Counts(
+        period="year",
+        columns=years,
+        rows=await _rows(db, institution, counts, len(years)),
+        undated=await _undated(db, institution),
+    )

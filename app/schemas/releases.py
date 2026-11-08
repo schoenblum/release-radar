@@ -34,6 +34,8 @@ class ReleaseOut(BaseModel):
     writer_id: UUID | None
     researcher_id: UUID | None
     researcher_name: str | None = None
+    # The researcher's, shown and changed with the release: M, F or other; None when not recorded.
+    researcher_gender: str | None = None
     also_featured: str | None
     unit_id: UUID | None
     field_id: UUID | None

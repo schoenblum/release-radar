@@ -442,7 +442,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:data.empty` | No releases here yet. Paste a DOI or type a title above. | リリースはまだありません。上の欄に DOI を貼り付けるかタイトルを入力してください。 | pending |
 | `frontend:data.empty_no_writer` | Nothing is yours yet, as you have no writer entry. An admin can link one under Settings → Lists → Writers. | ライターとして登録されていないため、担当のリリースはありません。管理者が 設定 → リスト → ライター で紐付けできます。 | pending |
 | `frontend:data.empty_read_only` | No releases here yet. | リリースはまだありません。 | pending |
-| `frontend:data.failed_hint` | Press Enter to change it, or Esc to go back to what was there. | Enter で修正、Esc で元の値に戻します。 | pending |
+| `frontend:data.failed_hint` | Press Enter or Backspace to correct it, or Esc to go back to what was there. | Enter または Backspace で修正、Esc で元の値に戻せます。 | pending |
 | `frontend:data.grid_label` | Releases | リリース | pending |
 | `frontend:data.history_created` | Release created | リリースを作成 | pending |
 | `frontend:data.history_note` | Note on {{measure}} | {{measure}} のメモ | pending |
@@ -599,3 +599,9 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:writers_export.sheet` | Writers | ライター | pending |
 | `backend:writers_export.total` | Total | 合計 | pending |
 | `backend:writers_export.writer` | Writer | ライター | pending |
+| `frontend:errors.gender_invalid` | Please enter female, male or other, or leave it empty if it isn't recorded. | 女性、男性、その他のいずれかを入力してください。記録がない場合は空欄にしてください。 | pending |
+| `frontend:errors.gender_needs_researcher` | Choose the researcher first: the gender is theirs. | 先に研究者を選んでください。性別は研究者の情報です。 | pending |
+| `frontend:release_fields.researcher_gender` | Researcher gender | 研究者の性別 | pending |
+| `frontend:writers.all_years` | All years | すべての年度 | pending |
+| `frontend:writers.caption_all` | Releases per writer and academic year, counted by release date. Click a name to see those releases on the Data page. | ライター別・年度別のリリース件数です（リリース日で集計）。名前をクリックすると、データページでそのリリースを表示します。 | pending |
+| `backend:writers_export.readme.all_years` | All academic years, {first} to {last}. | すべての年度（{first}〜{last}） | pending |

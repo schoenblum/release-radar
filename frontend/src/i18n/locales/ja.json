@@ -118,7 +118,9 @@
     "split_into_self": "これらのリリースはすでにそのレコードにあります。",
     "researcher_not_merged": "このレコードは他のレコードに統合されていません。",
     "researcher_in_use": "このレコードは使用中のため、削除できません。",
-    "researcher_needs_choosing": "氏名だけではレコードを特定できません。セルで選択してください。"
+    "researcher_needs_choosing": "氏名だけではレコードを特定できません。セルで選択してください。",
+    "gender_invalid": "女性、男性、その他のいずれかを入力してください。記録がない場合は空欄にしてください。",
+    "gender_needs_researcher": "先に研究者を選んでください。性別は研究者の情報です。"
   },
   "common": {
     "saving": "保存中…",
@@ -438,6 +440,7 @@
     "title_ja": "タイトル（日本語）",
     "writer": "ライター",
     "researcher": "研究者",
+    "researcher_gender": "研究者の性別",
     "also_featured": "その他の掲載者",
     "unit": "部局",
     "field": "分野",
@@ -486,7 +489,7 @@
     "due_count": "入力時期を迎えた項目：{{count}} 件",
     "caught_up": "すべて入力済みです。現在入力が必要な項目はありません。",
     "open_to_fill": "開いて入力",
-    "failed_hint": "Enter で修正、Esc で元の値に戻します。",
+    "failed_hint": "Enter または Backspace で修正、Esc で元の値に戻せます。",
     "paste_result": "{{saved}} 件を保存、{{invalid}} 件は入力できませんでした。色の付いたセルをご確認ください。",
     "paste_skipped": "{{count}} 件はここでは変更できません。",
     "paste_overflow": "{{count}} 件は範囲に収まりませんでした。",
@@ -572,7 +575,9 @@
   },
   "writers": {
     "year": "年度",
+    "all_years": "すべての年度",
     "caption": "{{year}}のライター別・月別のリリース件数です（リリース日で集計）。名前をクリックすると、データページでそのリリースを表示します。",
+    "caption_all": "ライター別・年度別のリリース件数です（リリース日で集計）。名前をクリックすると、データページでそのリリースを表示します。",
     "writer": "ライター",
     "total": "合計",
     "no_writer": "ライター未設定",

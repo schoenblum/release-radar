@@ -3,27 +3,36 @@ import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { http } from "../../api/client";
-import type { WriterMonthly, WriterMonthRow } from "../../api/types";
+import type { WriterCountRow, WriterCounts } from "../../api/types";
 import ErrorNotice from "../../components/ErrorNotice";
 import ExportPopover, { type ExportChoice } from "../../components/ExportPopover";
 import { PageLoading } from "../../components/Spinner";
 import { academicYearLabel } from "../../dates";
 
 const YEAR_PARAM = "ay";
+const ALL_YEARS = "all";
 
 function monthDate(month: string): Date {
   const [year, number] = month.split("-").map(Number);
   return new Date(year, number - 1, 1);
 }
 
-function yearFrom(params: URLSearchParams): number | null {
+/** A year, all years, or null for the server's default: the current year. */
+function yearFrom(params: URLSearchParams): number | typeof ALL_YEARS | null {
   const text = params.get(YEAR_PARAM);
+  if (text === ALL_YEARS) return ALL_YEARS;
   return text && /^\d{4}$/.test(text) ? Number(text) : null;
 }
 
+function countsQuery(asked: number | typeof ALL_YEARS | null): URLSearchParams {
+  if (asked === ALL_YEARS) return new URLSearchParams({ all_years: "true" });
+  return new URLSearchParams(asked === null ? {} : { academic_year: String(asked) });
+}
+
 /**
- * Releases per writer and month (R7.7.1), for everyone. Counts only: how a release does
- * depends mostly on its topic, not on who wrote it (R7.7.2).
+ * Releases per writer (R7.7.1), month by month for one academic year or year by year for all,
+ * for everyone. Counts only: how a release does depends mostly on its topic, not on who wrote
+ * it (R7.7.2).
  */
 export default function WritersPage() {
   const { t, i18n } = useTranslation();
@@ -31,11 +40,11 @@ export default function WritersPage() {
   const [params, setParams] = useSearchParams();
   const asked = yearFrom(params);
   const { data, error, isLoading } = useQuery({
-    queryKey: ["writers", "monthly", asked],
-    queryFn: () =>
-      http.get<WriterMonthly>(
-        `/writers/monthly${asked === null ? "" : `?academic_year=${asked}`}`,
-      ),
+    queryKey: ["writers", "counts", asked],
+    queryFn: () => {
+      const query = countsQuery(asked).toString();
+      return http.get<WriterCounts>(`/writers/counts${query ? `?${query}` : ""}`);
+    },
     placeholderData: keepPreviousData,
   });
 
@@ -43,10 +52,13 @@ export default function WritersPage() {
   if (!data) return <ErrorNotice error={error} />;
 
   const year = data.academic_year;
+  const byMonth = data.period === "month" && year !== null;
   const short = new Intl.DateTimeFormat(language, { month: "short" });
   const long = new Intl.DateTimeFormat(language, { month: "long", year: "numeric" });
+  const heading = (column: string): string =>
+    byMonth ? short.format(monthDate(column)) : academicYearLabel(Number(column), language);
   const collator = new Intl.Collator(language, { numeric: true, sensitivity: "base" });
-  const nameOf = (row: WriterMonthRow): string =>
+  const nameOf = (row: WriterCountRow): string =>
     (language === "ja" && row.name_ja) || row.name_en || t("writers.no_writer");
   const rows = [...data.rows].sort(
     (a, b) =>
@@ -54,20 +66,19 @@ export default function WritersPage() {
       collator.compare(nameOf(a), nameOf(b)),
   );
   const dataLink = (writerId: string | null): string => {
-    const query = new URLSearchParams({ view: "all", ay: String(year) });
+    const query = new URLSearchParams({ view: "all" });
+    if (byMonth) query.set("ay", String(year));
     if (writerId) query.set("writer", writerId);
     return `/data?${query.toString()}`;
   };
 
   async function download({ format, language: chosen }: ExportChoice): Promise<void> {
-    const query = new URLSearchParams({
-      academic_year: String(year),
-      format,
-      language: chosen,
-    });
+    const query = countsQuery(byMonth ? year : ALL_YEARS);
+    query.set("format", format);
+    query.set("language", chosen);
     await http.download(
-      `/writers/monthly/export?${query.toString()}`,
-      `release_radar_writers_${year}.${format}`,
+      `/writers/counts/export?${query.toString()}`,
+      `release_radar_writers_${byMonth ? year : ALL_YEARS}.${format}`,
     );
   }
 
@@ -80,9 +91,10 @@ export default function WritersPage() {
             <span>{t("writers.year")}</span>
             <select
               className="filter-select"
-              value={year}
+              value={byMonth ? String(year) : ALL_YEARS}
               onChange={(event) => setParams({ [YEAR_PARAM]: event.target.value })}
             >
+              <option value={ALL_YEARS}>{t("writers.all_years")}</option>
               {data.academic_years.map((option) => (
                 <option key={option} value={option}>
                   {academicYearLabel(option, language)}
@@ -99,7 +111,9 @@ export default function WritersPage() {
         </div>
       </div>
       <p id="writers-caption" className="mb-3xs text-content-secondary">
-        {t("writers.caption", { year: academicYearLabel(year, language) })}
+        {byMonth
+          ? t("writers.caption", { year: academicYearLabel(year, language) })
+          : t("writers.caption_all")}
       </p>
       <ErrorNotice error={error} />
 
@@ -108,9 +122,13 @@ export default function WritersPage() {
           <thead>
             <tr>
               <th scope="col">{t("writers.writer")}</th>
-              {data.months.map((month) => (
-                <th key={month} scope="col" title={long.format(monthDate(month))}>
-                  {short.format(monthDate(month))}
+              {data.columns.map((column) => (
+                <th
+                  key={column}
+                  scope="col"
+                  title={byMonth ? long.format(monthDate(column)) : undefined}
+                >
+                  {heading(column)}
                 </th>
               ))}
               <th scope="col">{t("writers.total")}</th>
@@ -131,7 +149,7 @@ export default function WritersPage() {
                   )}
                 </th>
                 {row.counts.map((count, place) => (
-                  <td key={data.months[place]} className={count === 0 ? "is-zero" : undefined}>
+                  <td key={data.columns[place]} className={count === 0 ? "is-zero" : undefined}>
                     {count}
                   </td>
                 ))}
@@ -145,7 +163,7 @@ export default function WritersPage() {
                 <Link to={dataLink(null)}>{t("writers.total")}</Link>
               </th>
               {data.totals.map((count, place) => (
-                <td key={data.months[place]}>{count}</td>
+                <td key={data.columns[place]}>{count}</td>
               ))}
               <td className="count-total">{data.total}</td>
             </tr>

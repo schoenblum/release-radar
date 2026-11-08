@@ -62,6 +62,7 @@ from app.services.field_patch import (
     clean_value,
     commit_unique,
     field_error,
+    load_for_update,
     parse_number,
     patch_field,
     patch_result,
@@ -162,6 +163,38 @@ SPECS: dict[str, FieldSpec] = {
 }
 
 
+# The researcher's gender, shown and changed on the release (Daniel, 2026-11-08).
+RESEARCHER_GENDER = "researcher_gender"
+_GENDERS = ("M", "F", "other", "not_recorded")
+
+
+def _shown_gender(gender: str) -> str | None:
+    return None if gender == "not_recorded" else gender
+
+
+async def _patch_researcher_gender(
+    db: AsyncSession, institution: Institution, release: Release, patch: FieldPatch
+) -> dict[str, Any]:
+    """Changes the researcher's record, so every release of theirs shows it (and it is audited
+    there). Empty means not recorded."""
+    if release.researcher_id is None:
+        raise field_error("gender_needs_researcher")
+    researcher = await load_for_update(db, Researcher, release.researcher_id, institution.id)
+    version = researcher.field_versions.get("gender", 0)
+    if patch.version != version:
+        raise FieldConflict(RESEARCHER_GENDER, _shown_gender(researcher.gender), version)
+    value = "not_recorded" if patch.value in (None, "") else patch.value
+    if value not in _GENDERS:
+        raise field_error("field_invalid")
+    if value != researcher.gender:
+        version = set_versioned(researcher, "gender", value)
+    await commit_unique(db)
+    return {
+        **patch_result(RESEARCHER_GENDER, _shown_gender(value), version),
+        "release": await _present_one(db, institution, release),
+    }
+
+
 def _is_empty(value: Any) -> bool:
     return value is None or value == "" or value == []
 
@@ -229,13 +262,16 @@ async def _present(
         )
 
     researcher_ids = {release.researcher_id for release in releases if release.researcher_id}
-    names = dict(
-        (
+    researchers = {
+        row.id: row
+        for row in (
             await db.execute(
-                select(Researcher.id, Researcher.name).where(Researcher.id.in_(researcher_ids))
+                select(
+                    Researcher.id, Researcher.name, Researcher.gender, Researcher.field_versions
+                ).where(Researcher.id.in_(researcher_ids))
             )
         ).all()
-    )
+    }
     required_core = list(
         await db.scalars(
             select(CoreFieldConfig.key).where(
@@ -259,7 +295,14 @@ async def _present(
     for release in releases:
         out = ReleaseOut.model_validate(release)
         out.readings = readings[release.id]
-        out.researcher_name = names.get(release.researcher_id)
+        person = researchers.get(release.researcher_id)
+        if person is not None:
+            out.researcher_name = person.name
+            out.researcher_gender = _shown_gender(person.gender)
+            out.field_versions = {
+                **out.field_versions,
+                RESEARCHER_GENDER: person.field_versions.get("gender", 0),
+            }
         if release.release_date is not None:
             out.academic_year = academic_year(release.release_date, institution.ay_start_month)
         out.warnings = _warnings(release, institution)
@@ -571,6 +614,8 @@ async def patch_release(
     """Save one field. The answer carries the whole release, since one field can move others."""
     institution = await db.get(Institution, user.institution_id)
     release = await _load(db, release_id, institution.id, lock=True)
+    if patch.field == RESEARCHER_GENDER:
+        return await _patch_researcher_gender(db, institution, release, patch)
     version = await patch_field(db, release, SPECS, patch, institution.id)
     if release.title is None and release.doi is None:
         raise field_error("title_or_doi_required")

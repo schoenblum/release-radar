@@ -327,6 +327,8 @@ export interface Release {
   writer_id: string | null;
   researcher_id: string | null;
   researcher_name: string | null;
+  /** The researcher's: F, M or other; null when not recorded or there is no researcher. */
+  researcher_gender: "F" | "M" | "other" | null;
   also_featured: string | null;
   unit_id: string | null;
   field_id: string | null;
@@ -452,8 +454,8 @@ export interface BackupStatus {
   last_run: JobRun | null;
 }
 
-/** The Writers page (R7.7.1): releases per writer and month, counts only. */
-export interface WriterMonthRow {
+/** The Writers page (R7.7.1): releases per writer, counts only. */
+export interface WriterCountRow {
   /** Null for releases that have no writer yet. */
   writer_id: string | null;
   name_en: string | null;
@@ -463,15 +465,18 @@ export interface WriterMonthRow {
   total: number;
 }
 
-export interface WriterMonthly {
-  academic_year: number;
+export interface WriterCounts {
+  /** Month by month for one academic year, or year by year for all of them. */
+  period: "month" | "year";
+  /** The year shown month by month; null for all years. */
+  academic_year: number | null;
   /** Every year with releases, and the current one, newest first. */
   academic_years: number[];
-  /** YYYY-MM, in order. */
-  months: string[];
-  rows: WriterMonthRow[];
+  /** In order: YYYY-MM for months, YYYY for academic years. */
+  columns: string[];
+  rows: WriterCountRow[];
   totals: number[];
   total: number;
-  /** Releases without a release date, which no month counts yet. */
+  /** Releases without a release date, which no column counts yet. */
   undated: number;
 }

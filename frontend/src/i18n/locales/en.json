@@ -118,7 +118,9 @@
     "split_into_self": "These releases are already on that record.",
     "researcher_not_merged": "This record isn't merged into another one.",
     "researcher_in_use": "This record is still in use, so it stays.",
-    "researcher_needs_choosing": "A name alone can't say which record is meant. Please choose one in the cell."
+    "researcher_needs_choosing": "A name alone can't say which record is meant. Please choose one in the cell.",
+    "gender_invalid": "Please enter female, male or other, or leave it empty if it isn't recorded.",
+    "gender_needs_researcher": "Choose the researcher first: the gender is theirs."
   },
   "common": {
     "saving": "Saving…",
@@ -438,6 +440,7 @@
     "title_ja": "Title (Japanese)",
     "writer": "Writer",
     "researcher": "Researcher",
+    "researcher_gender": "Researcher gender",
     "also_featured": "Also featured",
     "unit": "Unit",
     "field": "Field",
@@ -486,7 +489,7 @@
     "due_count": "Due now: {{count}}",
     "caught_up": "All caught up. Nothing is due.",
     "open_to_fill": "Open to fill in",
-    "failed_hint": "Press Enter to change it, or Esc to go back to what was there.",
+    "failed_hint": "Press Enter or Backspace to correct it, or Esc to go back to what was there.",
     "paste_result": "{{saved}} saved, {{invalid}} invalid: see the highlighted cells.",
     "paste_skipped": "{{count}} can't be changed here.",
     "paste_overflow": "{{count}} didn't fit.",
@@ -572,7 +575,9 @@
   },
   "writers": {
     "year": "Academic year",
+    "all_years": "All years",
     "caption": "Releases per writer and month in {{year}}, counted by release date. Click a name to see those releases on the Data page.",
+    "caption_all": "Releases per writer and academic year, counted by release date. Click a name to see those releases on the Data page.",
     "writer": "Writer",
     "total": "Total",
     "no_writer": "No writer yet",

@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { WriterMonthly } from "../../api/types";
+import type { WriterCounts } from "../../api/types";
 import { applyLanguage } from "../../i18n";
 import WritersPage from "./WritersPage";
 
@@ -29,11 +29,34 @@ function counts(...pairs: [number, number][]): number[] {
   return row;
 }
 
-function year(academicYear: number): WriterMonthly {
+function allYears(): WriterCounts {
   return {
+    period: "year",
+    academic_year: null,
+    academic_years: [2026, 2025],
+    columns: ["2025", "2026"],
+    rows: [
+      {
+        writer_id: "w2",
+        name_en: "Zed Writer",
+        name_ja: null,
+        is_active: true,
+        counts: [3, 4],
+        total: 7,
+      },
+    ],
+    totals: [3, 4],
+    total: 7,
+    undated: 0,
+  };
+}
+
+function year(academicYear: number): WriterCounts {
+  return {
+    period: "month",
     academic_year: academicYear,
     academic_years: [2026, 2025],
-    months: MONTHS,
+    columns: MONTHS,
     rows: [
       {
         writer_id: null,
@@ -79,7 +102,8 @@ function setup(address = "/writers") {
       });
     }
     const asked = /academic_year=(\d{4})/.exec(url)?.[1];
-    return new Response(JSON.stringify(year(asked ? Number(asked) : 2025)), {
+    const body = url.includes("all_years=true") ? allYears() : year(asked ? Number(asked) : 2025);
+    return new Response(JSON.stringify(body), {
       headers: { "Content-Type": "application/json" },
     });
   });
@@ -165,8 +189,8 @@ describe("the Writers page", () => {
     const { user, urls } = setup();
     await user.selectOptions(await screen.findByRole("combobox", { name: "Academic year" }), "2026");
     expect(screen.getByRole("status", { name: "address" })).toHaveTextContent("/writers?ay=2026");
-    await waitFor(() => expect(urls()).toContain("/api/v1/writers/monthly?academic_year=2026"));
-    expect(urls()[0]).toBe("/api/v1/writers/monthly");
+    await waitFor(() => expect(urls()).toContain("/api/v1/writers/counts?academic_year=2026"));
+    expect(urls()[0]).toBe("/api/v1/writers/counts");
   });
 
   it("uses Japanese names and months", async () => {
@@ -187,8 +211,38 @@ describe("the Writers page", () => {
     await user.click(screen.getByRole("button", { name: "Download" }));
     await waitFor(() =>
       expect(urls()).toContain(
-        "/api/v1/writers/monthly/export?academic_year=2025&format=csv&language=ja",
+        "/api/v1/writers/counts/export?academic_year=2025&format=csv&language=ja",
       ),
     );
+  });
+
+  it("shows all years side by side, and exports them", async () => {
+    const { user, urls } = setup("/writers?ay=all");
+    await screen.findByRole("table");
+    expect(urls()[0]).toBe("/api/v1/writers/counts?all_years=true");
+    expect(screen.getByRole("combobox", { name: "Academic year" })).toHaveDisplayValue("All years");
+    expect(screen.getByRole("columnheader", { name: "AY2025" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "AY2026" })).toBeInTheDocument();
+    expect(screen.getByText(/per writer and academic year/)).toBeInTheDocument();
+    // Across all years, a name shows all of that writer's releases.
+    expect(screen.getByRole("link", { name: "Zed Writer" })).toHaveAttribute(
+      "href",
+      "/data?view=all&writer=w2",
+    );
+    await user.click(screen.getByRole("button", { name: "Export" }));
+    await user.click(screen.getByRole("button", { name: "Download" }));
+    await waitFor(() =>
+      expect(urls()).toContain("/api/v1/writers/counts/export?all_years=true&format=xlsx&language=en"),
+    );
+  });
+
+  it("offers All years in the year menu", async () => {
+    setup();
+    const menu = await screen.findByRole("combobox", { name: "Academic year" });
+    expect(within(menu).getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "All years",
+      "AY2026",
+      "AY2025",
+    ]);
   });
 });

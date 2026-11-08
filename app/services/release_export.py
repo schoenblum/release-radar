@@ -209,13 +209,9 @@ async def release_table(
         config.key: (language == "ja" and config.label_ja) or config.label_en for config in configs
     }
     present = [config.key for config in configs]
-    keys = [key for key in _LEADING if key in present or key == "academic_year"]
-    for key in present:
-        if key not in _LEADING:
-            keys.append(key)
-        # Gender belongs to the researcher's record, and counts who the releases reach.
-        if key == "researcher":
-            keys.append("researcher_gender")
+    keys = [key for key in _LEADING if key in present or key == "academic_year"] + [
+        key for key in present if key not in _LEADING
+    ]
     measures = list(
         await db.scalars(
             select(Measure)

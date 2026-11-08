@@ -41,12 +41,13 @@ The grid works like a spreadsheet, and everything saves by itself.
 - Click a cell to select it, then type to replace it, or press Enter to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back. A box changes with the space bar.
 - Arrow keys move around. Hold Shift to select a range, or drag across cells.
 - Type `-` or `N/A` in a number cell to mark it as not applicable, and press Delete to clear it.
+- **Researcher gender** sits next to the researcher. Type female, male or other, or just `f`, `m`, `女性`, `男性` and the like; leave it empty if it isn't recorded. It belongs to the researcher, so it changes on all of their releases.
 - Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole, cells that couldn't be saved included.
 - Esc lets go of the selected cell, so nothing is pasted over by mistake. Clicking into the new-release row does the same.
 
 A tinted cell is due and empty. **N/A** on grey means the number can't exist for this release, such as Altmetric without a DOI. A plain empty cell is simply not due yet.
 
-If something can't be saved, the cell turns pink and keeps what you typed, and selecting it says why: press Enter to change it, or Esc to go back to what was there. Nothing else is held up.
+If something can't be saved, the cell turns pink and keeps what you typed, and selecting it says why: press Enter or Backspace to correct it, or Esc to go back to what was there. Backspace takes off the last character, so a slip such as 31 for 30 needs one key, not the whole date again. Nothing else is held up.
 
 ### Paste a column
 
@@ -76,7 +77,7 @@ The file contains personal data, such as researchers' names. Keep it within the 
 
 ## The Writers page
 
-**Writers** counts each writer's releases in each month of an academic year, by release date, with a total for every writer and every month. Choose the year at the top. Everyone in the writers list has a row, and so does anyone who wrote that year and has left since. Releases without a writer have a row of their own. A release without a release date is counted once it has one.
+**Writers** counts each writer's releases in each month of an academic year, by release date, with a total for every writer and every month. Choose the year at the top, or **All years** to see one column per academic year instead of per month. Everyone in the writers list has a row, and so does anyone who wrote that year and has left since. Releases without a writer have a row of their own. A release without a release date is counted once it has one.
 
 The page counts releases only, on purpose: how a release does depends mostly on its topic, not on who wrote it. The export on the Data page has every release with its writer, if you need more.
 

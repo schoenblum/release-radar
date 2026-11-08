@@ -399,6 +399,26 @@ async def test_a_relabelled_field_is_exported_under_its_new_name(client, admin_h
     assert "Headline" in _sheet_rows(workbook["Releases"])[0]
 
 
+async def test_gender_leaves_the_export_when_settings_hide_it(client, admin_headers, three):
+    fields = (await client.get("/api/v1/core-fields", headers=admin_headers)).json()
+    gender = next(field for field in fields if field["key"] == "researcher_gender")
+    assert gender["can_require"] is False
+    response = await client.patch(
+        f"/api/v1/core-fields/{gender['id']}",
+        headers=admin_headers,
+        json={"field": "hidden", "value": True, "version": 0},
+    )
+    assert response.status_code == 200, response.text
+    workbook = openpyxl.load_workbook(io.BytesIO((await _export(client, admin_headers)).content))
+    assert "Researcher gender" not in _sheet_rows(workbook["Releases"])[0]
+    refused = await client.patch(
+        f"/api/v1/core-fields/{gender['id']}",
+        headers=admin_headers,
+        json={"field": "required", "value": True, "version": 0},
+    )
+    assert refused.status_code == 409
+
+
 async def test_the_view_follows_the_filters_and_the_order_on_screen(
     client, admin_headers, lists, three
 ):
