@@ -99,6 +99,7 @@
       "view_mine": "Mine",
       "view_all": "All",
       "academic_year": "AY{year}",
+      "no_writer": "no writer yet",
       "search": "search for “{text}”",
       "separator": ", ",
       "states_heading": "How to read the numbers",

@@ -116,4 +116,6 @@ In **Settings → Data**, choose the press-release workbook and the intake workb
 
 Importing again is safe. Each release is found by its code and updated; an empty cell never empties anything, and a researcher chosen in Release Radar since stays. Units, fields and writers are only added, never changed: Settings looks after them.
 
+Every check and import is listed under the import, with its report to download again, so what still needs correcting can be found later. A writer's name the import doesn't know leaves the release without a writer: on the Data page, choose **No writer yet** in the writer filter to find them, and pick the writer in the grid.
+
 Release codes are assigned by Release Radar and can't be edited. A release gets its code when its release date is first entered, and keeps it even if the date later moves to another academic year.

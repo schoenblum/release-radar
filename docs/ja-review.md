@@ -705,3 +705,14 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:import.report.website_off_domain` | Not on {domain}: website views don't apply to this release. | {domain} 上にないため、このリリースのウェブサイト閲覧数は該当なしです。 | pending |
 | `backend:import.report.writer_unknown` | Not in the Staff sheet: left without a writer. | Staff シートにないため、ライターは空欄です。 | pending |
 | `backend:import.report.writer_without_account` | Writes releases but has no account with this email yet: the writer is not linked to a user. Invite them in Settings → Users and import again to link. | リリースを担当していますが、このメールアドレスのアカウントがまだありません。ライターはユーザーに紐づいていません。設定 → ユーザーで招待してから、もう一度インポートすると紐づきます。 | pending |
+| `frontend:data.filters.no_writer` | No writer yet | ライター未設定 | pending |
+| `frontend:settings.import.history` | Checks and imports so far | これまでの確認とインポート | pending |
+| `frontend:settings.import.history_counts` | {{new}} new, {{updated}} updated, {{check}} to check | 新規 {{new}} 件、更新 {{updated}} 件、要確認 {{check}} 件 | pending |
+| `frontend:settings.import.history_report` | Report | レポート | pending |
+| `frontend:settings.import.history_result` | Result | 結果 | pending |
+| `frontend:settings.import.history_what` | What | 種類 | pending |
+| `frontend:settings.import.history_when` | When | 日時 | pending |
+| `frontend:settings.import.history_who` | Who | 実行者 | pending |
+| `frontend:settings.import.kind_check` | Check | 確認 | pending |
+| `frontend:settings.import.kind_import` | Import | インポート | pending |
+| `backend:export.readme.no_writer` | no writer yet | ライター未設定 | pending |

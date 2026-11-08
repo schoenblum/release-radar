@@ -155,6 +155,11 @@ async def test_each_filter_narrows_the_view_and_both_counts_are_given(
     narrowed = await _list(client, admin_headers, writer_id=lists["one"])
     assert _titles(narrowed) == {"Quantum frogs"}
     assert (narrowed["total"], narrowed["view_total"]) == (1, 3)
+    # The draft was made by someone with no writer entry, so it has no writer yet.
+    waiting = await _list(client, admin_headers, writer_id="none")
+    assert _titles(waiting) == {"Untitled 100% idea"}
+    bad = await client.get(URL, headers=admin_headers, params={"writer_id": "nobody"})
+    assert bad.status_code == 422
 
     both = await _list(client, admin_headers, unit_id=lists["north"], academic_year=2026)
     assert both["items"] == [] and both["total"] == 0

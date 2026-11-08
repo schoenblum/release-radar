@@ -495,6 +495,8 @@ export interface PersonalFieldOwners {
 }
 
 export interface WorkbookImportResult {
+  /** In the import history, where its report can be downloaded again. */
+  run_id: string;
   committed: boolean;
   counts: Record<string, number>;
   /** The counts in order, labelled in the request's language. */
@@ -505,4 +507,15 @@ export interface WorkbookImportResult {
   csv: string;
   /** Without extension. */
   filename: string;
+}
+
+/** One check or import, as the import history lists it. */
+export interface ImportRun {
+  id: string;
+  created_at: string;
+  committed: boolean;
+  file_names: string[];
+  user_name: string | null;
+  counts: Record<string, number>;
+  levels: Record<string, number>;
 }

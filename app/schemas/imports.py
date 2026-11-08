@@ -1,5 +1,7 @@
 """Bodies of the import API. ``frontend/src/api/types.ts`` mirrors these."""
 
+from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -37,6 +39,8 @@ class ImportCount(BaseModel):
 
 
 class WorkbookImportResult(BaseModel):
+    # In the import history, where its report can be downloaded again.
+    run_id: UUID
     committed: bool
     counts: dict[str, int]
     # The counts in order, labelled in the request's language.
@@ -47,3 +51,19 @@ class WorkbookImportResult(BaseModel):
     csv: str
     # A file name without extension, for the two report downloads.
     filename: str
+
+
+class ImportRunOut(BaseModel):
+    """One check or import, as the history lists it."""
+
+    id: UUID
+    created_at: datetime
+    committed: bool
+    file_names: list[str]
+    user_name: str | None
+    counts: dict[str, int]
+    # Report entries by level: check, dash, info.
+    levels: dict[str, int]
+
+
+ReportFormat = Literal["md", "csv"]

@@ -65,10 +65,15 @@ export default function WritersPage() {
       Number(a.writer_id === null) - Number(b.writer_id === null) ||
       collator.compare(nameOf(a), nameOf(b)),
   );
+  const totalLink = (): string => {
+    const query = new URLSearchParams({ view: "all" });
+    if (byMonth) query.set("ay", String(year));
+    return `/data?${query.toString()}`;
+  };
   const dataLink = (writerId: string | null): string => {
     const query = new URLSearchParams({ view: "all" });
     if (byMonth) query.set("ay", String(year));
-    if (writerId) query.set("writer", writerId);
+    query.set("writer", writerId ?? "none");
     return `/data?${query.toString()}`;
   };
 
@@ -142,11 +147,7 @@ export default function WritersPage() {
                   className={row.is_active ? undefined : "is-former"}
                   title={row.is_active ? undefined : t("writers.inactive")}
                 >
-                  {row.writer_id ? (
-                    <Link to={dataLink(row.writer_id)}>{nameOf(row)}</Link>
-                  ) : (
-                    nameOf(row)
-                  )}
+                  <Link to={dataLink(row.writer_id)}>{nameOf(row)}</Link>
                 </th>
                 {row.counts.map((count, place) => (
                   <td key={data.columns[place]} className={count === 0 ? "is-zero" : undefined}>
@@ -160,7 +161,7 @@ export default function WritersPage() {
           <tfoot>
             <tr>
               <th scope="row">
-                <Link to={dataLink(null)}>{t("writers.total")}</Link>
+                <Link to={totalLink()}>{t("writers.total")}</Link>
               </th>
               {data.totals.map((count, place) => (
                 <td key={data.columns[place]}>{count}</td>

@@ -359,7 +359,7 @@ def filters_from_query(
     field_id: UUID | None = Query(default=None),
     unit_id: UUID | None = Query(default=None),
     researcher_id: UUID | None = Query(default=None),
-    writer_id: UUID | None = Query(default=None),
+    writer_id: UUID | Literal["none"] | None = Query(default=None),
     q: str | None = Query(default=None, max_length=200),
 ) -> ReleaseFilters:
     return ReleaseFilters(

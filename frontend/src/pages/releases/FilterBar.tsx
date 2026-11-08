@@ -260,10 +260,14 @@ export default function FilterBar({
           label={t("data.filters.writer")}
           anyLabel={t("data.filters.any_writer")}
           value={filters.writer_id}
-          options={context.writers.map((row) => ({
-            value: row.id,
-            label: named(row.display_name_en, row.display_name_ja),
-          }))}
+          options={[
+            ...context.writers.map((row) => ({
+              value: row.id,
+              label: named(row.display_name_en, row.display_name_ja),
+            })),
+            // Releases still waiting for one, such as an import's unknown names.
+            { value: "none", label: t("data.filters.no_writer") },
+          ]}
           onChange={(value) => onChange("writer_id", value)}
         />
       )}

@@ -7,6 +7,8 @@ import type { WorkbookImportResult } from "../../api/types";
 import { applyLanguage } from "../../i18n";
 import WorkbookImport from "./WorkbookImport";
 
+vi.mock("../../brand", () => ({ useBrand: () => ({ timezone: "Asia/Tokyo" }) }));
+
 const USERS = [
   { id: "u1", email: "owner@example.org", full_name: "Test Owner", role: "editor", is_active: true },
   { id: "u2", email: "viewer@example.org", full_name: "Test Viewer", role: "viewer", is_active: true },
@@ -14,6 +16,7 @@ const USERS = [
 
 function result(committed: boolean): WorkbookImportResult {
   return {
+    run_id: committed ? "run-import" : "run-check",
     committed,
     counts: { releases_new: 3 },
     summary: [
@@ -34,10 +37,26 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-function setup(answer?: (body: Record<string, unknown>) => Response) {
+const RUN = {
+  id: "run1",
+  created_at: "2026-11-08T03:00:00Z",
+  committed: true,
+  file_names: ["Press release list.xlsx", "Release Radar intake.xlsx"],
+  user_name: "Test Owner",
+  counts: { releases_new: 112, releases_updated: 0 },
+  levels: { check: 36, dash: 42, info: 147 },
+};
+
+function setup(answer?: (body: Record<string, unknown>) => Response, runs: unknown[] = []) {
   const posted: Record<string, unknown>[] = [];
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.endsWith("/users")) return json(USERS);
+    if (url.endsWith("/imports")) return json(runs);
+    if (url.includes("/report")) {
+      return new Response("# Report", {
+        headers: { "Content-Disposition": 'attachment; filename="release_radar_import_1.md"' },
+      });
+    }
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     posted.push(body);
     return answer ? answer(body) : json(result(body.commit === true));
@@ -50,7 +69,8 @@ function setup(answer?: (body: Record<string, unknown>) => Response) {
       <WorkbookImport />
     </QueryClientProvider>,
   );
-  return { user: userEvent.setup(), posted };
+  const urls = () => fetchMock.mock.calls.map((call) => String(call[0]));
+  return { user: userEvent.setup(), posted, urls };
 }
 
 async function pickFiles(user: ReturnType<typeof userEvent.setup>): Promise<void> {
@@ -115,6 +135,18 @@ describe("importing the old workbook", () => {
     await user.click(screen.getByRole("button", { name: "Check" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "A column the import needs is missing. Missing column: DOI.",
+    );
+  });
+
+  it("lists the checks and imports so far, each report ready to download again", async () => {
+    const { user, urls } = setup(undefined, [RUN]);
+    const row = (await screen.findByText("112 new, 0 updated, 36 to check")).closest("tr");
+    expect(row).toHaveTextContent("Import");
+    expect(row).toHaveTextContent("Test Owner");
+    expect(row).toHaveTextContent("2026-11-08 12:00");
+    await user.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() =>
+      expect(urls()).toContain("/api/v1/imports/run1/report?format=csv&language=en"),
     );
   });
 });

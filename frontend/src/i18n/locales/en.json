@@ -374,7 +374,16 @@
       "importing": "Importing…",
       "check_again": "The files or owners changed since the check: check again first.",
       "missing_column": "Missing column: {{column}}.",
-      "missing_sheet": "Missing sheet: {{sheet}}."
+      "missing_sheet": "Missing sheet: {{sheet}}.",
+      "history": "Checks and imports so far",
+      "history_when": "When",
+      "history_what": "What",
+      "history_who": "Who",
+      "history_result": "Result",
+      "history_report": "Report",
+      "kind_check": "Check",
+      "kind_import": "Import",
+      "history_counts": "{{new}} new, {{updated}} updated, {{check}} to check"
     }
   },
   "researchers": {
@@ -578,6 +587,7 @@
       "any_unit": "Any unit",
       "writer": "Writer",
       "any_writer": "Any writer",
+      "no_writer": "No writer yet",
       "researcher": "Researcher",
       "researcher_placeholder": "Any researcher",
       "clear_one": "Stop filtering by {{name}}",

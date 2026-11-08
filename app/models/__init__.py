@@ -8,7 +8,7 @@ from app.models.institution import Institution
 from app.models.lists import ResearchField, Unit, Vocabulary, VocabularyItem, Writer
 from app.models.release import Checkpoint, Measure, Reading, Release
 from app.models.researcher import Researcher
-from app.models.system import JobRun, RateLimitHit
+from app.models.system import ImportRun, JobRun, RateLimitHit
 from app.models.user import PasswordResetToken, RefreshToken, User, UserRole
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
     "CoreFieldConfig",
     "CustomField",
     "Institution",
+    "ImportRun",
     "JobRun",
     "Measure",
     "PasswordResetToken",

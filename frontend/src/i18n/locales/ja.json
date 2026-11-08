@@ -374,7 +374,16 @@
       "importing": "インポートしています…",
       "check_again": "確認の後にファイルまたは所有者が変わりました。先にもう一度確認してください。",
       "missing_column": "列がありません：{{column}}",
-      "missing_sheet": "シートがありません：{{sheet}}"
+      "missing_sheet": "シートがありません：{{sheet}}",
+      "history": "これまでの確認とインポート",
+      "history_when": "日時",
+      "history_what": "種類",
+      "history_who": "実行者",
+      "history_result": "結果",
+      "history_report": "レポート",
+      "kind_check": "確認",
+      "kind_import": "インポート",
+      "history_counts": "新規 {{new}} 件、更新 {{updated}} 件、要確認 {{check}} 件"
     }
   },
   "researchers": {
@@ -578,6 +587,7 @@
       "any_unit": "すべての部局",
       "writer": "ライター",
       "any_writer": "すべてのライター",
+      "no_writer": "ライター未設定",
       "researcher": "研究者",
       "researcher_placeholder": "すべての研究者",
       "clear_one": "「{{name}}」での絞り込みをやめる",

@@ -180,7 +180,8 @@ class ReleaseExportFilters(BaseModel):
     field_id: UUID | None = None
     unit_id: UUID | None = None
     researcher_id: UUID | None = None
-    writer_id: UUID | None = None
+    # "none": releases that have no writer yet.
+    writer_id: UUID | Literal["none"] | None = None
     q: str | None = Field(default=None, max_length=200)
 
 

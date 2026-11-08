@@ -62,8 +62,10 @@ async def _describe(
         (Researcher, filters.researcher_id, lambda row: named(row.name, row.name_ja)),
         (Writer, filters.writer_id, lambda row: named(row.display_name_en, row.display_name_ja)),
     ]
+    if filters.writer_id == release_filters.NO_WRITER:
+        parts.append(t(language, "export.readme.no_writer"))
     for model, wanted, label in lookups:
-        if wanted is None:
+        if wanted is None or wanted == release_filters.NO_WRITER:
             continue
         row = await db.scalar(
             select(model).where(model.id == wanted, model.institution_id == institution.id)

@@ -179,6 +179,11 @@ describe("the Writers page", () => {
     setup();
     const link = await screen.findByRole("link", { name: "Zed Writer" });
     expect(link).toHaveAttribute("href", "/data?view=all&ay=2025&writer=w2");
+    // Releases still waiting for a writer are one click away too.
+    expect(screen.getByRole("link", { name: "No writer yet" })).toHaveAttribute(
+      "href",
+      "/data?view=all&ay=2025&writer=none",
+    );
     expect(screen.getByRole("link", { name: "Total" })).toHaveAttribute(
       "href",
       "/data?view=all&ay=2025",

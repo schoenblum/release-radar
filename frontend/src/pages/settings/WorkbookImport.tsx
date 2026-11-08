@@ -5,11 +5,14 @@ import { useTranslation } from "react-i18next";
 import { ApiError, http } from "../../api/client";
 import { errorMessage } from "../../api/errors";
 import type {
+  ImportRun,
   PersonalFieldOwners,
   UploadedFile,
   User,
   WorkbookImportResult,
 } from "../../api/types";
+import { useBrand } from "../../brand";
+import { formatDateTime } from "../../dates";
 
 // The personal fields seeded from the workbook (BRIEF §6.6), by the key the server uses.
 const PERSONAL_FIELDS = [
@@ -40,6 +43,79 @@ function save(text: string, name: string, type: string): void {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+/** Every check and import so far, newest first, each with its report to download again. */
+function ImportHistory() {
+  const { t, i18n } = useTranslation();
+  const { timezone } = useBrand();
+  const [error, setError] = useState<unknown>(null);
+  const { data: runs = [] } = useQuery({
+    queryKey: ["imports"],
+    queryFn: () => http.get<ImportRun[]>("/imports"),
+  });
+  if (runs.length === 0) return null;
+  const language = i18n.language === "ja" ? "ja" : "en";
+
+  function download(run: ImportRun, format: "md" | "csv"): void {
+    setError(null);
+    void http
+      .download(
+        `/imports/${run.id}/report?format=${format}&language=${language}`,
+        `release_radar_import_report.${format}`,
+      )
+      .catch((failure: unknown) => setError(failure));
+  }
+
+  return (
+    <div className="mt-2xs">
+      <h4 className="mb-4xs font-semibold">{t("settings.import.history")}</h4>
+      <div className="table-scroll">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>{t("settings.import.history_when")}</th>
+              <th>{t("settings.import.history_what")}</th>
+              <th>{t("settings.import.history_who")}</th>
+              <th>{t("settings.import.history_result")}</th>
+              <th>{t("settings.import.history_report")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {runs.map((run) => (
+              <tr key={run.id}>
+                <td className="whitespace-nowrap">{formatDateTime(run.created_at, timezone)}</td>
+                <td title={run.file_names.join(", ")}>
+                  {run.committed ? t("settings.import.kind_import") : t("settings.import.kind_check")}
+                </td>
+                <td>{run.user_name ?? "—"}</td>
+                <td>
+                  {t("settings.import.history_counts", {
+                    new: run.counts.releases_new ?? 0,
+                    updated: run.counts.releases_updated ?? 0,
+                    check: run.levels.check ?? 0,
+                  })}
+                </td>
+                <td className="whitespace-nowrap">
+                  <button type="button" className="btn-small" onClick={() => download(run, "md")}>
+                    Markdown
+                  </button>{" "}
+                  <button type="button" className="btn-small" onClick={() => download(run, "csv")}>
+                    CSV
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {error !== null && (
+        <p role="alert" className="field-error">
+          {errorMessage(t, error)}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function FilePicker({
@@ -123,7 +199,9 @@ export default function WorkbookImport() {
       });
       setResult(answer);
       setChecked(commit ? null : choices);
+      // After an import everything may have changed; after a check, only the history.
       if (commit) void queryClient.invalidateQueries();
+      else void queryClient.invalidateQueries({ queryKey: ["imports"] });
     } catch (failure) {
       setError(failure);
       setResult(null);
@@ -252,6 +330,7 @@ export default function WorkbookImport() {
           )}
         </section>
       )}
+      <ImportHistory />
     </div>
   );
 }

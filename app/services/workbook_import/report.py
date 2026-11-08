@@ -54,6 +54,22 @@ class Entry:
     def message(self, language: str) -> str:
         return t(language, f"import.report.{self.kind}", **self.params)
 
+    def stored(self) -> dict[str, Any]:
+        """As kept in the import history: plain JSON, read back by ``Report.from_stored``."""
+        return {
+            "level": self.level,
+            "row": self.row,
+            "code": self.code,
+            "column": self.column,
+            "value": self.value,
+            "kind": self.kind,
+            "params": {name: _plain(value) for name, value in self.params.items()},
+        }
+
+
+def _plain(value: Any) -> Any:
+    return value if value is None or isinstance(value, str | int | float | bool) else str(value)
+
 
 def _shown(value: Any) -> str | None:
     if value is None:
@@ -68,6 +84,10 @@ def _shown(value: Any) -> str | None:
 class Report:
     entries: list[Entry] = field(default_factory=list)
     counts: dict[str, int] = field(default_factory=dict)
+
+    @classmethod
+    def from_stored(cls, counts: dict[str, int], entries: list[dict[str, Any]]) -> "Report":
+        return cls(entries=[Entry(**entry) for entry in entries], counts=dict(counts))
 
     def add(
         self,

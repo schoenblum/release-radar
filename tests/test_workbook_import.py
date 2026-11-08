@@ -545,3 +545,39 @@ async def test_a_missing_column_is_named(client, admin_headers):
     )
     assert response.status_code == 422
     assert response.json() == {"detail": "import_column_missing", "column": "DOI", "group": ""}
+
+
+async def test_every_check_and_import_is_kept_with_its_report(client, admin_headers, headers_for):
+    checked = await _post(client, admin_headers)
+    imported = await _post(client, admin_headers, commit=True)
+    response = await client.get("/api/v1/imports", headers=admin_headers)
+    assert response.status_code == 200, response.text
+    runs = response.json()
+    assert [run["id"] for run in runs] == [imported["run_id"], checked["run_id"]]
+    assert [run["committed"] for run in runs] == [True, False]
+    assert runs[0]["file_names"] == ["Press release list.xlsx", "Release Radar intake.xlsx"]
+    assert runs[0]["user_name"] == "chief@example.org"
+    assert runs[0]["counts"]["releases_new"] == 5
+    assert runs[0]["levels"]["check"] == imported["levels"]["check"]
+
+    # The report can be read again later, in either language.
+    markdown = await client.get(
+        f"/api/v1/imports/{checked['run_id']}/report", headers=admin_headers
+    )
+    assert markdown.status_code == 200
+    assert 'filename="release_radar_dry_run_' in markdown.headers["content-disposition"]
+    assert "Row 4 has this code too: this release gets AY2025-08." in markdown.text
+    csv_ja = await client.get(
+        f"/api/v1/imports/{imported['run_id']}/report",
+        headers=admin_headers,
+        params={"format": "csv", "language": "ja"},
+    )
+    assert csv_ja.content.startswith(b"\xef\xbb\xbf")
+    assert csv_ja.content.decode("utf-8-sig").startswith("種類,行,コード,列,ワークブックの値,結果")
+
+    editor = await headers_for(UserRole.editor)
+    assert (await client.get("/api/v1/imports", headers=editor)).status_code == 403
+    missing = await client.get(
+        "/api/v1/imports/00000000-0000-0000-0000-000000000000/report", headers=admin_headers
+    )
+    assert missing.status_code == 404
