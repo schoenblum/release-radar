@@ -451,3 +451,27 @@ export interface BackupStatus {
   latest: { filename: string; size_bytes: number; created_at: string } | null;
   last_run: JobRun | null;
 }
+
+/** The Writers page (R7.7.1): releases per writer and month, counts only. */
+export interface WriterMonthRow {
+  /** Null for releases that have no writer yet. */
+  writer_id: string | null;
+  name_en: string | null;
+  name_ja: string | null;
+  is_active: boolean;
+  counts: number[];
+  total: number;
+}
+
+export interface WriterMonthly {
+  academic_year: number;
+  /** Every year with releases, and the current one, newest first. */
+  academic_years: number[];
+  /** YYYY-MM, in order. */
+  months: string[];
+  rows: WriterMonthRow[];
+  totals: number[];
+  total: number;
+  /** Releases without a release date, which no month counts yet. */
+  undated: number;
+}

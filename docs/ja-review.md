@@ -579,3 +579,23 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:export.readme.code_year` | A release code keeps the year it was given, even if the date moved later. | リリースコードは付いたときの年度のままです。あとで日付が動いても変わりません。 | pending |
 | `backend:export.readme.flags` | Yes-or-no columns, such as Embargoed: 1 means yes, 0 means no. | 「はい／いいえ」の列（エンバーゴありなど）：1 は「はい」、0 は「いいえ」を表します。 | pending |
 | `backend:export.readme.academic_year` | AY{year} | {year}年度 | pending |
+| `frontend:writers.caption` | Releases per writer and month in {{year}}, counted by release date. Click a name to see those releases on the Data page. | {{year}}のライター別・月別のリリース件数です（リリース日で集計）。名前をクリックすると、データページでそのリリースを表示します。 | pending |
+| `frontend:writers.export_notice` | The file contains colleagues' names. Keep it within the office. | ファイルには同僚の氏名が含まれます。オフィス内で扱ってください。 | pending |
+| `frontend:writers.export_title` | Export the counts | 件数をエクスポート | pending |
+| `frontend:writers.export_xlsx` | Excel, with a Read me sheet | Excel（「はじめにお読みください」シート付き） | pending |
+| `frontend:writers.inactive` | No longer active in the writers list | ライターの一覧で無効になっています | pending |
+| `frontend:writers.no_writer` | No writer yet | ライター未設定 | pending |
+| `frontend:writers.total` | Total | 合計 | pending |
+| `frontend:writers.undated` | Not counted yet: releases without a release date ({{count}}). | まだ数えていないリリース：リリース日のないもの（{{count}} 件） | pending |
+| `frontend:writers.writer` | Writer | ライター | pending |
+| `frontend:writers.year` | Academic year | 年度 | pending |
+| `backend:writers_export.no_writer` | No writer yet | ライター未設定 | pending |
+| `backend:writers_export.readme.counting` | Each number counts releases by their release date. Releases without a release date, and removed releases, are not counted. | 各数値は、リリース日に基づくリリースの件数です。リリース日のないリリースと削除したリリースは数えていません。 | pending |
+| `backend:writers_export.readme.personal` | This file contains colleagues' names. Keep it within the office. | このファイルには同僚の氏名が含まれます。オフィス内で扱ってください。 | pending |
+| `backend:writers_export.readme.title` | Release Radar: releases per writer | Release Radar：ライター別のリリース件数 | pending |
+| `backend:writers_export.readme.totals` | The last column and the last row are totals. | 最後の列と最後の行は合計です。 | pending |
+| `backend:writers_export.readme.undated` | Not counted yet: {count} release(s) without a release date. | まだ数えていないリリース：リリース日のないものが {count} 件あります。 | pending |
+| `backend:writers_export.readme.year` | Academic year {year}: {first} to {last}. | {year}年度：{first} から {last} まで | pending |
+| `backend:writers_export.sheet` | Writers | ライター | pending |
+| `backend:writers_export.total` | Total | 合計 | pending |
+| `backend:writers_export.writer` | Writer | ライター | pending |

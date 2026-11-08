@@ -569,5 +569,17 @@
       "download": "Download",
       "preparing": "Preparing…"
     }
+  },
+  "writers": {
+    "year": "Academic year",
+    "caption": "Releases per writer and month in {{year}}, counted by release date. Click a name to see those releases on the Data page.",
+    "writer": "Writer",
+    "total": "Total",
+    "no_writer": "No writer yet",
+    "inactive": "No longer active in the writers list",
+    "undated": "Not counted yet: releases without a release date ({{count}}).",
+    "export_title": "Export the counts",
+    "export_xlsx": "Excel, with a Read me sheet",
+    "export_notice": "The file contains colleagues' names. Keep it within the office."
   }
 }

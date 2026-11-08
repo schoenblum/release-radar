@@ -10,7 +10,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
 import Manual from "./pages/Manual";
 import MyFields from "./pages/MyFields";
-import Placeholder from "./pages/Placeholder";
 import Researchers from "./pages/Researchers";
 import ResetPassword from "./pages/ResetPassword";
 import DataPage from "./pages/releases/DataPage";
@@ -21,6 +20,7 @@ import InstitutionSettings from "./pages/settings/Institution";
 import ListsSettings from "./pages/settings/Lists";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import UsersSettings from "./pages/settings/Users";
+import WritersPage from "./pages/writers/WritersPage";
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -75,7 +75,7 @@ export default function App() {
           >
             <Route index element={<Home />} />
             <Route path="data" element={<DataPage />} />
-            <Route path="writers" element={<Placeholder page="writers" />} />
+            <Route path="writers" element={<WritersPage />} />
             <Route path="manual" element={<Manual />} />
             <Route
               path="researchers"

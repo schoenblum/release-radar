@@ -74,6 +74,14 @@ What you choose is kept in the page's address, so you can bookmark a view, such 
 
 The file contains personal data, such as researchers' names. Keep it within the office, and delete copies you no longer need.
 
+## The Writers page
+
+**Writers** counts each writer's releases in each month of an academic year, by release date, with a total for every writer and every month. Choose the year at the top. Everyone in the writers list has a row, and so does anyone who wrote that year and has left since. Releases without a writer have a row of their own. A release without a release date is counted once it has one.
+
+The page counts releases only, on purpose: how a release does depends mostly on its topic, not on who wrote it. The export on the Data page has every release with its writer, if you need more.
+
+Click a name to see that writer's releases of the year on the Data page. **Export** downloads the table as Excel or CSV.
+
 ## My fields
 
 Numbers you track for yourself, such as clicks on your own links, go here. Open the menu with your name and choose **My fields**, then add a field. Set **Due at** to get a reminder at that checkpoint. Colleagues can see your fields next to your name, and only you can change them.

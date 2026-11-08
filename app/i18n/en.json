@@ -111,5 +111,19 @@
       "colleagues": "A column with a name in brackets is that person's own field.",
       "personal": "This file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need."
     }
+  },
+  "writers_export": {
+    "sheet": "Writers",
+    "writer": "Writer",
+    "total": "Total",
+    "no_writer": "No writer yet",
+    "readme": {
+      "title": "Release Radar: releases per writer",
+      "year": "Academic year {year}: {first} to {last}.",
+      "counting": "Each number counts releases by their release date. Releases without a release date, and removed releases, are not counted.",
+      "totals": "The last column and the last row are totals.",
+      "undated": "Not counted yet: {count} release(s) without a release date.",
+      "personal": "This file contains colleagues' names. Keep it within the office."
+    }
   }
 }

@@ -91,6 +91,50 @@
     @apply border-b border-line-disabled px-5xs py-5xs align-top;
   }
 
+  /* The Writers page: a count per month, names held in place while the months scroll. */
+  /* As wide as the numbers need, so a row reads across without the eye losing its place. */
+  .count-table {
+    @apply border-collapse text-sm tabular-nums;
+  }
+
+  .count-table th,
+  .count-table td {
+    @apply min-w-14 whitespace-nowrap border-b border-line-disabled px-4xs py-5xs text-right;
+  }
+
+  .count-table thead th {
+    @apply font-semibold text-content-secondary;
+  }
+
+  .count-table th:first-child {
+    @apply sticky left-0 z-[1] bg-surface-primary text-left;
+  }
+
+  .count-table tbody th {
+    @apply font-normal;
+  }
+
+  .count-table a {
+    @apply text-content-accent underline-offset-2 hover:underline;
+  }
+
+  .count-table th.is-former,
+  .count-table th.is-former a,
+  .count-table td.is-zero {
+    @apply text-content-secondary;
+  }
+
+  .count-table .count-total,
+  .count-table tfoot th,
+  .count-table tfoot td {
+    @apply font-semibold;
+  }
+
+  .count-table tfoot th,
+  .count-table tfoot td {
+    @apply border-b-0 border-t-2 border-line-primary;
+  }
+
   .cell-input {
     @apply w-full min-w-24 rounded-sm border border-transparent bg-transparent px-5xs py-5xs text-sm;
   }

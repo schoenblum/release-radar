@@ -57,6 +57,8 @@ _TIME_FORMAT = "hh:mm"
 class Table:
     headers: list[str]
     rows: list[list[Any]] = field(default_factory=list)
+    # A totals row: written last and in bold, and kept out of the sheet's filter and sorting.
+    footer: list[Any] | None = None
 
 
 @dataclass
@@ -414,6 +416,13 @@ def _write_sheet(sheet: Any, table: Table) -> None:
                 cell.number_format = _DATE_FORMAT
             elif isinstance(value, time):
                 cell.number_format = _TIME_FORMAT
+    if table.footer is not None:
+        footer_row = len(table.rows) + 2
+        for column, value in enumerate(table.footer, start=1):
+            cell = sheet.cell(row=footer_row, column=column, value=value)
+            cell.font = bold
+            if isinstance(value, str):
+                cell.data_type = "s"
     for column, header in enumerate(table.headers, start=1):
         sample = [row[column - 1] for row in table.rows[:_WIDTH_SAMPLE_ROWS]]
         widest = max(
@@ -466,4 +475,6 @@ def to_csv(table: Table) -> bytes:
     writer = csv.writer(buffer, lineterminator="\r\n")
     writer.writerow([_csv_cell(header) for header in table.headers])
     writer.writerows([[_csv_cell(value) for value in row] for row in table.rows])
+    if table.footer is not None:
+        writer.writerow([_csv_cell(value) for value in table.footer])
     return buffer.getvalue().encode("utf-8-sig")
