@@ -480,3 +480,29 @@ export interface WriterCounts {
   /** Releases without a release date, which no column counts yet. */
   undated: number;
 }
+
+/** Import of the old workbook (step 1.8). A file travels base64-encoded in JSON. */
+export interface UploadedFile {
+  name: string;
+  content: string;
+}
+
+/** Who owns each personal field seeded from the workbook; null: not imported. */
+export interface PersonalFieldOwners {
+  bitly: string | null;
+  pitches: string | null;
+  request_received: string | null;
+}
+
+export interface WorkbookImportResult {
+  committed: boolean;
+  counts: Record<string, number>;
+  /** The counts in order, labelled in the request's language. */
+  summary: { label: string; count: number }[];
+  /** Report entries by level: check, dash, info. */
+  levels: Record<string, number>;
+  markdown: string;
+  csv: string;
+  /** Without extension. */
+  filename: string;
+}

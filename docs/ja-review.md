@@ -258,8 +258,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.data.export_json` | Download JSON | JSON をダウンロード | pending |
 | `frontend:settings.data.export_title` | Full export | 全データのエクスポート | pending |
 | `frontend:settings.data.export_xlsx` | Download Excel | Excel をダウンロード | pending |
-| `frontend:settings.data.import_later` | Importing the existing workbook arrives in a later step. | 既存のワークブックのインポートは、今後のステップで追加されます。 | pending |
-| `frontend:settings.data.import_title` | Import | インポート | pending |
+| `frontend:settings.data.import_title` | Import the old workbook | 既存のワークブックをインポート | pending |
 | `frontend:settings.data.job` | Job | 処理 | pending |
 | `frontend:settings.data.job_detail` | Details | 詳細 | pending |
 | `frontend:settings.data.job_result` | Result | 結果 | pending |
@@ -605,3 +604,104 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:writers.all_years` | All years | すべての年度 | pending |
 | `frontend:writers.caption_all` | Releases per writer and academic year, counted by release date. Click a name to see those releases on the Data page. | ライター別・年度別のリリース件数です（リリース日で集計）。名前をクリックすると、データページでそのリリースを表示します。 | pending |
 | `backend:writers_export.readme.all_years` | All academic years, {first} to {last}. | すべての年度（{first}〜{last}） | pending |
+| `frontend:errors.import_column_missing` | A column the import needs is missing. | インポートに必要な列がありません。 | pending |
+| `frontend:errors.import_not_a_workbook` | That file can't be read as an Excel workbook (.xlsx). | このファイルは Excel ワークブック（.xlsx）として読み込めません。 | pending |
+| `frontend:errors.import_owner_unknown` | A chosen owner is not a user here any more. Please choose again. | 選択した所有者はユーザーではなくなっています。もう一度選んでください。 | pending |
+| `frontend:errors.import_sheet_missing` | A sheet the import needs is missing. | インポートに必要なシートがありません。 | pending |
+| `frontend:settings.import.before_import` | Please read the report first. Import does exactly what was checked, in one go. | 先にレポートをお読みください。インポートは、確認した内容をそのまま一度に実行します。 | pending |
+| `frontend:settings.import.check` | Check | 確認 | pending |
+| `frontend:settings.import.check_again` | The files or owners changed since the check: check again first. | 確認の後にファイルまたは所有者が変わりました。先にもう一度確認してください。 | pending |
+| `frontend:settings.import.checking` | Checking… | 確認しています… | pending |
+| `frontend:settings.import.done` | Imported | インポートしました | pending |
+| `frontend:settings.import.dry_run` | What an import would do (nothing has changed yet) | インポートした場合の結果（まだ何も変更していません） | pending |
+| `frontend:settings.import.help` | Brings in the releases from the press-release workbook (sheet PR DATA), with the staff, units, fields and two-name releases from the intake workbook. Check first: a check changes nothing and lists everything worth a look. Importing again later finds each release by its code, updates it, and never empties anything. | プレスリリースのワークブック（PR DATA シート）のリリースを、インテーク用ワークブックのスタッフ、部局、分野、複数研究者のリリースとあわせて取り込みます。まず確認してください。確認では何も変更せず、確認が必要な点をすべて一覧にします。後でもう一度インポートすると、各リリースをコードで見つけて更新します。空欄で上書きすることはありません。 | pending |
+| `frontend:settings.import.import` | Import | インポート | pending |
+| `frontend:settings.import.importing` | Importing… | インポートしています… | pending |
+| `frontend:settings.import.intake` | Intake workbook (.xlsx) | インテーク用ワークブック（.xlsx） | pending |
+| `frontend:settings.import.levels` | To check: {{check}} · dashes and N/A: {{dash}} · changed on reading: {{info}} | 要確認：{{check}} · ダッシュと N/A：{{dash}} · 読み取り時の変換：{{info}} | pending |
+| `frontend:settings.import.missing_column` | Missing column: {{column}}. | 列がありません：{{column}} | pending |
+| `frontend:settings.import.missing_sheet` | Missing sheet: {{sheet}}. | シートがありません：{{sheet}} | pending |
+| `frontend:settings.import.not_imported` | Not imported | 取り込まない | pending |
+| `frontend:settings.import.owners` | Whose are the personal fields in the workbook? | ワークブックの個人項目は誰のものですか？ | pending |
+| `frontend:settings.import.owners_help` | Each becomes that person's own field, with the workbook's values. Leave one as it is to skip it; importing again later adds it. | それぞれ、その人の個人項目としてワークブックの値とともに作成します。取り込まない項目はそのままにしてください。後でもう一度インポートすると追加できます。 | pending |
+| `frontend:settings.import.release_list` | Press-release workbook (.xlsx) | プレスリリースのワークブック（.xlsx） | pending |
+| `frontend:settings.import.report_csv` | Report (CSV) | レポート（CSV） | pending |
+| `frontend:settings.import.report_md` | Report (Markdown) | レポート（Markdown） | pending |
+| `frontend:settings.import.takes_time` | Each DOI is looked up at Crossref: about half a minute. | 各 DOI を Crossref で調べるため、30 秒ほどかかります。 | pending |
+| `backend:import.columns.code` | Code | コード | pending |
+| `backend:import.columns.column` | Column | 列 | pending |
+| `backend:import.columns.level` | Kind | 種類 | pending |
+| `backend:import.columns.outcome` | What happened | 結果 | pending |
+| `backend:import.columns.row` | Row | 行 | pending |
+| `backend:import.columns.value` | In the workbook | ワークブックの値 | pending |
+| `backend:import.counts.crossref_found` | Papers found at Crossref | Crossref で見つかった論文 | pending |
+| `backend:import.counts.crossref_not_found` | DOIs Crossref doesn't know | Crossref にない DOI | pending |
+| `backend:import.counts.crossref_unavailable` | DOIs Crossref didn't answer for | Crossref から応答のなかった DOI | pending |
+| `backend:import.counts.dashes` | Numbers marked not applicable by a dash | ダッシュで該当なしとした数値 | pending |
+| `backend:import.counts.fields_new` | New fields | 新しい分野 | pending |
+| `backend:import.counts.personal_fields_new` | New personal fields | 新しい個人項目 | pending |
+| `backend:import.counts.releases_in_workbook` | Rows in the workbook | ワークブックの行数 | pending |
+| `backend:import.counts.releases_new` | New releases | 新しいリリース | pending |
+| `backend:import.counts.releases_skipped` | Rows not imported | インポートしなかった行 | pending |
+| `backend:import.counts.releases_unchanged` | Releases already up to date | すでに最新のリリース | pending |
+| `backend:import.counts.releases_updated` | Releases updated | 更新したリリース | pending |
+| `backend:import.counts.researchers_incomplete` | New researchers marked incomplete | 「不完全」とした新しい研究者 | pending |
+| `backend:import.counts.researchers_linked` | Researchers found already in Release Radar | Release Radar にすでにいた研究者 | pending |
+| `backend:import.counts.researchers_new` | New researchers | 新しい研究者 | pending |
+| `backend:import.counts.trimmed` | Cells tidied (spaces, line breaks) | 整えたセル（空白、改行） | pending |
+| `backend:import.counts.units_new` | New units | 新しい部局 | pending |
+| `backend:import.counts.values` | Numbers imported | 取り込んだ数値 | pending |
+| `backend:import.counts.website_off_domain` | Releases whose website views don't apply | ウェブサイト閲覧数が該当なしのリリース | pending |
+| `backend:import.counts.writers_linked` | Writers linked to their account | アカウントに紐づけたライター | pending |
+| `backend:import.counts.writers_new` | New writers | 新しいライター | pending |
+| `backend:import.levels.check` | Please check | 要確認 | pending |
+| `backend:import.levels.dash` | Dash or N/A | ダッシュまたは N/A | pending |
+| `backend:import.levels.info` | Changed on reading | 読み取り時の変換 | pending |
+| `backend:import.md.made` | {when}, by {who}. | {when}、{who} | pending |
+| `backend:import.md.none` | Nothing. | ありません。 | pending |
+| `backend:import.md.section_check` | Please check | 要確認 | pending |
+| `backend:import.md.section_dash` | Dashes and N/A (the dash rule) | ダッシュと N/A（ダッシュのルール） | pending |
+| `backend:import.md.section_info` | Changed on reading | 読み取り時の変換 | pending |
+| `backend:import.md.summary` | Summary | 概要 | pending |
+| `backend:import.md.title_commit` | Workbook import | ワークブックのインポート | pending |
+| `backend:import.md.title_dry_run` | Workbook import: dry run (nothing changed) | ワークブックのインポート：試行（変更なし） | pending |
+| `backend:import.report.code_duplicate` | Row {first} has this code too: this release gets {new}. | {first} 行目にも同じコードがあります。このリリースには {new} を付けました。 | pending |
+| `backend:import.report.code_year_differs` | The release date falls in AY{year}: the code keeps its own year (D35). | リリース日は {year}年度ですが、コードは付いたときの年度のままです（D35）。 | pending |
+| `backend:import.report.crossref_not_found` | Crossref does not know this DOI: the paper's journal, date and authors stay empty. | Crossref にこの DOI がありません。論文の掲載誌、発表日、著者は空欄のままです。 | pending |
+| `backend:import.report.crossref_unavailable` | Crossref did not answer: the paper's details stay empty. Import again later to fill them. | Crossref から応答がありませんでした。論文の情報は空欄のままです。後でもう一度インポートすると入力されます。 | pending |
+| `backend:import.report.dash_empty` | Means none: left empty. | 「なし」の意味として空欄にしました。 | pending |
+| `backend:import.report.dash_na` | Means not applicable (the dash rule). | 「該当なし」としました（ダッシュのルール）。 | pending |
+| `backend:import.report.dash_not_embargoed` | Means not embargoed. | エンバーゴなしとしました。 | pending |
+| `backend:import.report.date_from_text` | Read as {date}. | {date} と読みました。 | pending |
+| `backend:import.report.doi_invalid` | Not a DOI: left empty. | DOI ではないため、空欄にしました。 | pending |
+| `backend:import.report.doi_normalised` | Read as {doi}. | {doi} と読みました。 | pending |
+| `backend:import.report.ea_url_unusual` | Not a EurekAlert news-release link: kept, and marked on the release. | EurekAlert のニュースリリースのリンクではありません。そのまま残し、リリースに印を付けました。 | pending |
+| `backend:import.report.embargo_unreadable` | Neither a date nor a dash: left as it was. | 日付でもダッシュでもないため、変更していません。 | pending |
+| `backend:import.report.gender_conflict` | This researcher's gender is recorded differently on another release: {kept} was kept. | この研究者の性別は、別のリリースで異なる記録になっています。{kept} のままにしました。 | pending |
+| `backend:import.report.gender_dash` | Means not recorded. | 未記録としました。 | pending |
+| `backend:import.report.gender_unreadable` | Not M or F: gender not recorded. | M でも F でもないため、性別は未記録です。 | pending |
+| `backend:import.report.no_release_date` | No release date: imported without one, so its numbers are not due yet. | リリース日がないまま取り込みました。数値の入力時期はまだ来ていません。 | pending |
+| `backend:import.report.not_a_date` | Not a date: left empty. | 日付ではないため、空欄にしました。 | pending |
+| `backend:import.report.not_a_number` | Not a number: left as missing. | 数値ではないため、未入力のままです。 | pending |
+| `backend:import.report.number_from_text` | Text read as the number {number}. | 文字列を数値 {number} と読みました。 | pending |
+| `backend:import.report.number_shown_as_date` | A date in a number column, probably the number {number} formatted as a date: left as missing. Type the number in if that's right. | 数値の列に日付があります。おそらく数値 {number} が日付の書式で表示されたものです。未入力のままにしました。正しければ数値を入力してください。 | pending |
+| `backend:import.report.personal_field_skipped` | No owner chosen for this personal field: its values were not imported. | この個人項目の所有者が選ばれていないため、値はインポートしていません。 | pending |
+| `backend:import.report.release_made_in_app` | A release made in the app already has this code: the workbook's values go into it. | アプリで作成したリリースに同じコードがあります。ワークブックの値をそのリリースに入れます。 | pending |
+| `backend:import.report.release_restored` | This release had been removed in the app: it is back. | このリリースはアプリで削除されていましたが、元に戻しました。 | pending |
+| `backend:import.report.researcher_first_listed` | Several names: {name}, the first, is the corresponding researcher; the others went to Also featured. | 複数の氏名があります。最初の {name} を対応研究者とし、ほかは「その他の掲載者」に入れました。 | pending |
+| `backend:import.report.researcher_from_sheet` | Taken from the Two-name releases sheet: {name}. | Two-name releases シートから {name} を採用しました。 | pending |
+| `backend:import.report.researcher_missing` | No researcher. | 研究者の記載がありません。 | pending |
+| `backend:import.report.researcher_resolved` | Surname only: read as {name}, the one author of the paper with this family name. Marked unverified. | 姓のみの記載です。論文の著者のうちこの姓を持つ唯一の人物として {name} と読みました。「未確認」としています。 | pending |
+| `backend:import.report.researcher_unresolved` | Surname only, and the paper's authors don't settle it ({matches} with this family name): kept as written, marked incomplete. | 姓のみの記載で、論文の著者からは特定できません（この姓の著者：{matches} 人）。記載のまま「不完全」としています。 | pending |
+| `backend:import.report.skipped_no_code` | No usable code: not imported. | 使えるコードがないため、インポートしていません。 | pending |
+| `backend:import.report.skipped_no_title` | No title and no DOI: not imported. | タイトルも DOI もないため、インポートしていません。 | pending |
+| `backend:import.report.skipped_unit_writer` | Written by a unit, not by the office: not imported. | 部局が執筆したリリースで、オフィスの担当ではないため、インポートしていません。 | pending |
+| `backend:import.report.time_from_text` | Read as {time}. | {time} と読みました。 | pending |
+| `backend:import.report.time_unreadable` | Not a time: left empty. | 時刻ではないため、空欄にしました。 | pending |
+| `backend:import.report.top_page` | On the EurekAlert top page (place {place}). | EurekAlert のトップページ掲載（{place} 番目）。 | pending |
+| `backend:import.report.unit_alias` | Read as the unit {unit}. | 部局 {unit} と読みました。 | pending |
+| `backend:import.report.unit_unknown` | Not in the Units sheet: left without a unit. | Units シートにないため、部局は空欄です。 | pending |
+| `backend:import.report.value_where_na` | A number where the rules say there can't be one: kept. | ルール上は存在しないはずの数値があります。そのまま残しました。 | pending |
+| `backend:import.report.website_off_domain` | Not on {domain}: website views don't apply to this release. | {domain} 上にないため、このリリースのウェブサイト閲覧数は該当なしです。 | pending |
+| `backend:import.report.writer_unknown` | Not in the Staff sheet: left without a writer. | Staff シートにないため、ライターは空欄です。 | pending |
+| `backend:import.report.writer_without_account` | Writes releases but has no account with this email yet: the writer is not linked to a user. Invite them in Settings → Users and import again to link. | リリースを担当していますが、このメールアドレスのアカウントがまだありません。ライターはユーザーに紐づいていません。設定 → ユーザーで招待してから、もう一度インポートすると紐づきます。 | pending |

@@ -108,6 +108,12 @@ If one record covers two people, choose **Split**, tick the releases of the othe
 - **Lists:** units, fields, writers and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
 - **Form:** rename, hide, require or reorder the fields on a release, and add your own.
 - **Checkpoints & reminders:** when numbers are collected and which numbers those are. A checkpoint can fall before the release date: use a negative number, so −3 is three days before. Choose whether its reminder comes at the start of that day or the day before. The reminder emails themselves arrive in a later phase.
-- **Data:** backups, a full copy of your data, and what the automatic jobs have been doing.
+- **Data:** backups, a full copy of your data, what the automatic jobs have been doing, and the import of the old workbook.
+
+### Import the old workbook
+
+In **Settings → Data**, choose the press-release workbook and the intake workbook, and choose whose the workbook's personal fields are. **Check** changes nothing: it shows what an import would do and offers a report to download, in Markdown or CSV, listing everything worth a look: names that couldn't be settled, numbers that weren't numbers, every dash, codes used twice. Read it, fix the workbook if you like, and check again. **Import** then does exactly what was checked.
+
+Importing again is safe. Each release is found by its code and updated; an empty cell never empties anything, and a researcher chosen in Release Radar since stays. Units, fields and writers are only added, never changed: Settings looks after them.
 
 Release codes are assigned by Release Radar and can't be edited. A release gets its code when its release date is first entered, and keeps it even if the date later moves to another academic year.

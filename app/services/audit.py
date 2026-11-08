@@ -23,6 +23,7 @@ from app.models.institution import Institution
 from app.models.mixins import ActorTracked, Audited
 
 _ACTOR_KEY = "audit_actor_id"
+_NOTE_KEY = "audit_note"
 REDACTED = "[redacted]"
 # Technical columns, on every model.
 _ALWAYS_EXCLUDED = frozenset(
@@ -41,6 +42,11 @@ _ALWAYS_EXCLUDED = frozenset(
 def set_actor(db: AsyncSession, user_id: uuid.UUID | None) -> None:
     """Attribute the changes saved through this session to this user."""
     db.info[_ACTOR_KEY] = user_id
+
+
+def set_note(db: AsyncSession, note: str | None) -> None:
+    """Say how the changes saved through this session came about, such as an import."""
+    db.info[_NOTE_KEY] = note
 
 
 def to_json(value: Any) -> Any:
@@ -118,6 +124,7 @@ def stamp_actors(session: Session) -> None:
 
 def write_entries(session: Session) -> None:
     actor = session.info.get(_ACTOR_KEY)
+    note = session.info.get(_NOTE_KEY)
     rows: list[dict[str, Any]] = []
 
     def add(obj: Audited, action: str, field: str | None, old: Any, new: Any) -> None:
@@ -132,7 +139,7 @@ def write_entries(session: Session) -> None:
                 "old_value": old,
                 "new_value": new,
                 "user_id": actor,
-                "note": None,
+                "note": note,
             }
         )
 

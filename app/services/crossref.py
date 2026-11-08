@@ -38,8 +38,12 @@ _DATE_FIELDS = ("published", "published-online", "published-print", "issued")
 
 
 def normalise_doi(value: str) -> str | None:
-    """The bare, lowercase DOI (R7.5.7), or None if this is not one."""
-    doi = _DOI_PREFIX.sub("", value.strip()).lower()
+    """The bare, lowercase DOI (R7.5.7), or None if this is not one. Forgives what copying from
+    a paper brings along: a "DOI:" label before a doi.org link, and a full stop at the end."""
+    doi = value.strip()
+    for _ in range(2):
+        doi = _DOI_PREFIX.sub("", doi).strip()
+    doi = doi.rstrip(".,;").lower()
     return doi if _DOI.match(doi) and len(doi) <= 255 else None
 
 

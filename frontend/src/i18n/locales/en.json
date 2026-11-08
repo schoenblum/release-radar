@@ -120,7 +120,11 @@
     "researcher_in_use": "This record is still in use, so it stays.",
     "researcher_needs_choosing": "A name alone can't say which record is meant. Please choose one in the cell.",
     "gender_invalid": "Please enter female, male or other, or leave it empty if it isn't recorded.",
-    "gender_needs_researcher": "Choose the researcher first: the gender is theirs."
+    "gender_needs_researcher": "Choose the researcher first: the gender is theirs.",
+    "import_not_a_workbook": "That file can't be read as an Excel workbook (.xlsx).",
+    "import_sheet_missing": "A sheet the import needs is missing.",
+    "import_column_missing": "A column the import needs is missing.",
+    "import_owner_unknown": "A chosen owner is not a user here any more. Please choose again."
   },
   "common": {
     "saving": "Saving…",
@@ -330,8 +334,7 @@
       "export_help": "A complete copy of your data for safekeeping. Passwords and sessions are left out.",
       "export_json": "Download JSON",
       "export_xlsx": "Download Excel",
-      "import_title": "Import",
-      "import_later": "Importing the existing workbook arrives in a later step.",
+      "import_title": "Import the old workbook",
       "jobs_title": "Automatic jobs",
       "jobs_none": "Nothing has run yet.",
       "jobs": {
@@ -350,6 +353,28 @@
         "skipped": "Skipped",
         "failed": "Failed"
       }
+    },
+    "import": {
+      "help": "Brings in the releases from the press-release workbook (sheet PR DATA), with the staff, units, fields and two-name releases from the intake workbook. Check first: a check changes nothing and lists everything worth a look. Importing again later finds each release by its code, updates it, and never empties anything.",
+      "release_list": "Press-release workbook (.xlsx)",
+      "intake": "Intake workbook (.xlsx)",
+      "owners": "Whose are the personal fields in the workbook?",
+      "owners_help": "Each becomes that person's own field, with the workbook's values. Leave one as it is to skip it; importing again later adds it.",
+      "not_imported": "Not imported",
+      "check": "Check",
+      "checking": "Checking…",
+      "takes_time": "Each DOI is looked up at Crossref: about half a minute.",
+      "dry_run": "What an import would do (nothing has changed yet)",
+      "done": "Imported",
+      "levels": "To check: {{check}} · dashes and N/A: {{dash}} · changed on reading: {{info}}",
+      "report_md": "Report (Markdown)",
+      "report_csv": "Report (CSV)",
+      "before_import": "Please read the report first. Import does exactly what was checked, in one go.",
+      "import": "Import",
+      "importing": "Importing…",
+      "check_again": "The files or owners changed since the check: check again first.",
+      "missing_column": "Missing column: {{column}}.",
+      "missing_sheet": "Missing sheet: {{sheet}}."
     }
   },
   "researchers": {

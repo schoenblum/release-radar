@@ -26,6 +26,7 @@ from app.routers import (
     researchers,
     system,
     users,
+    workbook_import,
     writer_counts,
 )
 from app.routers import (
@@ -118,6 +119,7 @@ app.include_router(researchers.router, prefix=API_PREFIX)
 app.include_router(releases.router, prefix=API_PREFIX)
 app.include_router(release_export.router, prefix=API_PREFIX)
 app.include_router(writer_counts.router, prefix=API_PREFIX)
+app.include_router(workbook_import.router, prefix=API_PREFIX)
 app.include_router(custom_fields.router, prefix=API_PREFIX)
 app.include_router(data_export.router, prefix=API_PREFIX)
 app.include_router(brand.api_router, prefix=API_PREFIX)
