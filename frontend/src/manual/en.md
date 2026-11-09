@@ -10,6 +10,7 @@ On **Data**, paste a DOI or type a title in the top row of the grid and press En
 - It gets its code, such as `AY2026-12`, when its release date is first entered. Codes can't be edited, and a code stays the same even if the date moves to another academic year.
 - It starts as a **Peer-reviewed publication** (see *Set the release type*). You are its writer.
 - The paper's **Publication date** is the column right after the DOI. If Crossref knows only the month, it stays empty: type it in.
+- Paste the **DOI**, the **EurekAlert link** and the **Website link** into their cells. A DOI can be bare (`10.1038/…`) or a link (`https://doi.org/10.1038/…`): Release Radar keeps the DOI either way. A saved link shows as **✓ ↗**: click the mark to open the page in a new tab, or click beside it to select the cell, for example to paste a corrected link over it.
 
 ## Fill in day-28 numbers
 
@@ -45,6 +46,7 @@ The grid works like a spreadsheet, and the keyboard reaches everything.
 
 - Click a cell to select it, or press Tab to reach the grid and arrive on its first cell. Arrow keys, Home and End move around. Hold Shift to select a range, or drag across cells.
 - Type to replace a cell, or press Enter or F2 to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back. A box changes with the space bar.
+- Cmd/Ctrl+Enter on a DOI or link cell opens its page in a new tab.
 - Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole, cells that couldn't be saved included.
 - Esc lets go of the selected cell, so nothing is pasted over by mistake. Clicking into the new-release row does the same.
 - **Researcher gender** sits next to the researcher. Type female, male or other, or just `f`, `m`, `女性`, `男性` and the like; leave it empty if it isn't recorded. It belongs to the researcher, so it changes on all of their releases.
@@ -55,7 +57,7 @@ If a colleague changed the same cell a moment before you, the cell says what the
 
 ### The full record
 
-Double-click any cell of a release, or press Shift+Enter, to open its full record beside the grid. On a phone or tablet, a tap opens it. The record shows every field, the paper's details, all the numbers with their notes, and the history of who changed what. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
+Double-click any cell of a release, or press Shift+Enter, to open its full record beside the grid. On a phone or tablet, a tap opens it. The record shows every field, the paper's details, all the numbers with their notes, and the history of who changed what. **Open ↗** beside the DOI and the links opens their page. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
 
 ### Choose your columns
 

@@ -300,6 +300,19 @@
     @apply font-medium;
   }
 
+  /* A saved link: the mark opens it in a new tab. A target the size of a finger tip. */
+  .grid-link {
+    @apply -mx-4xs inline-flex h-9 items-center gap-5xs px-4xs text-content-accent underline-offset-2 hover:underline;
+  }
+
+  .grid-link-arrow {
+    @apply text-xs;
+  }
+
+  .drawer-link {
+    @apply text-sm text-content-accent underline-offset-2 hover:underline;
+  }
+
   /* The box only shows the value; the cell takes the click. */
   .grid-check {
     @apply pointer-events-none;

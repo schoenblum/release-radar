@@ -235,6 +235,23 @@ const GridRow = memo(function GridRow({
                 aria-label={column.label}
                 checked={shown ? parseBoolean(cellPending.text) === true : view.checked === true}
               />
+            ) : view.href && !shown ? (
+              // The mark opens the page in a new tab; the rest of the cell selects as any other.
+              <a
+                className="grid-link"
+                href={view.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                draggable={false}
+                tabIndex={-1}
+                title={view.hint}
+                aria-label={`${column.label}: ${view.hint ?? view.href}`}
+              >
+                {text}
+                <span aria-hidden="true" className="grid-link-arrow">
+                  ↗
+                </span>
+              </a>
             ) : column.id === "title" ? (
               <span className="grid-text grid-title">{text}</span>
             ) : (
@@ -582,6 +599,13 @@ export default function ReleaseGrid({
       if (event.key.toLowerCase() === "z" && !event.shiftKey && canEdit) {
         event.preventDefault();
         void runUndo();
+      } else if (event.key === "Enter") {
+        // A link cell opens its page, as a click on its mark does.
+        const href = column.view(release).href;
+        if (href) {
+          event.preventDefault();
+          window.open(href, "_blank", "noopener,noreferrer");
+        }
       }
       return;
     }
@@ -804,8 +828,9 @@ export default function ReleaseGrid({
     if (!found) return;
     const { release, column } = found;
     if (!action) {
-      // A finger has no keyboard to type into a selected cell, so a tap opens the record.
-      if (pointer.current === "touch" && !element.closest(".grid-editor, .picker")) {
+      // A finger has no keyboard to type into a selected cell, so a tap opens the record,
+      // unless it was on a link, which opens its page instead.
+      if (pointer.current === "touch" && !element.closest(".grid-editor, .picker, .grid-link")) {
         onOpen(release.id);
       }
       return;

@@ -719,7 +719,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:data.filters.any_release_type` | Any type | すべての種類 | pending |
 | `frontend:data.filters.no_release_type` | No type | 種類未設定 | pending |
 | `frontend:data.filters.release_type` | Release type | リリースの種類 | pending |
-| `frontend:data.grid_keys` | Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record. From the first row, the up arrow reaches the column headings, where Enter sorts. | 矢印キーでセル間を移動します。入力するとセルの値を置き換え、Enter キーで編集します。Shift+Enter で詳細を開きます。先頭の行で上矢印キーを押すと列見出しに移動し、Enter キーで並べ替えます。 | pending |
+| `frontend:data.grid_keys` | Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record, and Cmd or Ctrl+Enter opens a link. From the first row, the up arrow reaches the column headings, where Enter sorts. | 矢印キーでセル間を移動します。入力するとセルの値を置き換え、Enter キーで編集します。Shift+Enter で詳細を、Cmd または Ctrl+Enter でリンクを開きます。先頭の行で上矢印キーを押すと列見出しに移動し、Enter キーで並べ替えます。 | pending |
 | `frontend:manual.contents` | On this page | このページの内容 | pending |
 | `frontend:release_fields.release_type` | Release type | リリースの種類 | pending |
 | `frontend:settings.lists.add_release_type` | Add a type | 種類を追加 | pending |
@@ -742,3 +742,5 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:seed.release_type.peer_reviewed` | Peer-reviewed publication | 査読付き論文 | pending |
 | `backend:seed.release_type.press_summary` | Press summary | プレスサマリー | pending |
 | `backend:seed.release_type.reports_proceedings` | Reports and proceedings | 報告書・会議録 | pending |
+| `frontend:data.open` | Open | 開く | pending |
+| `frontend:data.open_link` | Open the {{field}} in a new tab | {{field}}を新しいタブで開く | pending |

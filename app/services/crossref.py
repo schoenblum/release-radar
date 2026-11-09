@@ -12,7 +12,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 import httpx
 
@@ -30,7 +30,7 @@ _transport: httpx.AsyncBaseTransport | None = None
 
 _TIMEOUT = httpx.Timeout(6.0, connect=3.0)
 _DOI = re.compile(r"^10\.\d{4,9}/\S+$")
-_DOI_PREFIX = re.compile(r"^(https?://(dx\.)?doi\.org/|doi:\s*)", re.IGNORECASE)
+_DOI_PREFIX = re.compile(r"^(https?://(dx\.|www\.)?doi\.org/|doi:\s*)", re.IGNORECASE)
 _MARKUP = re.compile(r"<[^>]+>")
 _ORCID = re.compile(r"\d{4}-\d{4}-\d{4}-\d{3}[\dX]$")
 # The earliest public date first. A date with no day is not a date we can use.
@@ -43,6 +43,9 @@ def normalise_doi(value: str) -> str | None:
     doi = value.strip()
     for _ in range(2):
         doi = _DOI_PREFIX.sub("", doi).strip()
+    # Some sites link a DOI with its slash encoded: 10.1038%2Fs41586-026-01234-5.
+    if "%" in doi:
+        doi = unquote(doi)
     doi = doi.rstrip(".,;").lower()
     return doi if _DOI.match(doi) and len(doi) <= 255 else None
 

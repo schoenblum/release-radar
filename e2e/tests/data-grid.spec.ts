@@ -166,3 +166,45 @@ test("the release type: typed in the grid, and found with the filter", async ({ 
   await expect(grid.getByRole("row").filter({ hasText: `Feature ${word}` })).toBeVisible();
   await expect(page).toHaveURL(/type=/);
 });
+
+test("@webkit links: pasted as an address or a bare DOI, opened in a new tab from their mark", async ({
+  page,
+  context,
+}) => {
+  const word = tag();
+  const release = await ada.release(`Linked ${word}`);
+  // The EurekAlert page itself is not needed, only that the new tab goes there.
+  await context.route("https://www.eurekalert.org/**", (route) =>
+    route.fulfill({ contentType: "text/html", body: "<title>EurekAlert stand-in</title>" }),
+  );
+  const grid = await openData(page, word);
+
+  await copyText(page, `https://doi.org/10.5555/e2e.${word}`);
+  await (await cell(grid, word, "DOI")).click();
+  await page.keyboard.press("ControlOrMeta+v");
+  // Saved bare, and Crossref filled in the paper.
+  await expect
+    .poll(async () => (await ada.get<{ doi: string }>(`/releases/${release.id}`)).doi)
+    .toBe(`10.5555/e2e.${word}`);
+  await expect
+    .poll(async () => (await ada.get<{ journal: string | null }>(`/releases/${release.id}`)).journal)
+    .toBe("Journal of Synthetic Examples");
+  const doiLink = (await cell(grid, word, "DOI")).getByRole("link");
+  await expect(doiLink).toHaveAttribute("href", `https://doi.org/10.5555/e2e.${word}`);
+  await expect(doiLink).toHaveAttribute("target", "_blank");
+
+  const address = "https://www.eurekalert.org/news-releases/1234567";
+  await copyText(page, address);
+  const eaCell = await cell(grid, word, "EurekAlert link");
+  await eaCell.click({ position: { x: 85, y: 18 } });
+  await page.keyboard.press("ControlOrMeta+v");
+  const eaLink = eaCell.getByRole("link");
+  await expect(eaLink).toHaveAttribute("href", address);
+
+  const [tab] = await Promise.all([page.waitForEvent("popup"), eaLink.click()]);
+  await tab.waitForURL(address);
+  await expect(tab).toHaveTitle("EurekAlert stand-in");
+  await tab.close();
+  // The grid stayed where it was, with the cell selected.
+  await expect(eaCell).toHaveClass(/is-active/);
+});

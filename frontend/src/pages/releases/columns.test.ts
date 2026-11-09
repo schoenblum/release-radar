@@ -55,9 +55,48 @@ describe("which columns there are", () => {
       "measure:altmetric.d0",
       "measure:hp_views.d28",
       "embargoed",
+      "ea_url",
+      "website_url",
       "ea_top_page",
       "custom:clicks",
     ]);
+  });
+
+  it("shows a saved link as a mark that opens it, and takes a DOI pasted either way", () => {
+    const columns = buildColumns(context());
+    const saved = release("1", {
+      doi: "10.1234/abc<1>",
+      ea_url: "https://www.eurekalert.org/news-releases/1234567",
+      website_url: "https://news.example.org/research/frogs",
+    });
+    expect(find(columns, "doi").view(saved)).toMatchObject({
+      text: "✓",
+      hint: "10.1234/abc<1>",
+      href: "https://doi.org/10.1234/abc%3C1%3E",
+    });
+    expect(find(columns, "ea_url").view(saved)).toMatchObject({
+      text: "✓",
+      href: "https://www.eurekalert.org/news-releases/1234567",
+    });
+    expect(find(columns, "website_url").view(saved).href).toBe(
+      "https://news.example.org/research/frogs",
+    );
+    // A copy gives the address itself.
+    expect(find(columns, "ea_url").editText(saved)).toBe(
+      "https://www.eurekalert.org/news-releases/1234567",
+    );
+    // Nothing that is not a web address becomes a link.
+    expect(find(columns, "ea_url").view(release("2", { ea_url: "javascript:alert(1)" })).href).toBe(
+      undefined,
+    );
+    expect(find(columns, "doi").view(release("3")).text).toBe("");
+    // The server keeps the bare DOI, whichever way it came.
+    for (const written of ["10.1234/abc", "https://doi.org/10.1234/abc"]) {
+      expect(find(columns, "doi").parse(written, release("4"))).toEqual({
+        ok: true,
+        commit: { kind: "field", field: "doi", value: written },
+      });
+    }
   });
 
   it("offers the active release types and reads a name, an alias or the key", () => {

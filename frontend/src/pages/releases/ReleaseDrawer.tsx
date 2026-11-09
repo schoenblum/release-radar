@@ -24,6 +24,7 @@ import {
   customColumnId,
   customOptions,
   customValueText,
+  linkFor,
   type GridContext,
 } from "./columns";
 import { GENDERS } from "./gender";
@@ -69,19 +70,37 @@ function Labelled({
   id,
   label,
   required = false,
+  href,
   children,
 }: {
   id: string;
   label: string;
   required?: boolean;
+  /** A saved link, opened in a new tab from beside the label. */
+  href?: string | null;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="drawer-field">
-      <label className="field-label" htmlFor={id}>
-        {label}
-        {required && <span aria-hidden="true"> *</span>}
-      </label>
+      <div className="flex items-baseline justify-between gap-4xs">
+        <label className="field-label" htmlFor={id}>
+          {label}
+          {required && <span aria-hidden="true"> *</span>}
+        </label>
+        {href && (
+          <a
+            className="drawer-link"
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={t("data.open_link", { field: label })}
+          >
+            {t("data.open")}
+            <span aria-hidden="true"> ↗</span>
+          </a>
+        )}
+      </div>
       {children}
     </div>
   );
@@ -525,8 +544,9 @@ export default function ReleaseDrawer({
     const id = `drawer-${key}`;
     const save = saver(attribute);
     const value = (release as unknown as Record<string, string | number | null>)[attribute];
+    const href = key === "ea_url" || key === "website_url" ? linkFor(key, release) : null;
     return (
-      <Labelled key={key} id={id} label={labelOf(key)} required={isRequired(key)}>
+      <Labelled key={key} id={id} label={labelOf(key)} required={isRequired(key)} href={href}>
         <TextField
           id={id}
           label={labelOf(key)}
@@ -603,7 +623,13 @@ export default function ReleaseDrawer({
         return [text(key, key), warning("website_off_domain")];
       case "doi":
         return (
-          <Labelled key={key} id="drawer-doi" label={labelOf(key)} required={isRequired(key)}>
+          <Labelled
+            key={key}
+            id="drawer-doi"
+            label={labelOf(key)}
+            required={isRequired(key)}
+            href={linkFor("doi", release)}
+          >
             <TextField
               id="drawer-doi"
               label={labelOf(key)}

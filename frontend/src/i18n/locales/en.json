@@ -618,7 +618,9 @@
       "download": "Download",
       "preparing": "Preparing…"
     },
-    "grid_keys": "Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record. From the first row, the up arrow reaches the column headings, where Enter sorts."
+    "grid_keys": "Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record, and Cmd or Ctrl+Enter opens a link. From the first row, the up arrow reaches the column headings, where Enter sorts.",
+    "open": "Open",
+    "open_link": "Open the {{field}} in a new tab"
   },
   "writers": {
     "year": "Academic year",

@@ -604,6 +604,33 @@ describe("the data grid", () => {
     expect(screen.getByRole("columnheader", { name: /Score/ })).not.toHaveClass("is-active");
   });
 
+  it("opens a saved link in a new tab from its mark, and the cell still selects", async () => {
+    const opened = vi.spyOn(window, "open").mockReturnValue(null);
+    const linked = rows(2);
+    linked[0] = { ...linked[0], ea_url: "https://www.eurekalert.org/news-releases/1234567" };
+    const { onOpen, user } = setup({ initial: linked });
+    const link = within(cell("1", "ea_url")).getByRole("link", { name: /EurekAlert link/ });
+    expect(link).toHaveAttribute("href", "https://www.eurekalert.org/news-releases/1234567");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    expect(within(cell("2", "ea_url")).queryByRole("link")).not.toBeInTheDocument();
+    await user.click(link);
+    expect(cell("1", "ea_url")).toHaveClass("is-active");
+    expect(onOpen).not.toHaveBeenCalled();
+    // From the keyboard: Cmd or Ctrl+Enter.
+    await user.keyboard("{Meta>}{Enter}{/Meta}");
+    expect(opened).toHaveBeenCalledWith(
+      "https://www.eurekalert.org/news-releases/1234567",
+      "_blank",
+      "noopener,noreferrer",
+    );
+    // On a cell without a link it does nothing.
+    opened.mockClear();
+    await user.click(cell("2", "ea_url"));
+    await user.keyboard("{Control>}{Enter}{/Control}");
+    expect(opened).not.toHaveBeenCalled();
+  });
+
   it("tells a screen reader how to use it", () => {
     setup();
     expect(screen.getByRole("grid")).toHaveAccessibleDescription(/up arrow reaches the column headings/);

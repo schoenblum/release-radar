@@ -216,6 +216,25 @@ async def test_a_bad_doi_is_explained(client, admin_headers, bad):
     assert (response.status_code, response.json()) == (422, {"detail": "invalid_doi"})
 
 
+@pytest.mark.parametrize(
+    "written",
+    [
+        "10.1234/Example.5678",
+        "https://doi.org/10.1234/example.5678",
+        "http://dx.doi.org/10.1234/example.5678",
+        "https://www.doi.org/10.1234/example.5678",
+        "doi:10.1234/example.5678",
+        "DOI: https://doi.org/10.1234/example.5678.",
+        "https://doi.org/10.1234%2Fexample.5678",
+    ],
+)
+async def test_a_doi_saves_bare_however_it_was_pasted(client, admin_headers, written):
+    """R7.5.7, and Daniel's ask of 2026-11-09: a bare DOI or a link to it, alike."""
+    release = await _create(client, admin_headers)
+    saved = await _set(client, release, admin_headers, "doi", written)
+    assert saved["doi"] == DOI
+
+
 async def test_the_writer_defaults_to_the_person_creating_it(client, headers_for):
     editor = await headers_for(UserRole.editor, "writer@example.org")
     writer = await _link_writer("writer@example.org")

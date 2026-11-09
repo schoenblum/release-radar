@@ -54,6 +54,8 @@ export interface CellView {
   hint?: string;
   /** A boolean column shows a box instead of text. */
   checked?: boolean;
+  /** A link the cell's mark opens in a new tab: the DOI's page, a release's pages. */
+  href?: string;
 }
 
 export type Parsed = { ok: true; commit: Commit } | { ok: false; code: string };
@@ -123,9 +125,13 @@ const DEFAULT_CORE = new Set([
   "doi",
   "publication_date",
   "embargoed",
+  // They decide whether EurekAlert and website views apply, and open the pages (Daniel, 2026-11-09).
+  "ea_url",
+  "website_url",
   "ea_top_page",
 ]);
 const PAPER_FIELDS = new Set(["doi", "journal", "paper_title", "publication_date", "authors"]);
+const LINKS = new Set(["doi", "ea_url", "website_url"]);
 const LOCKED = new Set(["code", "title"]);
 const FROZEN = new Set(["code", "title"]);
 const DEFAULT_WIDTH = 170;
@@ -141,6 +147,8 @@ const WIDTHS: Record<string, number> = {
   embargoed: 90,
   release_time_et: 96,
   ea_top_page: 90,
+  ea_url: 96,
+  website_url: 96,
   ea_top_position: 90,
   paper_title: 280,
   notes: 240,
@@ -157,6 +165,25 @@ function coreLabel(context: GridContext, config: CoreField): string {
 }
 
 const plain = (text: string, tone: Tone = "plain"): CellView => ({ text, tone });
+
+const WEB_ADDRESS = /^https?:\/\//i;
+
+/** Where a saved link goes. Only http and https, which is all the server keeps anyway. */
+export function linkFor(field: "doi" | "ea_url" | "website_url", release: Release): string | null {
+  const value = release[field];
+  if (!value) return null;
+  if (field === "doi") return `https://doi.org/${encodeURI(value)}`;
+  return WEB_ADDRESS.test(value) ? value : null;
+}
+
+/** A saved link shows as a mark that opens it; the full address is the hover text and the copy. */
+function linkView(field: "doi" | "ea_url" | "website_url"): (release: Release) => CellView {
+  return (release) => {
+    const value = release[field];
+    if (!value) return plain("");
+    return { text: "✓", tone: "plain", hint: value, href: linkFor(field, release) ?? undefined };
+  };
+}
 
 function authorName(author: Author): string {
   return author.name ?? [author.given, author.family].filter(Boolean).join(" ");
@@ -265,16 +292,12 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
     case "also_featured":
     case "journal":
     case "paper_title":
+      return { field: key, editor: "text" };
     case "ea_url":
     case "website_url":
-      return { field: key, editor: "text" };
     case "doi":
-      return {
-        field: "doi",
-        editor: "text",
-        view: (release) =>
-          release.doi ? { text: "✓", tone: "plain", hint: release.doi } : plain(""),
-      };
+      // Pasted as a bare DOI or a doi.org link alike: the server keeps the bare DOI.
+      return { field: key, editor: "text", view: linkView(key) };
     case "writer":
       return {
         field: "writer_id",
@@ -435,7 +458,7 @@ function coreColumn(context: GridContext, config: CoreField): GridColumn | null 
     sortValue: (release) => {
       const value = raw(release);
       if (isBoolean) return value ? 1 : 0;
-      if (key === "doi") return value ? 1 : null;
+      if (LINKS.has(key)) return value ? 1 : null;
       if (options.length > 0 || editor === "researcher" || key === "authors" || spec.read) {
         return (spec.view ? spec.view(release).text : "") || null;
       }
