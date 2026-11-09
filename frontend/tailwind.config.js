@@ -26,6 +26,8 @@ export default {
       },
       line: {
         primary: token("border-primary"),
+        // Around a field someone types in: 3:1 against its background (WCAG 1.4.11).
+        field: token("border-field"),
         disabled: token("border-disabled"),
       },
       accent: {

@@ -54,6 +54,7 @@ interface Editing extends CellId {
 }
 
 const cellDomId = (cell: CellId): string => `cell-${cell.row}-${cell.column}`;
+const headDomId = (column: string): string => `head-${column}`;
 
 const TONE_CLASS: Record<Tone, string> = {
   due: "tone-due",
@@ -340,6 +341,9 @@ export default function ReleaseGrid({
   const [active, setActive] = useState<CellId | null>(null);
   const [anchor, setAnchor] = useState<CellId | null>(null);
   const [editing, setEditing] = useState<Editing | null>(null);
+  // A column heading chosen by keyboard, where Enter sorts (the ARIA grid pattern): up from the
+  // first row, as the headings are no stops for Tab of their own.
+  const [heading, setHeading] = useState<string | null>(null);
   // Where the selection was before it was let go, so the arrow keys carry on from there.
   const lastActive = useRef<CellId | null>(null);
 
@@ -378,11 +382,19 @@ export default function ReleaseGrid({
       const target = columns[Math.max(0, Math.min(columns.length - 1, column))];
       if (!release || !target) return;
       const next = { row: release.id, column: target.id };
+      setHeading(null);
       setActive(next);
       if (!extend) setAnchor(next);
     },
     [rows, columns],
   );
+
+  // Bring a heading chosen by keyboard into view, past the frozen columns.
+  useEffect(() => {
+    if (heading) {
+      document.getElementById(headDomId(heading))?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  }, [heading]);
 
   // Bring the selected cell into view. Scroll padding keeps it clear of the frozen columns.
   useEffect(() => {
@@ -545,6 +557,10 @@ export default function ReleaseGrid({
       catcher.current.select();
       return;
     }
+    if (heading !== null) {
+      onHeadingKey(event, heading);
+      return;
+    }
     if (!active || !range) {
       if (rows.length > 0 && event.key.startsWith("Arrow")) {
         event.preventDefault();
@@ -575,6 +591,11 @@ export default function ReleaseGrid({
       case "ArrowLeft":
       case "ArrowRight":
         event.preventDefault();
+        if (event.key === "ArrowUp" && row === 0 && !event.shiftKey && onSort) {
+          letGo();
+          setHeading(column.id);
+          return;
+        }
         moveTo(
           row + (event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : 0),
           position + (event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0),
@@ -652,6 +673,44 @@ export default function ReleaseGrid({
     // Any other key that writes something starts editing, and lands in the editor by itself.
     if ((event.key.length === 1 || event.key === "Process") && !event.altKey) {
       startEditing(active, true);
+    }
+  }
+
+  /** On a heading: arrows along the headings or back down, Enter or Space sorts, Esc leaves. */
+  function onHeadingKey(event: KeyboardEvent<HTMLDivElement>, column: string): void {
+    const position = columnIndex.get(column) ?? 0;
+    const along = (to: number) => {
+      event.preventDefault();
+      const target = columns[Math.max(0, Math.min(columns.length - 1, to))];
+      if (target) setHeading(target.id);
+    };
+    switch (event.key) {
+      case "ArrowLeft":
+        along(position - 1);
+        return;
+      case "ArrowRight":
+        along(position + 1);
+        return;
+      case "Home":
+        along(0);
+        return;
+      case "End":
+        along(columns.length - 1);
+        return;
+      case "ArrowDown":
+        event.preventDefault();
+        if (rows.length > 0) moveTo(0, position);
+        return;
+      case "Enter":
+      case " ":
+        event.preventDefault();
+        onSort?.(column);
+        return;
+      case "Escape":
+        setHeading(null);
+        return;
+      default:
+        return;
     }
   }
 
@@ -777,7 +836,10 @@ export default function ReleaseGrid({
       aria-rowcount={rows.length + 1}
       aria-colcount={columns.length}
       aria-multiselectable
-      aria-activedescendant={active ? cellDomId(active) : undefined}
+      aria-activedescendant={
+        active ? cellDomId(active) : heading ? headDomId(heading) : undefined
+      }
+      aria-describedby="grid-keys"
       tabIndex={0}
       style={{ scrollPaddingLeft: frozenWidth, scrollPaddingTop: headHeight }}
       onKeyDown={onKeyDown}
@@ -800,6 +862,9 @@ export default function ReleaseGrid({
         }
       }}
     >
+      <p id="grid-keys" className="sr-only">
+        {t("data.grid_keys")}
+      </p>
       {/* Editable on purpose: browsers can turn Paste off for a read-only field. */}
       <textarea ref={catcher} className="sr-only" tabIndex={-1} aria-hidden="true" />
       <table className="grid-table" role="presentation" style={{ width: totalWidth }}>
@@ -815,6 +880,7 @@ export default function ReleaseGrid({
               return (
                 <th
                   key={column.id}
+                  id={headDomId(column.id)}
                   role="columnheader"
                   aria-colindex={position + 1}
                   aria-sort={sorted ? (sorted.desc ? "descending" : "ascending") : undefined}
@@ -822,13 +888,15 @@ export default function ReleaseGrid({
                   className={[
                     column.frozen ? "grid-head-frozen" : "",
                     column.alignRight ? "text-right" : "",
+                    heading === column.id ? "is-active" : "",
                   ].join(" ")}
                   style={column.frozen ? { left: offsets[position] } : undefined}
                 >
                   {onSort ? (
                     <button
                       type="button"
-                      // The grid is a single stop for Tab, so headers are for the mouse.
+                      // The grid is a single stop for Tab: the keyboard reaches a heading with
+                      // the up arrow from the first row instead.
                       tabIndex={-1}
                       className="grid-sort"
                       title={t("data.sort_hint", { column: column.label })}

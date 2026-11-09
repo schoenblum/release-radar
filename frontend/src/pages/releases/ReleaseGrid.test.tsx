@@ -575,4 +575,37 @@ describe("the data grid", () => {
     await user.click(within(screen.getByRole("columnheader", { name: /Title/ })).getByRole("button"));
     expect(onSort).toHaveBeenCalledWith("title");
   });
+
+  it("sorts from the keyboard: up from the first row reaches the headings", async () => {
+    const { apply, onSort, user } = setup();
+    await user.click(cell("1", VIEWS));
+    await user.keyboard("{ArrowUp}");
+    const grid = screen.getByRole("grid");
+    const views = screen.getByRole("columnheader", { name: /Views/ });
+    expect(grid).toHaveAttribute("aria-activedescendant", views.id);
+    expect(views).toHaveClass("is-active");
+    expect(cell("1", VIEWS)).not.toHaveClass("is-active");
+    await user.keyboard("{Enter}");
+    expect(onSort).toHaveBeenLastCalledWith(VIEWS);
+    await user.keyboard("{ArrowRight}[Space]");
+    expect(onSort).toHaveBeenLastCalledWith(SCORE);
+    // Typing on a heading changes nothing, and down goes back to the first row's cell.
+    await user.keyboard("7{ArrowDown}");
+    expect(apply).not.toHaveBeenCalled();
+    expect(cell("1", SCORE)).toHaveClass("is-active");
+    expect(grid).toHaveAttribute("aria-activedescendant", cell("1", SCORE).id);
+    // Up from a lower row only moves up a row; Shift+up never leaves the rows.
+    await user.keyboard("{ArrowDown}{ArrowUp}");
+    expect(cell("1", SCORE)).toHaveClass("is-active");
+    await user.keyboard("{Shift>}{ArrowUp}{/Shift}");
+    expect(screen.getByRole("columnheader", { name: /Score/ })).not.toHaveClass("is-active");
+    // Esc on a heading leaves it.
+    await user.keyboard("{ArrowUp}{Escape}");
+    expect(screen.getByRole("columnheader", { name: /Score/ })).not.toHaveClass("is-active");
+  });
+
+  it("tells a screen reader how to use it", () => {
+    setup();
+    expect(screen.getByRole("grid")).toHaveAccessibleDescription(/up arrow reaches the column headings/);
+  });
 });
