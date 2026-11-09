@@ -71,7 +71,8 @@ export default function DataPage() {
     const listed = new Set(page.items.map((release) => release.id));
     return [...created.filter((release) => !listed.has(release.id)), ...page.items];
   }, [page, created]);
-  const rows = useSteadyOrder(orderKey, items, !isPlaceholderData, compare);
+  const createdIds = useMemo(() => new Set(created.map((release) => release.id)), [created]);
+  const rows = useSteadyOrder(orderKey, items, !isPlaceholderData, compare, createdIds);
 
   const [choice, setChoice] = useState<ColumnChoice>(
     () => user?.preferences?.data_columns ?? NO_CHOICE,

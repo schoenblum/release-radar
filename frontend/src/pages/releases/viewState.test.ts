@@ -129,9 +129,32 @@ describe("rows keep their place", () => {
     // b's date moves past the others: it stays put until the sort is chosen again.
     rerender({ key: "all|sorted", rows: list(["a", "b", "c"], { ...dates, b: "2026-06-01" }) });
     expect(result.current.map((row) => row.id)).toEqual(["b", "c", "a"]);
-    // A new release goes on top, a removed one goes.
-    rerender({ key: "all|sorted", rows: list(["d", "a", "c"], dates) });
-    expect(result.current.map((row) => row.id)).toEqual(["d", "c", "a"]);
+    // A removed one goes, and one that turns up takes its place in the sort.
+    rerender({ key: "all|sorted", rows: list(["d", "a", "c"], { ...dates, d: "2026-05-04" }) });
+    expect(result.current.map((row) => row.id)).toEqual(["c", "a", "d"]);
+  });
+
+  it("puts a release made here on top, and any other newcomer where the order puts it", () => {
+    const dates = { a: "2026-05-03", b: "2026-05-02", c: "2026-05-01" };
+    const { result, rerender } = renderHook(
+      ({ rows, pinned }) => useSteadyOrder("all", rows, true, null, pinned),
+      { initialProps: { rows: list(["a", "c"], dates), pinned: new Set<string>() } },
+    );
+    // Restored elsewhere while the page is open: it goes between its neighbours, not on top.
+    rerender({ rows: list(["a", "b", "c"], dates), pinned: new Set<string>() });
+    expect(result.current.map((row) => row.id)).toEqual(["a", "b", "c"]);
+    // Made in this tab: on top, although its date would put it elsewhere.
+    rerender({
+      rows: list(["n", "a", "b", "c"], { ...dates, n: "2026-04-01" }),
+      pinned: new Set(["n"]),
+    });
+    expect(result.current.map((row) => row.id)).toEqual(["n", "a", "b", "c"]);
+    // The newest of all turns up from elsewhere: under the pinned one, above the rest.
+    rerender({
+      rows: list(["n", "z", "a", "b", "c"], { ...dates, n: "2026-04-01", z: "2026-06-01" }),
+      pinned: new Set(["n"]),
+    });
+    expect(result.current.map((row) => row.id)).toEqual(["n", "z", "a", "b", "c"]);
   });
 
   it("waits for the next view's rows before ordering them", () => {
