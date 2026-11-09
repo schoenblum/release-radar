@@ -1,57 +1,57 @@
 # Manual
 
-Release Radar is being built step by step. This page grows with it.
+Release Radar holds the office's English press releases and their numbers. The first sections are the everyday tasks; the rest of the page explains each part. Everything saves by itself.
 
-## Signing in
+## Add a release
 
-Sign in with your email address and password. The first time, you'll be asked to replace your temporary password with one of your own. It needs at least 10 characters.
+On **Data**, paste a DOI or type a title in the top row of the grid and press Enter. With a DOI, Release Radar fills in the paper's journal, title, publication date and authors, and the release shows *No title yet* until you type its own title. Everything else can follow, and adding several in a row is just doing this again.
 
-You stay signed in through the working day. To sign out, open the menu with your name at the top right and choose **Sign out**.
+- A new release stays at the top until you change the view, even if your filters would hide it.
+- It gets its code, such as `AY2026-12`, when its release date is first entered. Codes can't be edited, and a code stays the same even if the date moves to another academic year.
+- It starts as a **Peer-reviewed publication** (see *Set the release type*). You are its writer.
+- The paper's **Publication date** is the column right after the DOI. If Crossref knows only the month, it stays empty: type it in.
 
-## Forgot your password?
+## Fill in day-28 numbers
 
-On the sign-in page, choose **Forgot your password?** and enter your email address. You'll receive a link that works once, for one hour. If this installation can't send email yet, the page tells you, and an administrator can reset your password.
+**Due now**, at the top of **Mine**, lists the numbers waiting for you and those due in the next three days. Type a number and press Enter, and the next one is ready. Choose **N/A** if a number doesn't apply. Nothing here is ever late: an item simply waits until you get to it.
 
-## Changing your password
+In the grid, a tinted cell is due and empty. Click it and type the number; Enter saves it and moves down, so a column fills quickly. **N/A** on grey means the number can't exist for this release, such as Altmetric without a DOI. A plain empty cell isn't due yet. Type `-` or `N/A` to mark a number as not applicable, and press Delete to clear it.
 
-Open the menu with your name at the top right and choose **Change password**. Other devices where you are signed in will be signed out.
+## Paste a column
 
-## Switching language
+Copy cells from a spreadsheet or a web page, such as a column of views from the EurekAlert portal. In the grid, select the first cell to fill and press Cmd+V (Ctrl+V on Windows). Each line fills the next row down, and each cell is checked on its own, so one bad value costs only that cell. A message says how it went, with **Undo** for the whole paste. Thousands separators such as `1,234` are fine. If you select a range and paste one value, it fills the range.
 
-Use the button next to your name at the top right to switch between English and Japanese. Release Radar remembers your choice.
+## Set the release type
+
+Each release has a type, after EurekAlert's categories: most are **Peer-reviewed publication**, and some are a **Feature story**, a **Business announcement**, or **Reports and proceedings** (such as a conference presentation). Analysis will keep the types apart, so set the right one.
+
+New releases start as Peer-reviewed publication, or as whatever an admin chose in Settings. To change it, select the **Release type** cell and type the type's name or a word of it, such as `feature`, then press Enter; or choose it in the full record. Above the grid, **Release type** shows one type at a time, or the releases that have none.
+
+## Export for a report
+
+**Export** downloads the releases shown, with your filters and in your order, or everything. Choose Excel or CSV, and English or Japanese: headings and list values follow the language, and titles and notes stay as written.
+
+Each release is one row, with a column per number: the number, **N/A** if it can't exist, or empty if it hasn't been recorded or isn't due yet. Whatever can be a number is one, so the file needs no converting: the academic year is `2025`, and a yes-or-no column such as **Embargoed** holds `1` for yes and `0` for no. The release type and the researcher's gender have columns of their own. A colleague's own field has their name in brackets. The Excel file also has sheets with the units and fields, and a **Read me** sheet explaining all this.
+
+The file contains personal data, such as researchers' names. Keep it within the office, and delete copies you no longer need.
 
 ## The Data page
 
-**Data** is where releases live. **Mine** shows the releases you write, and **All** shows everyone's. You can fill in any of them. Once you have releases of your own, Release Radar opens on **Mine**; until then it opens on **All**.
-
-### Add a release
-
-Paste a DOI or type a title in the top row and press Enter. With a DOI, Release Radar fills in the paper's journal, title, publication date and authors, and the release shows *No title yet* until you type its own title. Everything else can follow, and adding several in a row is just doing this again. A new release stays at the top until you change the view, even if your filters would hide it. A release gets its code when its release date is first entered.
-
-The paper's **Publication date** is a column right after the DOI. If Crossref knows only the month a paper came out, it stays empty, so type it in. The paper's journal, title and authors are in the full record, under **Paper**, and you can change them there.
-
-### Fill in the numbers
-
-**Due now**, at the top of **Mine**, lists what is waiting for you and what comes up in the next three days. Type a number and press Enter, and the next one is ready. Choose **N/A** if it doesn't apply. Nothing here is ever late: items simply wait until you get to them.
+**Mine** shows the releases you write, and **All** shows everyone's. You can fill in any of them. Once you have releases of your own, Release Radar opens on **Mine**; until then it opens on **All**.
 
 ### Work in the grid
 
-The grid works like a spreadsheet, and everything saves by itself.
+The grid works like a spreadsheet, and the keyboard reaches everything.
 
-- Click a cell to select it, then type to replace it, or press Enter to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back. A box changes with the space bar.
-- Arrow keys move around. Hold Shift to select a range, or drag across cells.
-- Type `-` or `N/A` in a number cell to mark it as not applicable, and press Delete to clear it.
-- **Researcher gender** sits next to the researcher. Type female, male or other, or just `f`, `m`, `女性`, `男性` and the like; leave it empty if it isn't recorded. It belongs to the researcher, so it changes on all of their releases.
+- Click a cell to select it, or press Tab to reach the grid and arrive on its first cell. Arrow keys, Home and End move around. Hold Shift to select a range, or drag across cells.
+- Type to replace a cell, or press Enter or F2 to change it. Enter saves and moves down, Tab saves and moves right, and Esc goes back. A box changes with the space bar.
 - Cmd/Ctrl+Z undoes your last edit, or your last paste as a whole, cells that couldn't be saved included.
 - Esc lets go of the selected cell, so nothing is pasted over by mistake. Clicking into the new-release row does the same.
-
-A tinted cell is due and empty. **N/A** on grey means the number can't exist for this release, such as Altmetric without a DOI. A plain empty cell is simply not due yet.
+- **Researcher gender** sits next to the researcher. Type female, male or other, or just `f`, `m`, `女性`, `男性` and the like; leave it empty if it isn't recorded. It belongs to the researcher, so it changes on all of their releases.
 
 If something can't be saved, the cell turns pink and keeps what you typed, and selecting it says why: press Enter or Backspace to correct it, or Esc to go back to what was there. Backspace takes off the last character, so a slip such as 31 for 30 needs one key, not the whole date again. Nothing else is held up.
 
-### Paste a column
-
-Copy cells from a spreadsheet or a web page, select the first cell to fill, and press Cmd/Ctrl+V. If you select a range and paste one value, it fills the range. Each cell is checked on its own, so one bad value costs only that cell, and a message says how it went. Thousands separators such as `1,234` are fine.
+If a colleague changed the same cell a moment before you, the cell says what they entered: choose **Keep mine** or **Use theirs**.
 
 ### The full record
 
@@ -59,21 +59,15 @@ Double-click any cell of a release, or press Shift+Enter, to open its full recor
 
 ### Choose your columns
 
-**Columns** chooses what the grid shows. Release Radar remembers your choice.
+**Columns** chooses what the grid shows. By default it shows what analysis tells releases apart by, so it gets filled in; details such as the paper's title and authors are in the full record. Release Radar remembers your choice.
 
-### Find releases
+### Find and sort releases
 
-Above the grid, type in the search box to find words in titles, researchers' names, DOIs, codes, journals and notes. Every word you type must appear somewhere. Next to it, choose an academic year, a field, a unit, a writer (in **All**) or a researcher, one click each. **Clear filters** shows everything again.
+Above the grid, type in the search box to find words in titles, researchers' names, DOIs, codes, journals and notes. Every word you type must appear somewhere. Next to it, choose an academic year, a field, a release type, a unit, a writer (in **All**) or a researcher, one click each. **Clear filters** shows everything again.
 
-Click a column's heading to sort by it, again to reverse, and a third time to go back to newest first. Rows stay where they are while you work on them, even if you change the value they're sorted by.
+Click a column's heading to sort by it, again to reverse, and a third time to go back to newest first. With the keyboard, press the up arrow in the first row to reach the headings, move along them with the arrow keys, and press Enter to sort; the down arrow goes back to the rows. Rows stay where they are while you work on them, even if you change the value they're sorted by.
 
 What you choose is kept in the page's address, so you can bookmark a view, such as one unit's releases this year, or send the link to a colleague.
-
-### Export for a report
-
-**Export** downloads the releases shown, with your filters and in your order, or everything. Choose Excel or CSV, and English or Japanese: headings and list values follow the language, and titles and notes stay as written. Each release is one row, with a column per number: the number, **N/A** if it can't exist, or empty if it hasn't been recorded or isn't due yet. Whatever can be a number is one, so the file needs no converting: the academic year is `2025`, and a yes-or-no column such as **Embargoed** holds `1` for yes and `0` for no. The researcher's gender has a column of its own, next to their name. A colleague's own field has their name in brackets. The Excel file also has sheets with the units and fields and a **Read me** sheet explaining all this.
-
-The file contains personal data, such as researchers' names. Keep it within the office, and delete copies you no longer need.
 
 ## The Writers page
 
@@ -99,13 +93,34 @@ If that was a mistake, choose **Undo** straight away. Later on, choose **Split**
 
 If one record covers two people, choose **Split**, tick the releases of the other person and choose where they go: a new record, which starts with the same name, or one that already exists.
 
+## Your account
+
+### Signing in
+
+Sign in with your email address and password. The first time, you'll be asked to replace your temporary password with one of your own. It needs at least 10 characters.
+
+You stay signed in through the working day. To sign out, open the menu with your name at the top right and choose **Sign out**.
+
+### Forgot your password?
+
+On the sign-in page, choose **Forgot your password?** and enter your email address. You'll receive a link that works once, for one hour. If this installation can't send email yet, the page tells you, and an administrator can reset your password.
+
+### Changing your password
+
+Open the menu with your name at the top right and choose **Change password**. Other devices where you are signed in will be signed out.
+
+### Switching language
+
+Use the button next to your name at the top right to switch between English and Japanese. Release Radar remembers your choice.
+
 ## Settings for admins
 
 **Settings** is only visible to admins, and every section works without changing anything. Changes save themselves when you leave a field. If a colleague changed the same field a moment earlier, you see what they entered and choose which to keep.
 
 - **Institution:** names, time zone, the month the academic year starts, your news website, and where people land after signing in.
 - **Users:** invite people and set their role. To remove someone, switch off **Active**: their name stays in the history. If they tracked personal fields, pass those on or make them institution fields here.
-- **Lists:** units, fields, writers and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
+- **Lists:** units, fields, writers, release types and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
+- **Release types:** EurekAlert's eleven categories, in the order the menus show them. Rename, reorder or switch off any, or add your own. **New releases start as** sets the type new and imported releases get; choose **No type** to have people choose every time.
 - **Form:** rename, hide, require or reorder the fields on a release, and add your own.
 - **Checkpoints & reminders:** when numbers are collected and which numbers those are. A checkpoint can fall before the release date: use a negative number, so −3 is three days before. Choose whether its reminder comes at the start of that day or the day before. The reminder emails themselves arrive in a later phase.
 - **Data:** backups, a full copy of your data, what the automatic jobs have been doing, and the import of the old workbook.
@@ -117,5 +132,3 @@ In **Settings → Data**, choose the press-release workbook and the intake workb
 Importing again is safe. Each release is found by its code and updated; an empty cell never empties anything, and a researcher chosen in Release Radar since stays. Units, fields and writers are only added, never changed: Settings looks after them.
 
 Every check and import is listed under the import, with its report to download again, so what still needs correcting can be found later. A writer's name the import doesn't know leaves the release without a writer: on the Data page, choose **No writer yet** in the writer filter to find them, and pick the writer in the grid.
-
-Release codes are assigned by Release Radar and can't be edited. A release gets its code when its release date is first entered, and keeps it even if the date later moves to another academic year.
