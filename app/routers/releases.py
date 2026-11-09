@@ -80,6 +80,7 @@ from app.services.readings import (
     measure_applies,
     on_domain,
     reminder_date,
+    settle_inference,
     today_in,
 )
 from app.services.release_codes import academic_year, assign_code
@@ -233,6 +234,7 @@ def _reading_out(
         state=reading.state,
         display_state=display_state(reading.state, due, today),
         source=reading.source,
+        inferred=reading.inferred,
         due_date=due,
         remind_on=reminder_date(due, checkpoint.remind_days_before) if checkpoint else None,
         note=reading.note,
@@ -746,26 +748,31 @@ async def patch_reading(
         )
 
     sent = patch.model_fields_set
-    before = (reading.value, reading.state, reading.note)
+    before = (reading.value, reading.state, reading.note, reading.inferred)
     blank = patch.value is None or (isinstance(patch.value, str) and not patch.value.strip())
     if patch.state == STATE_NOT_APPLICABLE:
         reading.value = None
         reading.state = STATE_NOT_APPLICABLE
         reading.source = SOURCE_MANUAL
+        reading.inferred = False
     elif patch.state == STATE_MISSING or ("value" in sent and blank):
-        # Back to what the rules say, and from here on the rules may move it.
+        # Back to what the rules say, and from here on the rules may move it. That includes
+        # an inferred 0, which returns when the typed number goes (R8.1.3).
         applies = measure_applies(measure, release, institution.website_domain)
         reading.value = None
         reading.state = STATE_MISSING if applies else STATE_NOT_APPLICABLE
         reading.source = SOURCE_AUTO
+        reading.inferred = False
+        settle_inference(reading, measure, release, applies)
     elif "value" in sent:
         reading.value = _clean_reading_value(measure, patch.value)
         reading.state = STATE_VALUE
         reading.source = SOURCE_MANUAL
+        reading.inferred = False
     if "note" in sent:
         reading.note = await clean_value(db, institution.id, field_patch.text(2000), patch.note)
 
-    if (reading.value, reading.state, reading.note) != before:
+    if (reading.value, reading.state, reading.note, reading.inferred) != before:
         reading.version += 1
         reading.entered_by_id = user.id
         reading.entered_at = datetime.now(UTC)

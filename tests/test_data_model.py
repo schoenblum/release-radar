@@ -545,6 +545,17 @@ def _alembic(*arguments: str, database_url: str) -> subprocess.CompletedProcess:
     )
 
 
+def _migrate(*arguments: str, database_url: str) -> None:
+    """Run alembic, failing with its error only. Never ``assert _alembic(...)`` inline: pytest
+    then prints the call's arguments, and the address holds the database password."""
+    result = _alembic(*arguments, database_url=database_url)
+    if result.returncode != 0:
+        error = result.stderr[-3000:]
+        if _PARSED_URL.password:
+            error = error.replace(_PARSED_URL.password, "***")
+        pytest.fail(f"alembic {' '.join(arguments)} failed:\n{error}", pytrace=False)
+
+
 async def test_upgrading_an_existing_install_keeps_its_data_and_can_be_reversed():
     """The path a real install takes, from step 1.1 with accounts already in it."""
     name = "release_radar_upgrade_test"
@@ -646,7 +657,7 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
             await database.close()
 
     try:
-        assert _alembic("upgrade", "0005", database_url=url).returncode == 0
+        _migrate("upgrade", "0005", database_url=url)
         institution = (
             await run(
                 "INSERT INTO institutions (id, name_en, timezone, ay_start_month, settings) "
@@ -681,7 +692,7 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
             "position) VALUES (gen_random_uuid(), $1, 'researcher', false, true, 2)",
             institution,
         )
-        assert _alembic("upgrade", "head", database_url=url).returncode == 0
+        _migrate("upgrade", "head", database_url=url)
         rows = await run(
             "SELECT key, hidden, required, position FROM core_field_configs ORDER BY position"
         )
@@ -691,11 +702,11 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
         gender = next(row for row in rows if row["key"] == "researcher_gender")
         assert (gender["hidden"], gender["required"]) == (False, False)
         # Running it again would add nothing: the row exists.
-        assert _alembic("downgrade", "0006", database_url=url).returncode == 0
+        _migrate("downgrade", "0006", database_url=url)
         assert "researcher_gender" not in [
             row["key"] for row in await run("SELECT key FROM core_field_configs")
         ]
-        assert _alembic("downgrade", "0005", database_url=url).returncode == 0
+        _migrate("downgrade", "0005", database_url=url)
     finally:
         connection = await admin_connection()
         try:
@@ -732,7 +743,7 @@ async def test_release_types_arrive_with_every_existing_release_peer_reviewed():
             await database.close()
 
     try:
-        assert _alembic("upgrade", "0008", database_url=url).returncode == 0
+        _migrate("upgrade", "0008", database_url=url)
         institution = (
             await run(
                 "INSERT INTO institutions (id, name_en, timezone, ay_start_month, settings) "
@@ -776,11 +787,165 @@ async def test_release_types_arrive_with_every_existing_release_peer_reviewed():
             "doi",
         ]
         assert [row["position"] for row in rows] == list(range(len(rows)))
-        assert _alembic("downgrade", "0008", database_url=url).returncode == 0
+        _migrate("downgrade", "0008", database_url=url)
         assert (await run("SELECT to_regclass('release_types') AS t"))[0]["t"] is None
         assert "release_type" not in [
             row["key"] for row in await run("SELECT key FROM core_field_configs")
         ]
+    finally:
+        connection = await admin_connection()
+        try:
+            await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        finally:
+            await connection.close()
+
+
+async def test_inferred_zeros_arrive_for_existing_releases_with_their_audit_entries():
+    """0011 applies R8.1.3 to what is there: a missing day-0 Altmetric on a release whose paper
+    came out that day or later becomes an inferred 0, with the note inferred_d0. Nothing else
+    moves, and the downgrade takes the zeros back."""
+    name = "release_radar_inferred_test"
+    url = _PARSED_URL.set(database=name).render_as_string(hide_password=False)
+    connection = await admin_connection()
+    try:
+        await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        await connection.execute(f'CREATE DATABASE "{name}"')
+    finally:
+        await connection.close()
+
+    import asyncpg
+
+    async def run(statement: str, *arguments):
+        database = await asyncpg.connect(
+            host=_PARSED_URL.host,
+            port=_PARSED_URL.port or 5432,
+            user=_PARSED_URL.username,
+            password=_PARSED_URL.password,
+            database=name,
+        )
+        try:
+            return await database.fetch(statement, *arguments)
+        finally:
+            await database.close()
+
+    try:
+        _migrate("upgrade", "0010", database_url=url)
+        institution = (
+            await run(
+                "INSERT INTO institutions (id, name_en, timezone, ay_start_month, settings) "
+                "VALUES (gen_random_uuid(), 'Existing', 'Asia/Tokyo', 4, '{}') RETURNING id"
+            )
+        )[0]["id"]
+        checkpoint = (
+            await run(
+                "INSERT INTO checkpoints (id, institution_id, key, label_en, offset_days) "
+                "VALUES (gen_random_uuid(), $1, 'd0', 'Release day', 0) RETURNING id",
+                institution,
+            )
+        )[0]["id"]
+        measures = {}
+        for position, key in enumerate(("altmetric.d0", "ea_views.d28")):
+            measures[key] = (
+                await run(
+                    "INSERT INTO measures (id, institution_id, key, metric, checkpoint_id, "
+                    "source, applicability, unit, label_en, position, is_active) VALUES "
+                    "(gen_random_uuid(), $1, $2, 'm', $3, 'manual', 'always', 'score', 'M', $4, "
+                    "true) RETURNING id",
+                    institution,
+                    key,
+                    checkpoint,
+                    position,
+                )
+            )[0]["id"]
+        cases = {
+            # title: (publication date, reading state, value)
+            "Same day": (date(2026, 4, 1), "missing", None),
+            "Later": (date(2026, 4, 3), "missing", None),
+            "Earlier": (date(2026, 3, 1), "missing", None),
+            "No date": (None, "missing", None),
+            "Typed": (date(2026, 4, 3), "value", 7),
+            "Marked": (date(2026, 4, 3), "not_applicable", None),
+        }
+        readings = {}
+        for title, (published, state, value) in cases.items():
+            release = (
+                await run(
+                    "INSERT INTO releases (id, institution_id, title, authors, embargoed, "
+                    "ea_top_page, custom_values, field_versions, release_date, "
+                    "publication_date, doi) VALUES (gen_random_uuid(), $1, $2, '[]', false, "
+                    "false, '{}', '{}', '2026-04-01', $3, '10.1234/x') RETURNING id",
+                    institution,
+                    title,
+                    published,
+                )
+            )[0]["id"]
+            for key, measure in measures.items():
+                row = (
+                    await run(
+                        "INSERT INTO readings (id, institution_id, release_id, measure_id, "
+                        "state, value, source, version) VALUES (gen_random_uuid(), $1, $2, $3, "
+                        "$4, $5, $6, 3) RETURNING id",
+                        institution,
+                        release,
+                        measure,
+                        state if key == "altmetric.d0" else "missing",
+                        value if key == "altmetric.d0" else None,
+                        "manual" if state != "missing" and key == "altmetric.d0" else "auto",
+                    )
+                )[0]["id"]
+                readings[(title, key)] = row
+
+        upgraded = _alembic("upgrade", "0011", database_url=url)
+        assert upgraded.returncode == 0, upgraded.stderr
+        rows = {
+            row["id"]: row
+            for row in await run("SELECT id, state, value, source, inferred, version FROM readings")
+        }
+
+        def day0(title):
+            return rows[readings[(title, "altmetric.d0")]]
+
+        for title in ("Same day", "Later"):
+            assert (day0(title)["state"], day0(title)["value"], day0(title)["inferred"]) == (
+                "value",
+                0,
+                True,
+            )
+            assert day0(title)["version"] == 4
+        for title in ("Earlier", "No date"):
+            assert (day0(title)["state"], day0(title)["inferred"]) == ("missing", False)
+        assert (day0("Typed")["value"], day0("Typed")["inferred"]) == (7, False)
+        assert (day0("Marked")["state"], day0("Marked")["inferred"]) == ("not_applicable", False)
+        assert not any(rows[readings[(title, "ea_views.d28")]]["inferred"] for title in cases)
+
+        entries = await run(
+            "SELECT entity_id, field, old_value::text AS old, new_value::text AS new, note "
+            "FROM audit_log ORDER BY field"
+        )
+        assert {row["entity_id"] for row in entries} == {
+            readings[("Same day", "altmetric.d0")],
+            readings[("Later", "altmetric.d0")],
+        }
+        assert {row["note"] for row in entries} == {"inferred_d0"}
+        later = [row for row in entries if row["entity_id"] == readings[("Later", "altmetric.d0")]]
+        assert {(row["field"], row["old"], row["new"]) for row in later} == {
+            ("inferred", "false", "true"),
+            ("state", '"missing"', '"value"'),
+            ("value", None, "0"),
+            ("version", "3", "4"),
+        }
+
+        _migrate("downgrade", "0010", database_url=url)
+        back = await run(
+            "SELECT state, value FROM readings WHERE id = $1",
+            readings[("Later", "altmetric.d0")],
+        )
+        assert (back[0]["state"], back[0]["value"]) == ("missing", None)
+        assert (
+            await run(
+                "SELECT value FROM readings WHERE id = $1", readings[("Typed", "altmetric.d0")]
+            )
+        )[0]["value"] == 7
     finally:
         connection = await admin_connection()
         try:

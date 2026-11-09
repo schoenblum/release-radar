@@ -18,6 +18,8 @@ On **Data**, paste a DOI or type a title in the top row of the grid and press En
 
 In the grid, a tinted cell is due and empty. Click it and type the number; Enter saves it and moves down, so a column fills quickly. **N/A** on grey means the number can't exist for this release, such as Altmetric without a DOI. A plain empty cell isn't due yet. Type `-` or `N/A` to mark a number as not applicable, and press Delete to clear it.
 
+A day-0 Altmetric score shows **0 inferred** when the paper was published on or after the release date: it can have had no attention before the release, so nobody needs to look it up. It no longer asks to be filled in. Typing a number replaces it, and deleting that number brings the inferred 0 back.
+
 ## Paste a column
 
 Copy cells from a spreadsheet or a web page, such as a column of views from the EurekAlert portal. In the grid, select the first cell to fill and press Cmd+V (Ctrl+V on Windows). Each line fills the next row down, and each cell is checked on its own, so one bad value costs only that cell. A message says how it went, with **Undo** for the whole paste. Thousands separators such as `1,234` are fine. If you select a range and paste one value, it fills the range.

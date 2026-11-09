@@ -277,3 +277,95 @@ def test_today_means_today_at_the_institution():
     moment = datetime(2026, 4, 1, 15, 30, tzinfo=UTC)
     assert today_in("Asia/Tokyo", moment) == date(2026, 4, 2)
     assert today_in("UTC", moment) == date(2026, 4, 1)
+
+
+# ---------------------------------------------------------------- inferred day-0 Altmetric
+
+
+PAPER = {"title": "A paper", "doi": "10.1234/inferred", "release_date": date(2026, 4, 1)}
+
+
+async def test_a_paper_published_on_or_after_the_release_day_has_an_inferred_zero():
+    from decimal import Decimal
+
+    for published in (date(2026, 4, 1), date(2026, 4, 9)):
+        readings = await _readings(await _create(**PAPER, publication_date=published))
+        day0 = readings["altmetric.d0"]
+        assert (day0.state, day0.value, day0.source, day0.inferred) == (
+            "value",
+            Decimal(0),
+            "auto",
+            True,
+        )
+        # Only day 0: by day 28 there is attention to count.
+        assert (readings["altmetric.d28"].state, readings["altmetric.d28"].inferred) == (
+            "missing",
+            False,
+        )
+
+
+@pytest.mark.parametrize(
+    ("values", "state"),
+    [
+        ({"publication_date": date(2026, 3, 31)}, "missing"),
+        ({"publication_date": None}, "missing"),
+        ({"publication_date": date(2026, 4, 2), "doi": None}, "not_applicable"),
+        ({"publication_date": date(2026, 4, 2), "release_date": None}, "missing"),
+    ],
+)
+async def test_no_inferred_zero_when_the_paper_came_first_or_a_date_is_unknown(values, state):
+    day0 = (await _readings(await _create(**{**PAPER, **values})))["altmetric.d0"]
+    assert (day0.state, day0.inferred) == (state, False)
+
+
+async def test_the_inferred_zero_follows_the_dates_and_the_doi():
+    release = await _create(**PAPER, publication_date=date(2026, 4, 2))
+    first = (await _readings(release))["altmetric.d0"]
+
+    await _change(release, publication_date=date(2026, 3, 1))
+    moved = (await _readings(release))["altmetric.d0"]
+    assert (moved.state, moved.value, moved.inferred) == ("missing", None, False)
+    assert moved.version == first.version + 1
+
+    await _change(release, release_date=date(2026, 2, 20))
+    assert (await _readings(release))["altmetric.d0"].inferred is True
+
+    await _change(release, doi=None)
+    gone = (await _readings(release))["altmetric.d0"]
+    assert (gone.state, gone.source, gone.inferred) == ("not_applicable", "auto", False)
+
+    await _change(release, doi="10.1234/back")
+    assert (await _readings(release))["altmetric.d0"].inferred is True
+
+
+async def test_a_typed_number_replaces_it_and_clearing_lets_it_return(client, headers_for):
+    from app.models import UserRole
+
+    editor = await headers_for(UserRole.editor)
+    release = await _create(**PAPER, publication_date=date(2026, 4, 2))
+    day0 = (await _readings(release))["altmetric.d0"]
+    url = f"/api/v1/readings/{day0.id}"
+
+    shown = (await client.get(f"/api/v1/releases/{release.id}", headers=editor)).json()
+    out = next(r for r in shown["readings"] if r["measure_key"] == "altmetric.d0")
+    assert (out["value"], out["display_state"], out["inferred"]) == (0, "value", True)
+
+    typed = await client.patch(url, json={"version": day0.version, "value": "3"}, headers=editor)
+    assert typed.json()["inferred"] is False and typed.json()["source"] == "manual"
+    cleared = await client.patch(
+        url, json={"version": typed.json()["version"], "value": ""}, headers=editor
+    )
+    assert (cleared.json()["value"], cleared.json()["inferred"]) == (0, True)
+    # A typed 0 is a person's 0.
+    zero = await client.patch(
+        url, json={"version": cleared.json()["version"], "value": "0"}, headers=editor
+    )
+    assert (zero.json()["source"], zero.json()["inferred"]) == ("manual", False)
+    marked = await client.patch(
+        url, json={"version": zero.json()["version"], "state": "not_applicable"}, headers=editor
+    )
+    assert (marked.json()["state"], marked.json()["inferred"]) == ("not_applicable", False)
+    # A person's N/A stays, whatever the dates do.
+    await _change(release, publication_date=date(2026, 4, 5))
+    stays = (await _readings(release))["altmetric.d0"]
+    assert (stays.state, stays.source, stays.inferred) == ("not_applicable", "manual", False)

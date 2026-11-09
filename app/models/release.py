@@ -170,6 +170,11 @@ class Reading(Record, Base):
         # or any other stand-in for "unknown".
         CheckConstraint("(state = 'value') = (value IS NOT NULL)", name="value_matches_state"),
         CheckConstraint("value >= 0", name="value_not_negative"),
+        # An inferred reading is a rule's 0, nothing else (R8.1.3).
+        CheckConstraint(
+            "NOT inferred OR (state = 'value' AND value = 0 AND source = 'auto')",
+            name="inferred_is_a_rules_zero",
+        ),
     )
 
     release_id: Mapped[uuid.UUID] = mapped_column(
@@ -194,6 +199,11 @@ class Reading(Record, Base):
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     # For optimistic concurrency (R3.3.3): a reading holds a single value.
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    # A 0 no one entered, set by a rule because it cannot be anything else: an Altmetric score
+    # on the release day of a paper published that day or later (R8.1.3, D27). Shown as such.
+    inferred: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
 
     # Declared so a new release and its readings are written in the right order. Never
     # lazy-loaded, because that fails silently-late under async.

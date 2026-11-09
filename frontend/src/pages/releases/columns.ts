@@ -56,6 +56,8 @@ export interface CellView {
   checked?: boolean;
   /** A link the cell's mark opens in a new tab: the DOI's page, a release's pages. */
   href?: string;
+  /** A small word after the value, such as "inferred". */
+  badge?: string;
 }
 
 export type Parsed = { ok: true; commit: Commit } | { ok: false; code: string };
@@ -473,6 +475,8 @@ function findReading(release: Release, measureId: string): Reading | undefined {
 }
 
 export function readingSnapshot(reading: Reading): ReadingBody {
+  // An inferred 0 is the rules': clearing whatever replaced it brings it back.
+  if (reading.inferred) return { state: "missing" };
   if (reading.state === "value") return { value: reading.value };
   // A person's N/A comes back as such. A rule's goes back to the rules, which set it again.
   if (reading.state === "not_applicable" && reading.source === "manual") {
@@ -501,6 +505,10 @@ function measureColumn(context: GridContext, measure: Measure): GridColumn {
     view: (release) => {
       const reading = findReading(release, measure.id);
       if (!reading) return { text: "", tone: "muted" };
+      if (reading.inferred) {
+        // R8.1.3: a 0 no one typed, because it cannot be anything else.
+        return { text: "0", tone: "plain", badge: t("data.inferred"), hint: t("data.inferred_why") };
+      }
       if (reading.display_state === "value") return plain(formatNumber(reading.value ?? 0));
       if (reading.display_state === "not_applicable") {
         return { text: t("data.not_applicable"), tone: "na" };

@@ -17,6 +17,8 @@ class ReadingOut(BaseModel):
     # What to show, which adds not_yet_due (R6.5.1).
     display_state: str
     source: str
+    # A rule's 0, not entered by anyone (R8.1.3): shown with a mark and its reason.
+    inferred: bool = False
     due_date: date | None
     remind_on: date | None
     note: str | None

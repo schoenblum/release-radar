@@ -254,6 +254,11 @@ const GridRow = memo(function GridRow({
               </a>
             ) : column.id === "title" ? (
               <span className="grid-text grid-title">{text}</span>
+            ) : view.badge && !shown ? (
+              <span className="grid-text">
+                {text}
+                <span className="grid-badge">{view.badge}</span>
+              </span>
             ) : (
               <span className="grid-text">{text}</span>
             )}

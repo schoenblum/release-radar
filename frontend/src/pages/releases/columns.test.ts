@@ -232,6 +232,26 @@ describe("what a number cell shows", () => {
     expect(column().view(withReading({ display_state: "not_yet_due" })).tone).toBe("later");
   });
 
+  it("marks an inferred 0, says why on hover, and undoes back to the rule", () => {
+    const day0 = find(buildColumns(context({ measures: MEASURES })), "measure:altmetric.d0");
+    const row = release("1", {
+      readings: [
+        reading("altmetric.d0", {
+          value: 0,
+          state: "value",
+          display_state: "value",
+          inferred: true,
+        }),
+      ],
+    });
+    const cell = day0.view(row);
+    expect(cell).toMatchObject({ text: "0", tone: "plain", badge: "inferred" });
+    expect(cell.hint).toMatch(/^Inferred 0: the paper was published on or after the release date/);
+    // Still typed over like any number, and an undo hands it back to the rule.
+    expect(day0.isEditable(row)).toBe(true);
+    expect(day0.snapshot(row)).toMatchObject({ body: { state: "missing" } });
+  });
+
   it("does not ask anyone for an automatic number, or let it be typed here", () => {
     const auto = find(buildColumns(context({ measures: MEASURES })), "measure:hp_views.d28");
     const row = release("1", { readings: [reading("hp_views.d28")] });

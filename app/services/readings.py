@@ -12,10 +12,14 @@ What a rule may do is deliberately narrow, so automation never overrides a perso
 - A number a job fetched (``source = auto``) belongs to the inputs it was fetched for: when
   the page or the release date changes, it is cleared, so the next run fetches it again
   (R8.1.1).
+- An inferred 0 (R8.1.3, D27) is a rule's: it appears on a missing day-0 Altmetric reading when
+  the paper was published on or after the release date, and goes again when that stops being
+  true. A number or N/A a person enters replaces it; clearing theirs lets it return.
 """
 
 import uuid
 from datetime import UTC, date, datetime, timedelta
+from decimal import Decimal
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -33,7 +37,9 @@ SOURCE_AUTO = "auto"
 SOURCE_MANUAL = "manual"
 
 # The release fields that any rule depends on. Saving anything else skips the rules.
-_RULE_INPUTS = ("doi", "ea_url", "embargoed", "release_date", "website_url")
+_RULE_INPUTS = ("doi", "ea_url", "embargoed", "publication_date", "release_date", "website_url")
+# Measures whose missing reading is 0 when it cannot be anything else (R8.1.3, D27).
+INFERRED_ZERO = frozenset({"altmetric.d0"})
 # Sources whose numbers a job fetches, and the release fields such a number was fetched for.
 FETCHED_SOURCES = frozenset({"ga4"})
 _FETCH_INPUTS = frozenset({"website_url", "release_date"})
@@ -82,6 +88,40 @@ def measure_applies(measure: Measure, release: Release, website_domain: str | No
     return True
 
 
+def zero_is_inferred(measure: Measure, release: Release) -> bool:
+    """A paper published on or after the release day had no attention before it (D27)."""
+    return (
+        measure.key in INFERRED_ZERO
+        and release.release_date is not None
+        and release.publication_date is not None
+        and release.publication_date >= release.release_date
+    )
+
+
+def settle_inference(reading: Reading, measure: Measure, release: Release, applies: bool) -> bool:
+    """Put an inferred 0 where the rule says, and take it away where it no longer does.
+
+    Only ever between ``missing`` and an inferred 0: a person's number or N/A is left alone.
+    True if the reading changed; the caller raises its version.
+    """
+    infer = applies and zero_is_inferred(measure, release)
+    if reading.inferred:
+        if infer:
+            return False
+        reading.value = None
+        reading.inferred = False
+        reading.state = STATE_MISSING if applies else STATE_NOT_APPLICABLE
+        reading.source = SOURCE_AUTO
+        return True
+    if infer and reading.state == STATE_MISSING:
+        reading.value = Decimal(0)
+        reading.state = STATE_VALUE
+        reading.source = SOURCE_AUTO
+        reading.inferred = True
+        return True
+    return False
+
+
 def _next_state(reading: Reading, applies: bool) -> str | None:
     """The state a rule moves this reading to, or None to leave it."""
     if applies and reading.state == STATE_NOT_APPLICABLE and reading.source == SOURCE_AUTO:
@@ -116,32 +156,37 @@ def _apply_rules(
         applies = measure_applies(measure, release, domain)
         reading = existing.get(measure.id)
         if reading is None:
-            session.add(
-                Reading(
-                    id=uuid.uuid4(),
-                    institution_id=release.institution_id,
-                    release=release,
-                    measure=measure,
-                    state=STATE_MISSING if applies else STATE_NOT_APPLICABLE,
-                    source=SOURCE_AUTO,
-                )
+            reading = Reading(
+                id=uuid.uuid4(),
+                institution_id=release.institution_id,
+                release=release,
+                measure=measure,
+                state=STATE_MISSING if applies else STATE_NOT_APPLICABLE,
+                source=SOURCE_AUTO,
+                inferred=False,
             )
+            settle_inference(reading, measure, release, applies)
+            session.add(reading)
             continue
+        moved = False
         if (
             changed & _FETCH_INPUTS
             and measure.source in FETCHED_SOURCES
             and reading.state == STATE_VALUE
             and reading.source == SOURCE_AUTO
+            and not reading.inferred
         ):
             # Fetched for another page or other days: let the next run fetch it again.
             reading.value = None
             reading.state = STATE_MISSING if applies else STATE_NOT_APPLICABLE
-            reading.version += 1
-            continue
-        next_state = _next_state(reading, applies)
-        if next_state is not None:
-            reading.state = next_state
-            reading.source = SOURCE_AUTO
+            moved = True
+        else:
+            next_state = _next_state(reading, applies)
+            if next_state is not None:
+                reading.state = next_state
+                reading.source = SOURCE_AUTO
+                moved = True
+        if settle_inference(reading, measure, release, applies) or moved:
             reading.version += 1
 
 

@@ -101,6 +101,7 @@ export function reading(key: string, changes: Partial<Reading> = {}): Reading {
     state: "missing",
     display_state: "missing",
     source: "auto",
+    inferred: false,
     due_date: "2026-05-29",
     remind_on: "2026-05-29",
     note: null,

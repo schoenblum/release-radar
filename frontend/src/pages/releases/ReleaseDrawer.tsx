@@ -162,7 +162,9 @@ function ReadingRow({
       </Labelled>
       <div className="drawer-reading-side">
         <p className="text-sm text-content-secondary">
-          {t(`data.reading_states.${reading.display_state}`)}
+          {reading.inferred
+            ? t("data.inferred_state")
+            : t(`data.reading_states.${reading.display_state}`)}
           {fetched && reading.state === "value"
             ? ` · ${t(reading.source === "auto" ? "data.from_ga4" : "data.typed_over_ga4")}`
             : ""}

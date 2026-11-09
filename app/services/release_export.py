@@ -41,7 +41,7 @@ from app.models import (
     VocabularyItem,
     Writer,
 )
-from app.services.readings import STATE_NOT_APPLICABLE, STATE_VALUE
+from app.services.readings import INFERRED_ZERO, STATE_NOT_APPLICABLE, STATE_VALUE
 from app.services.release_codes import academic_year
 
 # These come first, as in the grid: what a person looks a release up by.
@@ -172,6 +172,11 @@ def _measure_value(measure: Measure, release: Release, look: Lookups) -> Any:
     return None
 
 
+def _inferred(measure: Measure, release: Release, look: Lookups) -> int:
+    reading = look.readings.get((release.id, measure.id))
+    return 1 if reading is not None and reading.inferred else 0
+
+
 async def _choices(
     db: AsyncSession, customs: list[CustomField], language: str
 ) -> dict[str, dict[str, str]]:
@@ -294,12 +299,18 @@ async def release_table(
             )
         )
     for measure in measures:
+        label = look.named(measure.label_en, measure.label_ja) or measure.key
         columns.append(
-            (
-                look.named(measure.label_en, measure.label_ja) or measure.key,
-                lambda release, measure=measure: _measure_value(measure, release, look),
-            )
+            (label, lambda release, measure=measure: _measure_value(measure, release, look))
         )
+        if measure.key in INFERRED_ZERO:
+            # 1 where the 0 beside it was inferred, not entered (R8.1.3).
+            columns.append(
+                (
+                    t(language, "export.inferred_column", label=label),
+                    lambda release, measure=measure: _inferred(measure, release, look),
+                )
+            )
     for custom in customs:
         header = look.named(custom.label_en, custom.label_ja) or custom.key
         if custom.scope == "personal":
@@ -391,6 +402,7 @@ def read_me(
         t(language, "export.readme.state_value"),
         t(language, "export.readme.state_na"),
         t(language, "export.readme.state_empty"),
+        t(language, "export.readme.state_inferred"),
         t(language, "export.readme.flags"),
         "",
         t(language, "export.readme.year", year=example, first=first, last=last),

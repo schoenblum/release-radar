@@ -309,6 +309,11 @@
     @apply text-xs;
   }
 
+  /* A word after a value, such as "inferred": small and neutral, the reason on hover. */
+  .grid-badge {
+    @apply ml-5xs text-xs font-normal text-content-secondary;
+  }
+
   .drawer-link {
     @apply text-sm text-content-accent underline-offset-2 hover:underline;
   }

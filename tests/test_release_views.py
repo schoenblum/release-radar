@@ -359,6 +359,33 @@ async def test_the_workbook_has_releases_lists_and_a_read_me(client, admin_heade
     assert "personal data" in notes
 
 
+async def test_an_inferred_day0_is_a_zero_with_a_column_saying_so(client, admin_headers, three):
+    """R8.1.3: the 0 as a number, a 1 in the column beside it, and a line in the Read me."""
+    async with SessionLocal() as db:
+        release = await db.get(Release, three[0]["id"])
+        release.doi = "10.1234/inferred"
+        release.publication_date = release.release_date
+        await db.commit()
+
+    response = await _export(client, admin_headers, filters={"view": "all"})
+    workbook = openpyxl.load_workbook(io.BytesIO(response.content))
+    rows = _by_header(_sheet_rows(workbook["Releases"]))
+    headers = list(rows[0])
+    assert headers.index("Altmetric score, day 0 inferred") == (
+        headers.index("Altmetric score, day 0") + 1
+    )
+    frogs = next(row for row in rows if row["Title"] == "Quantum frogs")
+    assert (frogs["Altmetric score, day 0"], frogs["Altmetric score, day 0 inferred"]) == (0, 1)
+    others = [row for row in rows if row["Title"] != "Quantum frogs"]
+    assert {row["Altmetric score, day 0 inferred"] for row in others} == {0}
+    notes = "\n".join(str(row[0] or "") for row in _sheet_rows(workbook["Read me"]))
+    assert "the 0 before it was not entered" in notes
+
+    japanese = await _export(client, admin_headers, language="ja", filters={"view": "all"})
+    header = _sheet_rows(openpyxl.load_workbook(io.BytesIO(japanese.content)).worksheets[0])[0]
+    assert any(str(name).endswith("（推定）") for name in header)
+
+
 async def test_the_workbook_in_japanese(client, admin_headers, lists, three):
     response = await _export(
         client,

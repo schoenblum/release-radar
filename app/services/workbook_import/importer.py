@@ -932,6 +932,7 @@ class _Importer:
                         STATE_NOT_APPLICABLE,
                         SOURCE_MANUAL,
                     )
+                    reading.inferred = False
                     self._entered(reading, now)
                 self.report.count("dashes")
                 continue
@@ -955,8 +956,10 @@ class _Importer:
                 add("info", "number_from_text", value=str(number), number=number, **where)
             if not measure_applies(measure, plan.release, self.institution.website_domain):
                 add("check", "value_where_na", value=str(number), **where)
-            if reading.state != STATE_VALUE or reading.value != number:
+            # A 0 in the workbook was entered by someone, so it replaces an inferred one.
+            if reading.state != STATE_VALUE or reading.value != number or reading.inferred:
                 reading.value, reading.state, reading.source = number, STATE_VALUE, SOURCE_MANUAL
+                reading.inferred = False
                 self._entered(reading, now)
             self.report.count("values")
 

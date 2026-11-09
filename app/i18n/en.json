@@ -89,6 +89,7 @@
       "not_recorded": "Not recorded"
     },
     "owned_by": "{label} ({owner})",
+    "inferred_column": "{label} inferred",
     "list_columns": {
       "key": "Key",
       "name": "Name",
@@ -120,6 +121,7 @@
       "state_value": "A number was recorded. 0 is a real zero.",
       "state_na": "N/A: the number can't exist for this release, such as Altmetric without a DOI.",
       "state_empty": "Empty: not recorded yet, or not due yet.",
+      "state_inferred": "Inferred: where a column ending in “inferred” holds 1, the 0 before it was not entered. The paper was published on or after the release date, so it could have no Altmetric score before the release.",
       "flags": "Yes-or-no columns, such as Embargoed: 1 means yes, 0 means no.",
       "year": "Academic year: the year it begins in, so {year} runs from {first} to {last}. It comes from the release date.",
       "code_year": "A release code keeps the year it was given, even if the date moved later.",

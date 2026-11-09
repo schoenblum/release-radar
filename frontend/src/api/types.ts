@@ -316,6 +316,8 @@ export interface Reading {
   state: StoredReadingState;
   display_state: StoredReadingState | "not_yet_due";
   source: "manual" | "auto";
+  /** A rule's 0, not entered by anyone (R8.1.3): shown with a mark and its reason. */
+  inferred: boolean;
   due_date: string | null;
   remind_on: string | null;
   note: string | null;
