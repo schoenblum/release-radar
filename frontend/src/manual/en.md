@@ -136,6 +136,8 @@ In **Settings → Data**, choose the press-release workbook and the intake workb
 
 Importing again is safe. Each release is found by its code and updated; an empty cell never empties anything, and a researcher chosen in Release Radar since stays. Units, fields and writers are only added, never changed: Settings looks after them.
 
+**Only fill what is empty** is for the weeks when the team still enters releases and day-28 numbers in Excel. With it ticked, releases already in Release Radar get only what is empty or missing there; nothing already there changes, not even a value the workbook has differently (a corrected DOI stays corrected). New codes come in full. The report lists every cell it filled and every difference it left alone.
+
 Every check and import is listed under the import, with its report to download again, so what still needs correcting can be found later. A writer's name the import doesn't know leaves the release without a writer: on the Data page, choose **No writer yet** in the writer filter to find them, and pick the writer in the grid.
 
 ## Connect Google Analytics

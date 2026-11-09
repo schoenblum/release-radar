@@ -201,7 +201,11 @@
       "feedback_language_unknown": "Unknown language: left empty.",
       "feedback_corrected": "All three statements were “Strongly disagree”: corrected to “Strongly agree” (inverted scale, response {id}). The response's history shows both.",
       "feedback_correction_not_needed": "Response {id} was to be corrected for an inverted scale, but its statements are not all “Strongly disagree”: left as given. Please check.",
-      "feedback_all_disagree": "All three statements are “Strongly disagree” (response {id}). An inverted scale, as with four earlier responses? Not corrected: please check."
+      "feedback_all_disagree": "All three statements are “Strongly disagree” (response {id}). An inverted scale, as with four earlier responses? Not corrected: please check.",
+      "fill_mode": "Only what is empty in Release Radar is filled: nothing already there changes. New codes are added in full.",
+      "fill_filled": "Empty in Release Radar ({field}): filled with the workbook's value.",
+      "fill_kept": "Release Radar has “{current}” ({field}): kept, as only empty cells are filled.",
+      "fill_removed_left": "Removed in the app: left as it is, as only empty cells are filled."
     },
     "counts": {
       "releases_in_workbook": "Rows in the workbook",
@@ -232,7 +236,9 @@
       "feedback_not_linked": "New responses without a release",
       "feedback_releases": "Releases with feedback",
       "feedback_corrected": "Inverted scales corrected",
-      "feedback_other_texts": "Answers written in “Other”"
+      "feedback_other_texts": "Answers written in “Other”",
+      "cells_filled": "Cells filled because they were empty in Release Radar",
+      "cells_kept": "Cells where the workbook differs, left as they are"
     },
     "columns": {
       "level": "Kind",

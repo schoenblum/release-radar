@@ -127,6 +127,19 @@ describe("importing the old workbook", () => {
     expect(screen.getByText(/check again first/)).toBeInTheDocument();
   });
 
+  it("sends Only fill what is empty, and a change of it asks for a new check", async () => {
+    const { user, posted } = setup();
+    await pickFiles(user);
+    const fill = screen.getByRole("checkbox", { name: /Only fill what is empty/ });
+    expect(fill).not.toBeChecked();
+    await user.click(fill);
+    await user.click(screen.getByRole("button", { name: "Check" }));
+    await screen.findByRole("button", { name: "Import" });
+    expect(posted[0]).toMatchObject({ fill_empty_only: true, commit: false });
+    await user.click(fill);
+    expect(screen.getByRole("button", { name: "Import" })).toBeDisabled();
+  });
+
   it("names a missing column", async () => {
     const { user } = setup(() =>
       json({ detail: "import_column_missing", column: "DOI", group: "" }, 422),

@@ -28,6 +28,8 @@ class WorkbookImportRequest(BaseModel):
     release_list: UploadedFile
     intake: UploadedFile
     owners: PersonalFieldOwners = PersonalFieldOwners()
+    # The catch-up before D1 (phase-2 brief §3.4): existing releases get only what is empty.
+    fill_empty_only: bool = False
     # False: a dry run, which changes nothing and says what an import would do.
     commit: bool = False
     language: str = Field("en", pattern="^(en|ja)$")

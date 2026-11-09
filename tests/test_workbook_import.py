@@ -198,7 +198,7 @@ def _file(name: str, content: bytes) -> dict:
     return {"name": name, "content": base64.b64encode(content).decode()}
 
 
-def _body(commit=False, owners=None, files=None, language="en"):
+def _body(commit=False, owners=None, files=None, language="en", **extra):
     list_bytes, intake_bytes = files or (release_list(), intake())
     return {
         "release_list": _file("Press release list.xlsx", list_bytes),
@@ -206,6 +206,7 @@ def _body(commit=False, owners=None, files=None, language="en"):
         "owners": owners or {},
         "commit": commit,
         "language": language,
+        **extra,
     }
 
 
@@ -581,3 +582,93 @@ async def test_every_check_and_import_is_kept_with_its_report(client, admin_head
         "/api/v1/imports/00000000-0000-0000-0000-000000000000/report", headers=admin_headers
     )
     assert missing.status_code == 404
+
+
+# ---------------------------------------------------------------- only filling what is empty
+
+
+async def test_only_filling_what_is_empty_changes_nothing_already_there(client, admin_headers):
+    """Phase-2 brief §3.4, the catch-up before D1: what was corrected in Release Radar stays,
+    what is still empty there is filled, new codes come in full, and the report lists both."""
+    from datetime import UTC
+
+    await _post(client, admin_headers, commit=True)
+    first = await _releases()
+    async with SessionLocal() as db:
+        frogs = await db.get(Release, first["AY2025-01"].id)
+        frogs.doi = "10.1234/corrected"
+        chosen = Researcher(institution_id=frogs.institution_id, name="Chosen In App")
+        db.add(chosen)
+        await db.flush()
+        frogs.researcher_id = chosen.id
+        (await db.get(Release, first["AY2025-02"].id)).ea_url = None
+        (await db.get(Release, first["AY2025-05"].id)).deleted_at = datetime.now(UTC)
+        await db.commit()
+    frogs_views = (await _readings(first["AY2025-01"].id))["ea_views.d28"]
+    moss_views = (await _readings(first["AY2025-08"].id))["ea_views.d28"]
+    async with SessionLocal() as db:
+        (await db.get(Reading, frogs_views.id)).value = Decimal(1400)
+        moss = await db.get(Reading, moss_views.id)
+        moss.value, moss.state, moss.source = None, "missing", "auto"
+        await db.commit()
+
+    rows = [
+        *ROWS,
+        _release(
+            code="AY2025-09",
+            title="New since",
+            doi="10.1234/new",
+            ea_url=f"{EA}1009",
+            ea_views_d28=7,
+        ),
+    ]
+    files = (release_list(rows), intake())
+    check = await _post(client, admin_headers, files=files, fill_empty_only=True)
+    assert (await _releases())["AY2025-01"].doi == "10.1234/corrected"
+    result = await _post(client, admin_headers, files=files, fill_empty_only=True, commit=True)
+    assert result["counts"] == check["counts"]
+
+    again = await _releases()
+    # Kept: a corrected DOI, a researcher chosen in the app, a typed number, a removal.
+    assert again["AY2025-01"].doi == "10.1234/corrected"
+    assert again["AY2025-01"].researcher_id == chosen.id
+    assert (await _readings(again["AY2025-01"].id))["ea_views.d28"].value == Decimal(1400)
+    assert again["AY2025-05"].deleted_at is not None
+    # Filled: what was empty in Release Radar.
+    assert again["AY2025-02"].ea_url == f"{EA}1002"
+    assert (await _readings(again["AY2025-08"].id))["ea_views.d28"].value == Decimal(805)
+    # New codes come in full.
+    assert again["AY2025-09"].title == "New since"
+    assert (await _readings(again["AY2025-09"].id))["ea_views.d28"].value == Decimal(7)
+
+    markdown = result["markdown"]
+    assert "Only what is empty in Release Radar is filled" in markdown
+    assert "Release Radar has “10.1234/corrected” (doi): kept" in markdown
+    assert "Release Radar has “Chosen In App” (researcher_id): kept" in markdown
+    assert "Release Radar has “1400” (ea_views.d28): kept" in markdown
+    assert "Empty in Release Radar (ea_url): filled" in markdown
+    assert "Empty in Release Radar (ea_views.d28): filled" in markdown
+    assert "Removed in the app: left as it is" in markdown
+    assert result["counts"]["cells_filled"] >= 2
+    assert result["counts"]["cells_kept"] >= 3
+    # Nothing new was filled into the kept release: its history has no new entries.
+    async with SessionLocal() as db:
+        notes = list(
+            await db.scalars(
+                select(AuditLog.field).where(
+                    AuditLog.entity_id == again["AY2025-01"].id, AuditLog.action == "update"
+                )
+            )
+        )
+    assert "doi" in notes  # the correction made in the app
+    assert notes.count("doi") == 1
+
+
+async def test_without_the_choice_the_workbook_still_wins(client, admin_headers):
+    await _post(client, admin_headers, commit=True)
+    first = await _releases()
+    async with SessionLocal() as db:
+        (await db.get(Release, first["AY2025-01"].id)).doi = "10.1234/corrected"
+        await db.commit()
+    await _post(client, admin_headers, commit=True)
+    assert (await _releases())["AY2025-01"].doi == "10.1234/frogs"

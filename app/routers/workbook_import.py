@@ -60,7 +60,12 @@ async def import_workbook(
     )
     try:
         report = await importer.run_import(
-            db, institution, admin, files, request.owners.model_dump()
+            db,
+            institution,
+            admin,
+            files,
+            request.owners.model_dump(),
+            fill_empty_only=request.fill_empty_only,
         )
     except sheets.WorkbookProblem as problem:
         await db.rollback()

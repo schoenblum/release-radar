@@ -861,3 +861,11 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:import.report.feedback_release_removed` | The release was removed in the app: the response is linked to it anyway. | このリリースはアプリで削除されていますが、回答は紐付けました。 | pending |
 | `backend:import.report.feedback_scale_unknown` | Not a point on the agreement scale: this statement is left unanswered. | 評価の選択肢にない値のため、この項目は未回答とします。 | pending |
 | `backend:import.report.feedback_skipped_staff_test` | The office's own test response: not imported. | 事務局のテスト回答のため、インポートしません。 | pending |
+| `frontend:settings.import.fill_empty_only` | Only fill what is empty | 空欄のみ入力する | pending |
+| `frontend:settings.import.fill_empty_only_help` | For bringing in what the team still entered in Excel. Releases already here get only what is empty or missing in Release Radar: no value, N/A, researcher, release type or removed release changes. New codes are added in full. The report lists every cell filled and every difference left alone. | Excel に引き続き入力された内容を取り込むためのものです。既存のリリースには、Release Radar で空欄または未入力の項目だけを入力します。値、該当なし、研究者、リリースの種類、削除したリリースは変更しません。新しいコードのリリースはすべて取り込みます。レポートには、入力したセルと、異なるがそのままにしたセルがすべて表示されます。 | pending |
+| `backend:import.counts.cells_filled` | Cells filled because they were empty in Release Radar | Release Radar で空欄だったため入力したセル | pending |
+| `backend:import.counts.cells_kept` | Cells where the workbook differs, left as they are | ワークブックと異なるが、そのままにしたセル | pending |
+| `backend:import.report.fill_filled` | Empty in Release Radar ({field}): filled with the workbook's value. | Release Radar では空欄（{field}）：ワークブックの値を入力しました。 | pending |
+| `backend:import.report.fill_kept` | Release Radar has “{current}” ({field}): kept, as only empty cells are filled. | Release Radar の値は「{current}」（{field}）：空欄のみ入力するため、そのままにしました。 | pending |
+| `backend:import.report.fill_mode` | Only what is empty in Release Radar is filled: nothing already there changes. New codes are added in full. | Release Radar で空欄の項目だけを入力します。入力済みの内容は変更しません。新しいコードのリリースはすべて取り込みます。 | pending |
+| `backend:import.report.fill_removed_left` | Removed in the app: left as it is, as only empty cells are filled. | アプリで削除されたリリースです。空欄のみ入力するため、そのままにしました。 | pending |

@@ -436,6 +436,8 @@
       "owners": "Whose are the personal fields in the workbook?",
       "owners_help": "Each becomes that person's own field, with the workbook's values. Leave one as it is to skip it; importing again later adds it.",
       "not_imported": "Not imported",
+      "fill_empty_only": "Only fill what is empty",
+      "fill_empty_only_help": "For bringing in what the team still entered in Excel. Releases already here get only what is empty or missing in Release Radar: no value, N/A, researcher, release type or removed release changes. New codes are added in full. The report lists every cell filled and every difference left alone.",
       "check": "Check",
       "checking": "Checking…",
       "takes_time": "Each DOI is looked up at Crossref: about half a minute.",

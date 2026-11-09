@@ -201,7 +201,11 @@
       "feedback_language_unknown": "言語が不明のため、空欄にします。",
       "feedback_corrected": "3 項目すべてが「まったくそう思わない」でした。「強くそう思う」に修正しました（評価の逆転、回答 {id}）。回答の履歴に両方が残ります。",
       "feedback_correction_not_needed": "回答 {id} は評価の逆転として修正する予定でしたが、すべてが「まったくそう思わない」ではないため、そのままにしました。確認してください。",
-      "feedback_all_disagree": "3 項目すべてが「まったくそう思わない」です（回答 {id}）。以前の 4 件と同じく評価の逆転かもしれません。修正していないので、確認してください。"
+      "feedback_all_disagree": "3 項目すべてが「まったくそう思わない」です（回答 {id}）。以前の 4 件と同じく評価の逆転かもしれません。修正していないので、確認してください。",
+      "fill_mode": "Release Radar で空欄の項目だけを入力します。入力済みの内容は変更しません。新しいコードのリリースはすべて取り込みます。",
+      "fill_filled": "Release Radar では空欄（{field}）：ワークブックの値を入力しました。",
+      "fill_kept": "Release Radar の値は「{current}」（{field}）：空欄のみ入力するため、そのままにしました。",
+      "fill_removed_left": "アプリで削除されたリリースです。空欄のみ入力するため、そのままにしました。"
     },
     "counts": {
       "releases_in_workbook": "ワークブックの行数",
@@ -232,7 +236,9 @@
       "feedback_not_linked": "リリースのない新しい回答",
       "feedback_releases": "アンケート回答のあるリリース",
       "feedback_corrected": "逆向きの評価を修正した回答",
-      "feedback_other_texts": "「その他」に記入された回答"
+      "feedback_other_texts": "「その他」に記入された回答",
+      "cells_filled": "Release Radar で空欄だったため入力したセル",
+      "cells_kept": "ワークブックと異なるが、そのままにしたセル"
     },
     "columns": {
       "level": "種類",

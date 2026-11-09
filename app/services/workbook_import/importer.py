@@ -15,6 +15,7 @@ import time as clock
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
+from datetime import time as time_of_day
 from decimal import Decimal
 from typing import Any
 
@@ -39,6 +40,7 @@ from app.services import audit, crossref
 from app.services.field_patch import set_versioned
 from app.services.readings import (
     SOURCE_MANUAL,
+    STATE_MISSING,
     STATE_NOT_APPLICABLE,
     STATE_VALUE,
     measure_applies,
@@ -47,7 +49,7 @@ from app.services.readings import (
 from app.services.release_codes import _numbering, academic_year, format_code
 from app.services.release_types import default_release_type_id
 from app.services.workbook_import import sheets
-from app.services.workbook_import.report import Report
+from app.services.workbook_import.report import Level, Report
 from app.services.workbook_import.values import (
     Read,
     normalised_name,
@@ -142,6 +144,15 @@ class _Importer:
     known_researchers: set[uuid.UUID] = field(default_factory=set)
     personal: dict[str, CustomField] = field(default_factory=dict)
     planned: list[_Planned] = field(default_factory=list)
+    # Brief §3.4, the catch-up before D1: releases already in Release Radar get only what is
+    # empty or missing there. Nothing already there changes, and every difference is listed.
+    fill_empty_only: bool = False
+    # Releases this run made: they get everything, as in any import.
+    fresh: set[uuid.UUID] = field(default_factory=set)
+    # What a record is called, for the report: writers, units, fields, researchers.
+    names: dict[uuid.UUID, str] = field(default_factory=dict)
+    # The row being read: its number, code and headings.
+    here: tuple[int, str, dict[str, str]] = (0, "", {})
 
     # ------------------------------------------------------------ lists
 
@@ -364,11 +375,51 @@ class _Importer:
 
     def _assign(self, release: Release, name: str, value: Any, changed: list[str]) -> None:
         """What the workbook says wins; what it leaves empty never clears anything. A version
-        rises with each change, so a screen opened before the import is told."""
-        if value is None or getattr(release, name) == value:
+        rises with each change, so a screen opened before the import is told. With
+        ``fill_empty_only``, only what is empty on an existing release is filled."""
+        current = getattr(release, name)
+        if value is None or current == value:
             return
+        if self.keeps(release):
+            if not _is_empty(current):
+                self.noted("check", "fill_kept", name, value, current)
+                return
+            self.noted("info", "fill_filled", name, value, None)
         set_versioned(release, name, value)
         changed.append(name)
+
+    def keeps(self, release: Release) -> bool:
+        """Whether this release keeps what it has (fill-only mode, made before this run)."""
+        return self.fill_empty_only and release.id not in self.fresh
+
+    def noted(self, level: Level, kind: str, name: str, value: Any, current: Any) -> None:
+        number, code, headings = self.here
+        self.report.add(
+            level,
+            kind,
+            row=number,
+            code=code,
+            column=headings.get(_FIELD_COLUMNS.get(name, name), name),
+            value=self.shown(value),
+            field=name,
+            current=self.shown(current) if current is not None else "—",
+        )
+        self.report.count("cells_filled" if kind == "fill_filled" else "cells_kept")
+
+    def shown(self, value: Any) -> str:
+        if isinstance(value, uuid.UUID):
+            return self.names.get(value, str(value))
+        if isinstance(value, bool):
+            return "1" if value else "0"
+        if isinstance(value, date | time_of_day):
+            return value.isoformat()
+        if isinstance(value, Decimal):
+            return format(value.normalize(), "f")
+        if isinstance(value, list):
+            return f"{len(value)}"
+        if isinstance(value, dict):
+            return str(value.get("value", "N/A"))
+        return str(value)
 
     async def researcher_for(
         self,
@@ -440,6 +491,8 @@ class _Importer:
         if gender.value is None:
             return
         if person.gender == "not_recorded":
+            if self.fill_empty_only and person.id in self.known_researchers:
+                self.noted("info", "fill_filled", "gender", gender.value, None)
             set_versioned(person, "gender", gender.value)
         elif person.gender != gender.value:
             self.report.add(
@@ -458,6 +511,7 @@ class _Importer:
         cells, headings = row.cells, row.headings
         number = row.number
         add = self.report.add
+        self.here = (number, code, headings)
 
         def heading(name: str) -> str:
             return headings[name]
@@ -511,6 +565,12 @@ class _Importer:
             )
             self.db.add(release)
             await self.db.flush()
+            self.fresh.add(release.id)
+        elif release.deleted_at is not None and self.fill_empty_only:
+            # Removed in the app on purpose: the catch-up leaves it so.
+            add("check", "fill_removed_left", row=number, code=code)
+            self.report.count("releases_unchanged")
+            return None
         elif release.deleted_at is not None:
             release.deleted_at = None
             add("check", "release_restored", row=number, code=code)
@@ -646,6 +706,18 @@ class _Importer:
             person = await self.db.get(Researcher, release.researcher_id)
             if person is not None:
                 self._gender(person, gender, row, code)
+                listed = self.intake.two_names.get(code)
+                written = (
+                    listed.corresponding
+                    if listed is not None
+                    else split_names(text_of(cells["researcher"]))[0]
+                )
+                if (
+                    self.keeps(release)
+                    and written
+                    and normalised_name(written) != normalised_name(person.name)
+                ):
+                    self.noted("check", "fill_kept", "researcher_id", written, person.id)
             return
 
         listed = self.intake.two_names.get(code)
@@ -887,7 +959,13 @@ class _Importer:
             else:
                 continue
             key = custom.key
-            if release.custom_values.get(key) != value:
+            current = release.custom_values.get(key)
+            if current != value and self.keeps(release):
+                if current is not None:
+                    self.noted("check", "fill_kept", name, value, current)
+                    continue
+                self.noted("info", "fill_filled", name, value, None)
+            if current != value:
                 release.custom_values = {**release.custom_values, key: value}
                 name_key = f"custom_values.{key}"
                 release.field_versions = {
@@ -924,8 +1002,20 @@ class _Importer:
                 continue
             read, add = plan.read, self.report.add
             where = {"row": plan.row, "code": plan.code, "column": plan.heading}
+            self.here = (plan.row, plan.code, {plan.measure_key: plan.heading})
+            # In fill-only mode a reading is open only while nothing is there but the rules'.
+            keeps = self.keeps(plan.release) and not (
+                reading.state == STATE_MISSING or reading.inferred
+            )
             if read.how == "dash":
                 add("dash", "dash_na", value=plan.cell, **where)
+                if keeps:
+                    if reading.state != STATE_NOT_APPLICABLE:
+                        self.noted("check", "fill_kept", plan.measure_key, "N/A", reading.value)
+                    self.report.count("dashes")
+                    continue
+                if self.keeps(plan.release):
+                    self.noted("info", "fill_filled", plan.measure_key, "N/A", None)
                 if reading.state != STATE_NOT_APPLICABLE or reading.source != SOURCE_MANUAL:
                     reading.value, reading.state, reading.source = (
                         None,
@@ -956,6 +1046,16 @@ class _Importer:
                 add("info", "number_from_text", value=str(number), number=number, **where)
             if not measure_applies(measure, plan.release, self.institution.website_domain):
                 add("check", "value_where_na", value=str(number), **where)
+            if keeps:
+                if reading.state != STATE_VALUE or reading.value != number:
+                    current = reading.value if reading.state == STATE_VALUE else "N/A"
+                    self.noted("check", "fill_kept", plan.measure_key, number, current)
+                self.report.count("values")
+                continue
+            if self.keeps(plan.release) and (
+                reading.state != STATE_VALUE or reading.value != number or reading.inferred
+            ):
+                self.noted("info", "fill_filled", plan.measure_key, number, None)
             # A 0 in the workbook was entered by someone, so it replaces an inferred one.
             if reading.state != STATE_VALUE or reading.value != number or reading.inferred:
                 reading.value, reading.state, reading.source = number, STATE_VALUE, SOURCE_MANUAL
@@ -967,6 +1067,28 @@ class _Importer:
         reading.version += 1
         reading.entered_by_id = self.user.id
         reading.entered_at = now
+
+
+# The workbook column each release field comes from, for the report.
+_FIELD_COLUMNS = {
+    "writer_id": "writer",
+    "unit_id": "unit",
+    "field_id": "unit",
+    "researcher_id": "researcher",
+    "also_featured": "researcher",
+    "gender": "gender",
+    "journal": "doi",
+    "publication_date": "doi",
+    "authors": "doi",
+    "embargoed": "embargo",
+    "release_time_et": "release_time",
+    "ea_top_page": "notes",
+    "ea_top_position": "notes",
+}
+
+
+def _is_empty(value: Any) -> bool:
+    return value is None or value == "" or value == [] or value == {}
 
 
 def _excel_serial(cell: Any) -> int | None:
@@ -989,6 +1111,8 @@ async def run_import(
     user: User,
     files: Files,
     owners: dict[str, uuid.UUID | None],
+    *,
+    fill_empty_only: bool = False,
 ) -> Report:
     """Does the whole import in the open transaction. The caller commits or rolls back."""
     rows = sheets.release_rows(files.release_list)
@@ -1005,11 +1129,24 @@ async def run_import(
     audit.set_actor(db, user.id)
     audit.set_note(db, AUDIT_NOTE)
     work = _Importer(db, institution, user, intake, papers, owners)
+    work.fill_empty_only = fill_empty_only
     work.report.counts["releases_in_workbook"] = len(rows)
+    if fill_empty_only:
+        work.report.add("info", "fill_mode")
     await work.fields_and_units()
     await work.writers_from_staff()
     await work.personal_fields()
     await work.load_researchers()
+    for model, label in (
+        (Writer, "display_name_en"),
+        (Unit, "key"),
+        (ResearchField, "name_en"),
+        (Researcher, "name"),
+    ):
+        for row_id, name in await db.execute(
+            select(model.id, getattr(model, label)).where(model.institution_id == institution.id)
+        ):
+            work.names[row_id] = name
 
     existing = list(
         await db.scalars(select(Release).where(Release.institution_id == institution.id))

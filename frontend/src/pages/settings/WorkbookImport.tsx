@@ -238,6 +238,7 @@ export default function WorkbookImport() {
     pitches: "",
     request_received: "",
   });
+  const [fillEmptyOnly, setFillEmptyOnly] = useState(false);
   const [result, setResult] = useState<WorkbookImportResult | null>(null);
   // The choices the shown dry run was made with: Import is offered only for those.
   const [checked, setChecked] = useState<string | null>(null);
@@ -257,6 +258,7 @@ export default function WorkbookImport() {
     intake?.size,
     intake?.lastModified,
     owners,
+    fillEmptyOnly,
   ]);
 
   async function run(commit: boolean): Promise<void> {
@@ -273,6 +275,7 @@ export default function WorkbookImport() {
         release_list: await encode(releaseList),
         intake: await encode(intake),
         owners: chosen,
+        fill_empty_only: fillEmptyOnly,
         commit,
         language: i18n.language === "ja" ? "ja" : "en",
       });
@@ -333,6 +336,20 @@ export default function WorkbookImport() {
           </label>
         ))}
       </fieldset>
+      <label className="mb-3xs flex items-start gap-4xs">
+        <input
+          type="checkbox"
+          className="mt-5xs"
+          checked={fillEmptyOnly}
+          onChange={(event) => setFillEmptyOnly(event.target.checked)}
+        />
+        <span>
+          <span className="font-semibold">{t("settings.import.fill_empty_only")}</span>
+          <span className="block text-sm text-content-secondary">
+            {t("settings.import.fill_empty_only_help")}
+          </span>
+        </span>
+      </label>
       <div className="flex flex-wrap items-center gap-4xs">
         <button
           type="button"

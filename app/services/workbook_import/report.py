@@ -36,6 +36,9 @@ COUNT_ORDER = (
     "fields_new",
     "personal_fields_new",
     "trimmed",
+    # Only filling what is empty (phase-2 brief §3.4).
+    "cells_filled",
+    "cells_kept",
     # Researcher feedback (step 2.1).
     "feedback_rows",
     "feedback_skipped",
