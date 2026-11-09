@@ -276,22 +276,27 @@ async def _present(
             )
         ).all()
     }
+    # In form order, so the list reads as the form does and never changes between calls.
     required_core = list(
         await db.scalars(
-            select(CoreFieldConfig.key).where(
+            select(CoreFieldConfig.key)
+            .where(
                 CoreFieldConfig.institution_id == institution.id,
                 CoreFieldConfig.required.is_(True),
                 CoreFieldConfig.hidden.is_(False),
             )
+            .order_by(CoreFieldConfig.position, CoreFieldConfig.key)
         )
     )
     required_custom = list(
         await db.scalars(
-            select(CustomField.key).where(
+            select(CustomField.key)
+            .where(
                 CustomField.institution_id == institution.id,
                 CustomField.required.is_(True),
                 CustomField.is_active.is_(True),
             )
+            .order_by(CustomField.position, CustomField.key)
         )
     )
 
