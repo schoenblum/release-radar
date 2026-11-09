@@ -12,7 +12,7 @@ const SECTIONS = [
   { id: "score_profiles", later: true },
   { id: "survey", later: true },
   { id: "outlets", later: true },
-  { id: "integrations", later: true },
+  { id: "integrations" },
   { id: "data" },
 ] as const;
 

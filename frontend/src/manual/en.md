@@ -125,6 +125,7 @@ Use the button next to your name at the top right to switch between English and 
 - **Release types:** EurekAlert's eleven categories, in the order the menus show them. Rename, reorder or switch off any, or add your own. **New releases start as** sets the type new and imported releases get; choose **No type** to have people choose every time.
 - **Form:** rename, hide, require or reorder the fields on a release, and add your own.
 - **Checkpoints & reminders:** when numbers are collected and which numbers those are. A checkpoint can fall before the release date: use a negative number, so −3 is three days before. Choose whether its reminder comes at the start of that day or the day before. The reminder emails themselves arrive in a later phase.
+- **Integrations:** Google Analytics, for website views. See *Connect Google Analytics* below.
 - **Data:** backups, a full copy of your data, what the automatic jobs have been doing, and the import of the old workbook.
 
 ### Import the old workbook
@@ -134,3 +135,23 @@ In **Settings → Data**, choose the press-release workbook and the intake workb
 Importing again is safe. Each release is found by its code and updated; an empty cell never empties anything, and a researcher chosen in Release Radar since stays. Units, fields and writers are only added, never changed: Settings looks after them.
 
 Every check and import is listed under the import, with its report to download again, so what still needs correcting can be found later. A writer's name the import doesn't know leaves the release without a writer: on the Data page, choose **No writer yet** in the writer filter to find them, and pick the writer in the grid.
+
+## Connect Google Analytics
+
+*For admins.* Website views come from Google Analytics: for each release whose page is on your news website, the views over its first 28 days. Release Radar fetches them by itself once a release's 28 days and two days of Google's processing have passed. You connect it once. Create the Google Cloud project under an account the office keeps, so it outlives any one person's account.
+
+In Google Cloud and Google Analytics:
+
+1. At console.cloud.google.com, choose or create a project, for example *release-radar*. No billing account is needed: Google does not charge for this. To share it, add a colleague as a second Owner (IAM & Admin → IAM → Grant access).
+2. APIs & Services → Library → **Google Analytics Data API** → Enable.
+3. IAM & Admin → Service accounts → Create service account, for example *release-radar-ga4*. It needs no roles.
+4. Open it → Keys → Add key → Create new key → JSON. Your browser downloads one file: that file is the key. If Google refuses because an organisation policy disables keys, ask whoever runs that organisation.
+5. Google Analytics → Admin → your news site's property → Property access management → + → Add users: the service account's address (it ends in gserviceaccount.com), role **Viewer**.
+6. Admin → Property details: note the **property ID**. It is digits only; the code starting with G- is something else.
+
+Then in **Settings → Integrations**:
+
+7. Choose the JSON file and enter the property ID. Click **Test connection**: it reads yesterday's page views on your news website and says in plain words what is wrong, if anything. Then keep the file in the password manager and delete the downloaded copy.
+8. Click **Fetch now**. The first fetch collects every release since the new website went live. After that, Release Radar fetches by itself every day after the nightly backup, and a day the computer was off costs nothing.
+
+To check a number, open Google Analytics → Reports → Engagement → Pages and screens for the same 28 days and look up the page. A number typed into a release's record always counts instead, and fetching never changes it. When a release's page address or release date changes, its fetched number is cleared and fetched again. Releases whose 28 days have passed but which have no website views are listed under Integrations: usually the page address in the record needs a look.

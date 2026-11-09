@@ -471,6 +471,45 @@ export interface BackupStatus {
   last_run: JobRun | null;
 }
 
+/** What a test of the Google Analytics connection found (R8.1.1). */
+export interface Ga4TestResult {
+  ok: boolean;
+  /** connected, connected_no_views, or why it failed: api_disabled, no_access, … */
+  code: string;
+  detail: string | null;
+  views?: number;
+  date: string;
+  host: string | null;
+}
+
+export interface Ga4WaitingRelease {
+  release_id: string;
+  code: string | null;
+  title: string | null;
+  website_url: string;
+  release_date: string;
+}
+
+/** Settings → Integrations → Google Analytics. The key itself never comes back. */
+export interface Ga4Status {
+  configured: boolean;
+  /** False for a key stored on another install, under another encryption key. */
+  readable: boolean;
+  client_email: string | null;
+  project_id: string | null;
+  property_id: string | null;
+  field_versions: Record<string, number>;
+  domain: string | null;
+  first_fetch_at: string | null;
+  last_test_at: string | null;
+  last_test: Ga4TestResult | null;
+  last_run: JobRun | null;
+  running: boolean;
+  fetched: number;
+  waiting: Ga4WaitingRelease[];
+  not_yet_due: number;
+}
+
 /** The Writers page (R7.7.1): releases per writer, counts only. */
 export interface WriterCountRow {
   /** Null for releases that have no writer yet. */

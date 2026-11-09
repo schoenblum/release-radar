@@ -43,6 +43,8 @@ JOB_BACKUP = "backup-nightly"
 JOB_BACKUP_MANUAL = "backup-manual"
 JOB_HOUSEKEEPING = "housekeeping"
 JOB_SCHEDULER_TEST = "scheduler-test"
+JOB_GA4 = "ga4-website-views"
+JOB_GA4_MANUAL = "ga4-website-views-manual"
 
 # A run still marked "running" after this long lost its worker to a crash or restart.
 STALE_RUN_AFTER = timedelta(hours=6)
@@ -65,7 +67,7 @@ def _worker_name() -> str:
     return f"{socket.gethostname()}:{os.getpid()}"[:128]
 
 
-def _lock_key(payload: str) -> int:
+def lock_key(payload: str) -> int:
     """Map a string to a positive 63-bit integer for ``pg_try_advisory_xact_lock``."""
     digest = hashlib.sha256(payload.encode("utf-8")).digest()
     return int.from_bytes(digest[:8], "big") & 0x7FFF_FFFF_FFFF_FFFF
@@ -94,7 +96,7 @@ async def run_job(
 
     async with SessionLocal() as db:
         locked = await db.scalar(
-            select(func.pg_try_advisory_xact_lock(_lock_key(f"{job_key}:{slot.isoformat()}")))
+            select(func.pg_try_advisory_xact_lock(lock_key(f"{job_key}:{slot.isoformat()}")))
         )
         if not locked:
             logger.info("Job %s, slot %s: claimed by another worker", job_key, slot.isoformat())
@@ -179,6 +181,20 @@ async def _run_housekeeping() -> None:
     await run_job(JOB_HOUSEKEEPING, housekeeping)
 
 
+async def run_ga4(*, manual: bool = False) -> bool:
+    # Imported here because the service uses the job helpers in this module.
+    from app.services.ga4 import fetch_website_views
+
+    async def job() -> JobResult:
+        return await fetch_website_views(manual=manual)
+
+    return await run_job(JOB_GA4_MANUAL if manual else JOB_GA4, job)
+
+
+async def _run_ga4() -> None:
+    await run_ga4()
+
+
 async def _run_scheduler_test(interval: int) -> None:
     await run_job(JOB_SCHEDULER_TEST, scheduler_test_job, slot_seconds=interval)
 
@@ -205,6 +221,14 @@ async def start_scheduler() -> None:
         _run_housekeeping,
         CronTrigger(hour=(settings.BACKUP_HOUR + 1) % 24, minute=0, timezone=timezone),
         id=JOB_HOUSEKEEPING,
+        **shared,
+    )
+    # After the backup, as the brief asks, and after housekeeping. It catches up by itself,
+    # so a night the Mac slept through costs nothing (R8.1.1).
+    scheduler.add_job(
+        _run_ga4,
+        CronTrigger(hour=(settings.BACKUP_HOUR + 1) % 24, minute=30, timezone=timezone),
+        id=JOB_GA4,
         **shared,
     )
     interval = settings.SCHEDULER_TEST_INTERVAL_SECONDS

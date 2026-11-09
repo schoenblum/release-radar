@@ -17,7 +17,14 @@ function formatSize(bytes: number): string {
     : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const KNOWN_JOBS = ["backup-nightly", "backup-manual", "housekeeping", "scheduler-test"] as const;
+const KNOWN_JOBS = [
+  "backup-nightly",
+  "backup-manual",
+  "housekeeping",
+  "ga4-website-views",
+  "ga4-website-views-manual",
+  "scheduler-test",
+] as const;
 
 function isKnownJob(key: string): key is (typeof KNOWN_JOBS)[number] {
   return (KNOWN_JOBS as readonly string[]).includes(key);

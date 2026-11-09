@@ -5,10 +5,13 @@ Stored states: ``value``, ``not_applicable``, ``missing``. ``not_yet_due`` is co
 Rules run on every save of a release, so they apply however the release was changed.
 What a rule may do is deliberately narrow, so automation never overrides a person (P4, P5):
 
-- A number is never touched. If someone recorded a value and the rule now says the measure
-  does not apply, the value stays and the person can clear it.
+- A number a person entered is never touched. If someone recorded a value and the rule now
+  says the measure does not apply, the value stays and the person can clear it.
 - A rule moves a reading only between ``missing`` and a ``not_applicable`` that a rule set.
 - A ``not_applicable`` set by a person stays until a person changes it.
+- A number a job fetched (``source = auto``) belongs to the inputs it was fetched for: when
+  the page or the release date changes, it is cleared, so the next run fetches it again
+  (R8.1.1).
 """
 
 import uuid
@@ -31,6 +34,9 @@ SOURCE_MANUAL = "manual"
 
 # The release fields that any rule depends on. Saving anything else skips the rules.
 _RULE_INPUTS = ("doi", "ea_url", "embargoed", "release_date", "website_url")
+# Sources whose numbers a job fetches, and the release fields such a number was fetched for.
+FETCHED_SOURCES = frozenset({"ga4"})
+_FETCH_INPUTS = frozenset({"website_url", "release_date"})
 
 
 def _present(text: str | None) -> bool:
@@ -45,11 +51,15 @@ def _host(url: str) -> str:
         return ""
 
 
-def on_domain(release: Release, domain: str | None) -> bool:
+def url_on_domain(url: str | None, domain: str | None) -> bool:
     # Exact host: a parent domain or a sibling such as an older site does not count (D23).
-    if not _present(release.website_url) or not _present(domain):
+    if not _present(url) or not _present(domain):
         return False
-    return _host(release.website_url) == domain.strip().lower()
+    return _host(url) == domain.strip().lower()
+
+
+def on_domain(release: Release, domain: str | None) -> bool:
+    return url_on_domain(release.website_url, domain)
 
 
 def measure_applies(measure: Measure, release: Release, website_domain: str | None) -> bool:
@@ -81,7 +91,9 @@ def _next_state(reading: Reading, applies: bool) -> str | None:
     return None
 
 
-def _apply_rules(session: Session, release: Release, is_new: bool) -> None:
+def _apply_rules(
+    session: Session, release: Release, is_new: bool, changed: frozenset[str] = frozenset()
+) -> None:
     # The default ID is otherwise assigned only at insert, and readings need it now.
     if release.id is None:
         release.id = uuid.uuid4()
@@ -115,6 +127,17 @@ def _apply_rules(session: Session, release: Release, is_new: bool) -> None:
                 )
             )
             continue
+        if (
+            changed & _FETCH_INPUTS
+            and measure.source in FETCHED_SOURCES
+            and reading.state == STATE_VALUE
+            and reading.source == SOURCE_AUTO
+        ):
+            # Fetched for another page or other days: let the next run fetch it again.
+            reading.value = None
+            reading.state = STATE_MISSING if applies else STATE_NOT_APPLICABLE
+            reading.version += 1
+            continue
         next_state = _next_state(reading, applies)
         if next_state is not None:
             reading.state = next_state
@@ -125,19 +148,21 @@ def _apply_rules(session: Session, release: Release, is_new: bool) -> None:
 def apply_rules_to_changed_releases(session: Session) -> None:
     """Called before every flush. Creates readings and moves their states."""
     new = [obj for obj in session.new if isinstance(obj, Release)]
-    changed = [
-        obj
-        for obj in session.dirty
-        if isinstance(obj, Release)
-        and any(inspect(obj).attrs[name].history.has_changes() for name in _RULE_INPUTS)
-    ]
+    changed: list[tuple[Release, frozenset[str]]] = []
+    for obj in session.dirty:
+        if not isinstance(obj, Release):
+            continue
+        attrs = inspect(obj).attrs
+        inputs = frozenset(name for name in _RULE_INPUTS if attrs[name].history.has_changes())
+        if inputs:
+            changed.append((obj, inputs))
     if not new and not changed:
         return
     with session.no_autoflush:
         for release in new:
             _apply_rules(session, release, is_new=True)
-        for release in changed:
-            _apply_rules(session, release, is_new=False)
+        for release, inputs in changed:
+            _apply_rules(session, release, is_new=False, changed=inputs)
 
 
 def resync_institution(session: Session, institution_id: uuid.UUID) -> None:

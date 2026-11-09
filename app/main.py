@@ -20,6 +20,7 @@ from app.routers import (
     brand,
     custom_fields,
     data_export,
+    integrations,
     lists,
     release_export,
     releases,
@@ -122,6 +123,7 @@ app.include_router(writer_counts.router, prefix=API_PREFIX)
 app.include_router(workbook_import.router, prefix=API_PREFIX)
 app.include_router(custom_fields.router, prefix=API_PREFIX)
 app.include_router(data_export.router, prefix=API_PREFIX)
+app.include_router(integrations.router, prefix=API_PREFIX)
 app.include_router(brand.api_router, prefix=API_PREFIX)
 app.include_router(brand.asset_router)
 

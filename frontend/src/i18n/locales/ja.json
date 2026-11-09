@@ -124,7 +124,15 @@
     "import_not_a_workbook": "このファイルは Excel ワークブック（.xlsx）として読み込めません。",
     "import_sheet_missing": "インポートに必要なシートがありません。",
     "import_column_missing": "インポートに必要な列がありません。",
-    "import_owner_unknown": "選択した所有者はユーザーではなくなっています。もう一度選んでください。"
+    "import_owner_unknown": "選択した所有者はユーザーではなくなっています。もう一度選んでください。",
+    "ga4_key_not_json": "JSON 形式のキーではありません。Google Cloud でダウンロードした .json ファイルを選んでください。",
+    "ga4_key_not_service_account": "サービスアカウントのキーではありません。Google Cloud の IAM と管理 → サービスアカウント → キー で作成してください。",
+    "ga4_key_incomplete": "キーファイルにアドレスまたは秘密鍵がありません。新しいキーをダウンロードしてください。",
+    "ga4_key_bad_private_key": "ファイル内の秘密鍵を読み取れません。新しいキーをダウンロードしてください。",
+    "ga4_property_digits": "プロパティ ID は数字のみです（例：123456789）。G- で始まるコードは測定 ID で、プロパティ ID ではありません。",
+    "ga4_no_key": "先にキーファイルを選んでください。",
+    "ga4_no_property": "先にプロパティ ID を入力してください。",
+    "ga4_key_unreadable": "保存されているキーは、この環境では読み取れません。キーファイルをもう一度選んでください。"
   },
   "common": {
     "saving": "保存中…",
@@ -188,7 +196,8 @@
       "researchers": "リリースに記載された研究者の一覧です。氏名の整理、識別子の追加、重複の統合、2 人分をまとめてしまったレコードの分割ができます。リリースは氏名ではなくレコードを参照しているため、統計には影響しません。",
       "form": "リリースの項目を調整します。名称変更、非表示、必須、並べ替え、独自項目の追加ができます。",
       "checkpoints": "リリースの前後で数値を収集する時点と、収集する数値を設定します。",
-      "data": "バックアップ、全データのエクスポート、自動処理の実行状況を確認できます。"
+      "data": "バックアップ、全データのエクスポート、自動処理の実行状況を確認できます。",
+      "integrations": "外部サービスとの連携です。キーは暗号化して保存し、二度と表示しません。"
     },
     "institution": {
       "name_en": "機関名（英語）",
@@ -327,6 +336,62 @@
       "remind_on_day": "当日",
       "remind_day_before": "前日"
     },
+    "integrations": {
+      "ga4": {
+        "title": "Google Analytics",
+        "help": "ウェブサイトの閲覧数は Google Analytics から取得します。{{domain}} 上の各リリースのページについて、リリース日から 28 日間の閲覧数です。毎日、夜間バックアップの後に、28 日間と処理期間の 2 日間が過ぎたリリースの数値を取得します。",
+        "help_no_domain": "ウェブサイトの閲覧数は Google Analytics から取得します。先に 設定 → 機関情報 でニュースサイトを設定してください。閲覧数はそのサイト上のリリースにのみ適用されます。",
+        "manual": "接続の手順",
+        "manual_heading": "Google Analytics に接続する",
+        "not_connected": "まだ接続されていません。",
+        "key_unreadable": "保存されているキーは、この環境では読み取れません。もう一度入力してください。",
+        "connected_as": "{{email}} のキーを保存済みです。",
+        "connected_as_project": "{{email}} のキーを保存済みです（Google Cloud プロジェクト {{project}}）。",
+        "key_choose": "サービスアカウントのキー（JSON ファイル）",
+        "key_replace": "キーを差し替える（JSON ファイル）",
+        "key_hint": "Google Cloud でダウンロードしたファイルです。暗号化して保存し、二度と表示しません。保存後はパスワードマネージャーに保管し、ダウンロードしたファイルは削除してください。",
+        "key_saved": "キーを保存しました。",
+        "key_removed": "キーを削除しました。",
+        "property": "プロパティ ID",
+        "property_hint": "数字のみ：Google Analytics → 管理 → プロパティの詳細",
+        "test_button": "接続をテスト",
+        "testing": "テスト中…",
+        "fetch_now": "今すぐ取得",
+        "fetch_started": "ウェブサイトの閲覧数を取得しています。完了するとこのページに結果が表示されます。",
+        "remove_key": "キーを削除",
+        "remove_question": "キーを削除しますか？取得済みの閲覧数は残ります。",
+        "last_tested": "最終テスト：{{when}}",
+        "google_said": "Google からのメッセージ：{{detail}}",
+        "test": {
+          "connected": "接続できました。{{date}} の {{host}} のページビューは {{views}} 件です。",
+          "connected_any_host": "接続できました。{{date}} のページビューは {{views}} 件です。",
+          "connected_no_views": "接続できましたが、{{date}} の {{host}} のページビューは 0 件でした。このプロパティが {{host}} のものか確認してください。",
+          "key_rejected": "Google がキーを拒否しました。Google Cloud で削除または無効化された可能性があります。新しいキーを作成して、ここで選択してください。",
+          "api_disabled": "このキーの Google Cloud プロジェクトで Google Analytics Data API が有効になっていません。API とサービス → ライブラリ で有効にしてから、もう一度テストしてください。",
+          "no_access": "サービスアカウントにこのプロパティへのアクセス権がありません。Google Analytics → 管理 → プロパティのアクセス管理 で、そのアドレスを閲覧者として追加し、プロパティ ID も確認してください。",
+          "wrong_property": "Google Analytics がこのプロパティ ID を受け付けません。管理 → プロパティの詳細 にある数字のみの ID です。",
+          "quota": "このプロパティの Google Analytics の割り当て量を使い切りました。1 時間後にもう一度お試しください。",
+          "unreachable": "Google に接続できませんでした。Release Radar を動かしているコンピューターのインターネット接続を確認してください。",
+          "google_error": "Google Analytics からエラーが返されました。"
+        },
+        "views_title": "ウェブサイトの閲覧数",
+        "schedule": "取得",
+        "schedule_daily": "毎日、夜間バックアップの後に取得します。初回取得：{{when}}",
+        "schedule_waiting": "毎日の取得は、最初に「今すぐ取得」を実行した後に始まります。最初の取得では、新しいウェブサイトの公開以降のすべてのリリースを取得します。",
+        "last_run": "前回の取得",
+        "running": "取得中…",
+        "never_run": "まだありません",
+        "counts": "リリース",
+        "counts_text": "Google Analytics の閲覧数あり {{fetched}} 件、取得待ち {{waiting}} 件、28 日間の期間中 {{open}} 件。",
+        "waiting_title": "閲覧数がまだないリリース",
+        "waiting_help": "28 日間と処理期間の 2 日間が過ぎましたが、閲覧数がありません。取得後もここに残る場合、そのページのアドレスについて Google Analytics にデータがありません。詳細画面でアドレスを確認してください。詳細画面で手入力した数値は、常に優先されます。",
+        "waiting_help_before": "28 日間と処理期間の 2 日間が過ぎています。「今すぐ取得」で取得します。",
+        "code": "コード",
+        "release": "リリース",
+        "release_date": "リリース日",
+        "page": "ページ"
+      }
+    },
     "data": {
       "backup_title": "バックアップ",
       "backup_latest": "最新のバックアップ",
@@ -348,6 +413,8 @@
         "backup-nightly": "夜間バックアップ",
         "backup-manual": "手動バックアップ",
         "housekeeping": "定期メンテナンス",
+        "ga4-website-views": "ウェブサイトの閲覧数（毎日）",
+        "ga4-website-views-manual": "ウェブサイトの閲覧数（今すぐ取得）",
         "scheduler-test": "スケジューラーのテスト"
       },
       "job": "処理",
@@ -564,6 +631,8 @@
       "missing": "数値の入力待ち",
       "not_yet_due": "入力時期前"
     },
+    "from_ga4": "Google Analytics から取得",
+    "typed_over_ga4": "手入力のため、自動取得では変更しません",
     "drawer_release": "リリース",
     "drawer_paper": "論文",
     "drawer_numbers": "数値",

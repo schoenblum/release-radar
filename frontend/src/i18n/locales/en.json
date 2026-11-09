@@ -124,7 +124,15 @@
     "import_not_a_workbook": "That file can't be read as an Excel workbook (.xlsx).",
     "import_sheet_missing": "A sheet the import needs is missing.",
     "import_column_missing": "A column the import needs is missing.",
-    "import_owner_unknown": "A chosen owner is not a user here any more. Please choose again."
+    "import_owner_unknown": "A chosen owner is not a user here any more. Please choose again.",
+    "ga4_key_not_json": "That file isn't a JSON key. Choose the .json file Google Cloud downloaded.",
+    "ga4_key_not_service_account": "That file isn't a service-account key. In Google Cloud, create the key under IAM & Admin → Service accounts → Keys.",
+    "ga4_key_incomplete": "That key file is missing its address or private key. Download a new key.",
+    "ga4_key_bad_private_key": "The private key in that file can't be read. Download a new key.",
+    "ga4_property_digits": "A property ID is digits only, for example 123456789. The G-… code is a measurement ID, not the property ID.",
+    "ga4_no_key": "Choose the key file first.",
+    "ga4_no_property": "Enter the property ID first.",
+    "ga4_key_unreadable": "The stored key cannot be read on this install; choose the key file again."
   },
   "common": {
     "saving": "Saving…",
@@ -188,7 +196,8 @@
       "researchers": "Everyone named on a release. Tidy up names, add identifiers, merge duplicates and split records that cover two people. Nothing here changes any statistics, because releases refer to the record and not the name.",
       "form": "Adapt the fields on a release: rename, hide, require or reorder them, or add your own.",
       "checkpoints": "The moments around a release when numbers are collected, and which numbers those are.",
-      "data": "Your backups, a full copy of your data, and what the automatic jobs have been doing."
+      "data": "Your backups, a full copy of your data, and what the automatic jobs have been doing.",
+      "integrations": "Connections to outside services. Keys are stored encrypted and never shown again."
     },
     "institution": {
       "name_en": "Name (English)",
@@ -327,6 +336,62 @@
       "remind_on_day": "On the day",
       "remind_day_before": "The day before"
     },
+    "integrations": {
+      "ga4": {
+        "title": "Google Analytics",
+        "help": "Website views come from Google Analytics: each release's page on {{domain}}, counted over its first 28 days. Every day after the nightly backup, Release Radar fetches the releases whose 28 days and 2 days' processing have passed.",
+        "help_no_domain": "Website views come from Google Analytics. Set your news website in Settings → Institution first: only releases on it have website views.",
+        "manual": "How to connect it, step by step",
+        "manual_heading": "Connect Google Analytics",
+        "not_connected": "Not connected yet.",
+        "key_unreadable": "The stored key cannot be read on this install; enter it again.",
+        "connected_as": "Key stored for {{email}}.",
+        "connected_as_project": "Key stored for {{email}} (Google Cloud project {{project}}).",
+        "key_choose": "Service-account key (JSON file)",
+        "key_replace": "Replace the key (JSON file)",
+        "key_hint": "The file Google Cloud downloaded. It is stored encrypted and never shown again. Afterwards, keep it in the password manager and delete the downloaded copy.",
+        "key_saved": "Key stored.",
+        "key_removed": "Key removed.",
+        "property": "Property ID",
+        "property_hint": "Digits only: Google Analytics → Admin → Property details.",
+        "test_button": "Test connection",
+        "testing": "Testing…",
+        "fetch_now": "Fetch now",
+        "fetch_started": "Fetching website views. This page shows the result when it's done.",
+        "remove_key": "Remove key",
+        "remove_question": "Remove the key? Website views already fetched stay.",
+        "last_tested": "Last tested {{when}}.",
+        "google_said": "Google's message: {{detail}}",
+        "test": {
+          "connected": "Connected. Google Analytics counted {{views}} page views on {{host}} on {{date}}.",
+          "connected_any_host": "Connected. Google Analytics counted {{views}} page views on {{date}}.",
+          "connected_no_views": "Connected, but Google Analytics counted no page views on {{host}} on {{date}}. Check that this property is the one for {{host}}.",
+          "key_rejected": "Google refused the key. It may have been deleted or disabled in Google Cloud: create a new key and choose it here.",
+          "api_disabled": "The Google Analytics Data API is not enabled in this key's Google Cloud project. Enable it under APIs & Services → Library, then test again.",
+          "no_access": "The service account has no access to this property. In Google Analytics → Admin → Property access management, add its address as Viewer, and check the property ID.",
+          "wrong_property": "Google Analytics does not accept this property ID. It is digits only, under Admin → Property details.",
+          "quota": "Google Analytics' quota for this property is used up for now. Try again in an hour.",
+          "unreachable": "Google could not be reached. Check the internet connection of the computer Release Radar runs on.",
+          "google_error": "Google Analytics answered with an error."
+        },
+        "views_title": "Website views",
+        "schedule": "Fetching",
+        "schedule_daily": "Every day, after the nightly backup. First fetched {{when}}.",
+        "schedule_waiting": "Daily fetches start after the first Fetch now. The first one fetches every release since the new website went live.",
+        "last_run": "Last fetch",
+        "running": "Fetching now…",
+        "never_run": "Not yet",
+        "counts": "Releases",
+        "counts_text": "{{fetched}} with website views from Google Analytics, {{waiting}} still waiting, {{open}} within their 28 days.",
+        "waiting_title": "Still without website views",
+        "waiting_help": "Their 28 days and 2 days' processing have passed, yet they have no website views. After a fetch, this means Google Analytics has no data for the page's address: check it in the record. A number entered by hand in the record always counts instead.",
+        "waiting_help_before": "Their 28 days and 2 days' processing have passed. Fetch now fetches them.",
+        "code": "Code",
+        "release": "Release",
+        "release_date": "Release date",
+        "page": "Page"
+      }
+    },
     "data": {
       "backup_title": "Backups",
       "backup_latest": "Latest backup",
@@ -348,6 +413,8 @@
         "backup-nightly": "Nightly backup",
         "backup-manual": "Backup on request",
         "housekeeping": "Housekeeping",
+        "ga4-website-views": "Website views (daily)",
+        "ga4-website-views-manual": "Website views (Fetch now)",
         "scheduler-test": "Scheduler test"
       },
       "job": "Job",
@@ -564,6 +631,8 @@
       "missing": "Waiting for a number",
       "not_yet_due": "Not yet due"
     },
+    "from_ga4": "from Google Analytics",
+    "typed_over_ga4": "entered by hand, so fetching leaves it alone",
     "drawer_release": "Release",
     "drawer_paper": "Paper",
     "drawer_numbers": "Numbers",

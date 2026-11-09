@@ -17,6 +17,7 @@ import CheckpointsSettings from "./pages/settings/Checkpoints";
 import DataSettings from "./pages/settings/Data";
 import FormSettings from "./pages/settings/Form";
 import InstitutionSettings from "./pages/settings/Institution";
+import IntegrationsSettings from "./pages/settings/Integrations";
 import ListsSettings from "./pages/settings/Lists";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import UsersSettings from "./pages/settings/Users";
@@ -109,6 +110,7 @@ export default function App() {
               <Route path="researchers" element={<Researchers />} />
               <Route path="form" element={<FormSettings />} />
               <Route path="checkpoints" element={<CheckpointsSettings />} />
+              <Route path="integrations" element={<IntegrationsSettings />} />
               <Route path="data" element={<DataSettings />} />
             </Route>
           </Route>

@@ -189,11 +189,17 @@ async def test_start_registers_the_jobs_in_the_institution_time_zone(monkeypatch
         assert set(jobs) == {
             scheduler.JOB_BACKUP,
             scheduler.JOB_HOUSEKEEPING,
+            scheduler.JOB_GA4,
             scheduler.JOB_SCHEDULER_TEST,
         }
         trigger = jobs[scheduler.JOB_BACKUP].trigger
         assert isinstance(trigger, CronTrigger)
         assert str(trigger.timezone) == "Asia/Tokyo"
+        # Website views after the backup and housekeeping (R8.1.1).
+        ga4 = jobs[scheduler.JOB_GA4].trigger
+        assert str(ga4.timezone) == "Asia/Tokyo"
+        assert str(ga4.fields[ga4.FIELD_NAMES.index("hour")]) == str(settings.BACKUP_HOUR + 1)
+        assert str(ga4.fields[ga4.FIELD_NAMES.index("minute")]) == "30"
     finally:
         await scheduler.stop_scheduler()
 

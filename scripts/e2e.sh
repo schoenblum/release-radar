@@ -20,7 +20,7 @@ trap finish EXIT
 
 compose down -v --remove-orphans >/dev/null 2>&1 || true
 compose build app
-compose up -d --wait db crossref app
+compose up -d --wait db crossref ga4 app
 status=0
 if [ "$#" -gt 0 ]; then
   compose run --rm tests sh -c "npm ci --no-audit --no-fund && npx tsc --noEmit && npx playwright test $*" || status=$?

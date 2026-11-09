@@ -5,6 +5,7 @@ from app import record_events  # noqa: F401
 from app.models.audit import AuditLog
 from app.models.custom_field import CoreFieldConfig, CustomField
 from app.models.institution import Institution
+from app.models.integration import Integration
 from app.models.lists import (
     ReleaseType,
     ResearchField,
@@ -25,6 +26,7 @@ __all__ = [
     "CustomField",
     "Institution",
     "ImportRun",
+    "Integration",
     "JobRun",
     "Measure",
     "PasswordResetToken",

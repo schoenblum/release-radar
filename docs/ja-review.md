@@ -744,3 +744,66 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:seed.release_type.reports_proceedings` | Reports and proceedings | 報告書・会議録 | pending |
 | `frontend:data.open` | Open | 開く | pending |
 | `frontend:data.open_link` | Open the {{field}} in a new tab | {{field}}を新しいタブで開く | pending |
+| `frontend:data.from_ga4` | from Google Analytics | Google Analytics から取得 | pending |
+| `frontend:data.typed_over_ga4` | entered by hand, so fetching leaves it alone | 手入力のため、自動取得では変更しません | pending |
+| `frontend:errors.ga4_key_bad_private_key` | The private key in that file can't be read. Download a new key. | ファイル内の秘密鍵を読み取れません。新しいキーをダウンロードしてください。 | pending |
+| `frontend:errors.ga4_key_incomplete` | That key file is missing its address or private key. Download a new key. | キーファイルにアドレスまたは秘密鍵がありません。新しいキーをダウンロードしてください。 | pending |
+| `frontend:errors.ga4_key_not_json` | That file isn't a JSON key. Choose the .json file Google Cloud downloaded. | JSON 形式のキーではありません。Google Cloud でダウンロードした .json ファイルを選んでください。 | pending |
+| `frontend:errors.ga4_key_not_service_account` | That file isn't a service-account key. In Google Cloud, create the key under IAM & Admin → Service accounts → Keys. | サービスアカウントのキーではありません。Google Cloud の IAM と管理 → サービスアカウント → キー で作成してください。 | pending |
+| `frontend:errors.ga4_key_unreadable` | The stored key cannot be read on this install; choose the key file again. | 保存されているキーは、この環境では読み取れません。キーファイルをもう一度選んでください。 | pending |
+| `frontend:errors.ga4_no_key` | Choose the key file first. | 先にキーファイルを選んでください。 | pending |
+| `frontend:errors.ga4_no_property` | Enter the property ID first. | 先にプロパティ ID を入力してください。 | pending |
+| `frontend:errors.ga4_property_digits` | A property ID is digits only, for example 123456789. The G-… code is a measurement ID, not the property ID. | プロパティ ID は数字のみです（例：123456789）。G- で始まるコードは測定 ID で、プロパティ ID ではありません。 | pending |
+| `frontend:settings.data.jobs.ga4-website-views` | Website views (daily) | ウェブサイトの閲覧数（毎日） | pending |
+| `frontend:settings.data.jobs.ga4-website-views-manual` | Website views (Fetch now) | ウェブサイトの閲覧数（今すぐ取得） | pending |
+| `frontend:settings.help.integrations` | Connections to outside services. Keys are stored encrypted and never shown again. | 外部サービスとの連携です。キーは暗号化して保存し、二度と表示しません。 | pending |
+| `frontend:settings.integrations.ga4.code` | Code | コード | pending |
+| `frontend:settings.integrations.ga4.connected_as` | Key stored for {{email}}. | {{email}} のキーを保存済みです。 | pending |
+| `frontend:settings.integrations.ga4.connected_as_project` | Key stored for {{email}} (Google Cloud project {{project}}). | {{email}} のキーを保存済みです（Google Cloud プロジェクト {{project}}）。 | pending |
+| `frontend:settings.integrations.ga4.counts` | Releases | リリース | pending |
+| `frontend:settings.integrations.ga4.counts_text` | {{fetched}} with website views from Google Analytics, {{waiting}} still waiting, {{open}} within their 28 days. | Google Analytics の閲覧数あり {{fetched}} 件、取得待ち {{waiting}} 件、28 日間の期間中 {{open}} 件。 | pending |
+| `frontend:settings.integrations.ga4.fetch_now` | Fetch now | 今すぐ取得 | pending |
+| `frontend:settings.integrations.ga4.fetch_started` | Fetching website views. This page shows the result when it's done. | ウェブサイトの閲覧数を取得しています。完了するとこのページに結果が表示されます。 | pending |
+| `frontend:settings.integrations.ga4.google_said` | Google's message: {{detail}} | Google からのメッセージ：{{detail}} | pending |
+| `frontend:settings.integrations.ga4.help` | Website views come from Google Analytics: each release's page on {{domain}}, counted over its first 28 days. Every day after the nightly backup, Release Radar fetches the releases whose 28 days and 2 days' processing have passed. | ウェブサイトの閲覧数は Google Analytics から取得します。{{domain}} 上の各リリースのページについて、リリース日から 28 日間の閲覧数です。毎日、夜間バックアップの後に、28 日間と処理期間の 2 日間が過ぎたリリースの数値を取得します。 | pending |
+| `frontend:settings.integrations.ga4.help_no_domain` | Website views come from Google Analytics. Set your news website in Settings → Institution first: only releases on it have website views. | ウェブサイトの閲覧数は Google Analytics から取得します。先に 設定 → 機関情報 でニュースサイトを設定してください。閲覧数はそのサイト上のリリースにのみ適用されます。 | pending |
+| `frontend:settings.integrations.ga4.key_choose` | Service-account key (JSON file) | サービスアカウントのキー（JSON ファイル） | pending |
+| `frontend:settings.integrations.ga4.key_hint` | The file Google Cloud downloaded. It is stored encrypted and never shown again. Afterwards, keep it in the password manager and delete the downloaded copy. | Google Cloud でダウンロードしたファイルです。暗号化して保存し、二度と表示しません。保存後はパスワードマネージャーに保管し、ダウンロードしたファイルは削除してください。 | pending |
+| `frontend:settings.integrations.ga4.key_removed` | Key removed. | キーを削除しました。 | pending |
+| `frontend:settings.integrations.ga4.key_replace` | Replace the key (JSON file) | キーを差し替える（JSON ファイル） | pending |
+| `frontend:settings.integrations.ga4.key_saved` | Key stored. | キーを保存しました。 | pending |
+| `frontend:settings.integrations.ga4.key_unreadable` | The stored key cannot be read on this install; enter it again. | 保存されているキーは、この環境では読み取れません。もう一度入力してください。 | pending |
+| `frontend:settings.integrations.ga4.last_run` | Last fetch | 前回の取得 | pending |
+| `frontend:settings.integrations.ga4.last_tested` | Last tested {{when}}. | 最終テスト：{{when}} | pending |
+| `frontend:settings.integrations.ga4.manual` | How to connect it, step by step | 接続の手順 | pending |
+| `frontend:settings.integrations.ga4.manual_heading` | Connect Google Analytics | Google Analytics に接続する | pending |
+| `frontend:settings.integrations.ga4.never_run` | Not yet | まだありません | pending |
+| `frontend:settings.integrations.ga4.not_connected` | Not connected yet. | まだ接続されていません。 | pending |
+| `frontend:settings.integrations.ga4.page` | Page | ページ | pending |
+| `frontend:settings.integrations.ga4.property` | Property ID | プロパティ ID | pending |
+| `frontend:settings.integrations.ga4.property_hint` | Digits only: Google Analytics → Admin → Property details. | 数字のみ：Google Analytics → 管理 → プロパティの詳細 | pending |
+| `frontend:settings.integrations.ga4.release` | Release | リリース | pending |
+| `frontend:settings.integrations.ga4.release_date` | Release date | リリース日 | pending |
+| `frontend:settings.integrations.ga4.remove_key` | Remove key | キーを削除 | pending |
+| `frontend:settings.integrations.ga4.remove_question` | Remove the key? Website views already fetched stay. | キーを削除しますか？取得済みの閲覧数は残ります。 | pending |
+| `frontend:settings.integrations.ga4.running` | Fetching now… | 取得中… | pending |
+| `frontend:settings.integrations.ga4.schedule` | Fetching | 取得 | pending |
+| `frontend:settings.integrations.ga4.schedule_daily` | Every day, after the nightly backup. First fetched {{when}}. | 毎日、夜間バックアップの後に取得します。初回取得：{{when}} | pending |
+| `frontend:settings.integrations.ga4.schedule_waiting` | Daily fetches start after the first Fetch now. The first one fetches every release since the new website went live. | 毎日の取得は、最初に「今すぐ取得」を実行した後に始まります。最初の取得では、新しいウェブサイトの公開以降のすべてのリリースを取得します。 | pending |
+| `frontend:settings.integrations.ga4.test.api_disabled` | The Google Analytics Data API is not enabled in this key's Google Cloud project. Enable it under APIs & Services → Library, then test again. | このキーの Google Cloud プロジェクトで Google Analytics Data API が有効になっていません。API とサービス → ライブラリ で有効にしてから、もう一度テストしてください。 | pending |
+| `frontend:settings.integrations.ga4.test.connected` | Connected. Google Analytics counted {{views}} page views on {{host}} on {{date}}. | 接続できました。{{date}} の {{host}} のページビューは {{views}} 件です。 | pending |
+| `frontend:settings.integrations.ga4.test.connected_any_host` | Connected. Google Analytics counted {{views}} page views on {{date}}. | 接続できました。{{date}} のページビューは {{views}} 件です。 | pending |
+| `frontend:settings.integrations.ga4.test.connected_no_views` | Connected, but Google Analytics counted no page views on {{host}} on {{date}}. Check that this property is the one for {{host}}. | 接続できましたが、{{date}} の {{host}} のページビューは 0 件でした。このプロパティが {{host}} のものか確認してください。 | pending |
+| `frontend:settings.integrations.ga4.test.google_error` | Google Analytics answered with an error. | Google Analytics からエラーが返されました。 | pending |
+| `frontend:settings.integrations.ga4.test.key_rejected` | Google refused the key. It may have been deleted or disabled in Google Cloud: create a new key and choose it here. | Google がキーを拒否しました。Google Cloud で削除または無効化された可能性があります。新しいキーを作成して、ここで選択してください。 | pending |
+| `frontend:settings.integrations.ga4.test.no_access` | The service account has no access to this property. In Google Analytics → Admin → Property access management, add its address as Viewer, and check the property ID. | サービスアカウントにこのプロパティへのアクセス権がありません。Google Analytics → 管理 → プロパティのアクセス管理 で、そのアドレスを閲覧者として追加し、プロパティ ID も確認してください。 | pending |
+| `frontend:settings.integrations.ga4.test.quota` | Google Analytics' quota for this property is used up for now. Try again in an hour. | このプロパティの Google Analytics の割り当て量を使い切りました。1 時間後にもう一度お試しください。 | pending |
+| `frontend:settings.integrations.ga4.test.unreachable` | Google could not be reached. Check the internet connection of the computer Release Radar runs on. | Google に接続できませんでした。Release Radar を動かしているコンピューターのインターネット接続を確認してください。 | pending |
+| `frontend:settings.integrations.ga4.test.wrong_property` | Google Analytics does not accept this property ID. It is digits only, under Admin → Property details. | Google Analytics がこのプロパティ ID を受け付けません。管理 → プロパティの詳細 にある数字のみの ID です。 | pending |
+| `frontend:settings.integrations.ga4.test_button` | Test connection | 接続をテスト | pending |
+| `frontend:settings.integrations.ga4.testing` | Testing… | テスト中… | pending |
+| `frontend:settings.integrations.ga4.title` | Google Analytics | Google Analytics | pending |
+| `frontend:settings.integrations.ga4.views_title` | Website views | ウェブサイトの閲覧数 | pending |
+| `frontend:settings.integrations.ga4.waiting_help` | Their 28 days and 2 days' processing have passed, yet they have no website views. After a fetch, this means Google Analytics has no data for the page's address: check it in the record. A number entered by hand in the record always counts instead. | 28 日間と処理期間の 2 日間が過ぎましたが、閲覧数がありません。取得後もここに残る場合、そのページのアドレスについて Google Analytics にデータがありません。詳細画面でアドレスを確認してください。詳細画面で手入力した数値は、常に優先されます。 | pending |
+| `frontend:settings.integrations.ga4.waiting_help_before` | Their 28 days and 2 days' processing have passed. Fetch now fetches them. | 28 日間と処理期間の 2 日間が過ぎています。「今すぐ取得」で取得します。 | pending |
+| `frontend:settings.integrations.ga4.waiting_title` | Still without website views | 閲覧数がまだないリリース | pending |

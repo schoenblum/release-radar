@@ -141,6 +141,8 @@ function ReadingRow({
   }
 
   const isNa = reading.display_state === "not_applicable";
+  // Fetched by a job (R8.1.1). A number typed here wins, and the job leaves it alone.
+  const fetched = measure.source === "ga4";
   return (
     <div className="drawer-reading">
       <Labelled id={id} label={label}>
@@ -161,6 +163,9 @@ function ReadingRow({
       <div className="drawer-reading-side">
         <p className="text-sm text-content-secondary">
           {t(`data.reading_states.${reading.display_state}`)}
+          {fetched && reading.state === "value"
+            ? ` · ${t(reading.source === "auto" ? "data.from_ga4" : "data.typed_over_ga4")}`
+            : ""}
           {reading.due_date ? ` · ${t("data.due_on", { date: reading.due_date })}` : ""}
         </p>
         {!locked &&

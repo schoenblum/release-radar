@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     # Crossref's works endpoint (step 1.4). Changed only by the end-to-end tests, which answer
     # with a stand-in so they never depend on Crossref being up.
     CROSSREF_API_URL: str = "https://api.crossref.org/works/"
+    # Google's token endpoint and the Analytics Data API (R8.1.1). Changed only by the
+    # end-to-end tests, for the same reason. The key file's own token_uri is not used, so an
+    # uploaded file cannot send the signed request anywhere else.
+    GOOGLE_TOKEN_URL: str = "https://oauth2.googleapis.com/token"  # noqa: S105 (an address)
+    GA4_API_URL: str = "https://analyticsdata.googleapis.com/v1beta/"
 
     SCHEDULER_ENABLED: bool = True
     # A positive value registers a no-op job at this interval, used only to

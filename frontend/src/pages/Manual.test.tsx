@@ -1,7 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { applyLanguage } from "../i18n";
+import i18n, { applyLanguage } from "../i18n";
 import english from "../manual/en.md?raw";
 import japanese from "../manual/ja.md?raw";
 import Manual, { headingId, sections } from "./Manual";
@@ -50,5 +50,15 @@ describe("the Manual", () => {
       "列をまとめて貼り付ける",
     );
     expect(headingId("28 日目の数値を入力する")).toBe("28-日目の数値を入力する");
+  });
+
+  it("has the section Settings → Integrations links to, in both languages", () => {
+    for (const [language, text] of [
+      ["en", english],
+      ["ja", japanese],
+    ] as const) {
+      const heading = i18n.getFixedT(language)("settings.integrations.ga4.manual_heading");
+      expect(sections(text).map((section) => section.title)).toContain(heading);
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { Children, isValidElement, type ReactNode } from "react";
+import { Children, isValidElement, useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import Markdown from "react-markdown";
 
@@ -47,6 +47,11 @@ const COMPONENTS = {
 export default function Manual() {
   const { t, i18n } = useTranslation();
   const text = i18n.language === "ja" ? japanese : english;
+  // A link from another page to one section, such as the one on Settings → Integrations.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash) document.getElementById(decodeURIComponent(hash))?.scrollIntoView();
+  }, [i18n.language]);
   const split = text.indexOf("\n## ");
   const intro = split < 0 ? text : text.slice(0, split);
   const body = split < 0 ? "" : text.slice(split + 1);

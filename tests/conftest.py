@@ -69,7 +69,7 @@ from app.config import get_settings  # noqa: E402
 from app.database import Base, SessionLocal, engine  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Institution, User, UserRole  # noqa: E402
-from app.services import crossref  # noqa: E402
+from app.services import crossref, ga4  # noqa: E402
 from app.services.security import hash_password  # noqa: E402
 from app.services.theme import load_theme  # noqa: E402
 
@@ -150,6 +150,12 @@ def crossref_answers(monkeypatch: pytest.MonkeyPatch) -> dict:
 
     monkeypatch.setattr(crossref, "_transport", httpx.MockTransport(answer))
     return answers
+
+
+@pytest.fixture(autouse=True)
+def _no_google(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The suite never reaches Google. ``tests/test_ga4.py`` puts a fake in its place."""
+    monkeypatch.setattr(ga4, "_transport", httpx.MockTransport(lambda request: httpx.Response(503)))
 
 
 @pytest_asyncio.fixture

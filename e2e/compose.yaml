@@ -1,6 +1,6 @@
-# End-to-end tests (step 1.9): the production image against a throwaway database, with a
-# stand-in for Crossref, driven by Playwright. Run with scripts/e2e.sh, never by hand on a
-# real database. Every value here is a public test value for this stack only.
+# End-to-end tests (step 1.9): the production image against a throwaway database, with
+# stand-ins for Crossref and Google Analytics, driven by Playwright. Run with scripts/e2e.sh,
+# never by hand on a real database. Every value here is a public test value for this stack only.
 name: release-radar-e2e
 
 services:
@@ -24,6 +24,13 @@ services:
     volumes:
       - ./crossref:/stub:ro
 
+  # Google's token endpoint and the Analytics Data API (phase 2, R8.1.1).
+  ga4:
+    image: python:3.12-alpine
+    command: python -I /stub/stub.py
+    volumes:
+      - ./ga4:/stub:ro
+
   app:
     build:
       context: ..
@@ -44,6 +51,8 @@ services:
       BACKUP_PASSPHRASE: ""
       BCRYPT_ROUNDS: "4"
       CROSSREF_API_URL: http://crossref:8080/works/
+      GOOGLE_TOKEN_URL: http://ga4:8081/token
+      GA4_API_URL: http://ga4:8081/v1beta/
       UVICORN_WORKERS: "2"
     volumes:
       - ../app/brand_default:/brand:ro
@@ -51,6 +60,8 @@ services:
       db:
         condition: service_healthy
       crossref:
+        condition: service_started
+      ga4:
         condition: service_started
     ports:
       # For looking at the stack in a browser while it runs. Nothing else listens here.
