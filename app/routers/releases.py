@@ -34,11 +34,15 @@ from app.models import (
     ReleaseType,
     Researcher,
     ResearchField,
+    SurveyItem,
+    SurveyResponse,
+    SurveyTemplate,
     Unit,
     User,
     UserRole,
     Writer,
 )
+from app.schemas.imports import FeedbackItemOut, FeedbackResponseOut
 from app.schemas.releases import (
     CrossrefRefetch,
     CrossrefRefetched,
@@ -854,6 +858,66 @@ async def restore_release(
     release.deleted_at = None
     await commit_unique(db)
     return await _present_one(db, institution, release)
+
+
+@router.get("/releases/{release_id}/feedback", response_model=list[FeedbackResponseOut])
+async def release_feedback(
+    release_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[FeedbackResponseOut]:
+    """The record's Researcher feedback section: each response, oldest first, with its
+    template's items to read the answers by. Office users only; names stay in the record."""
+    release = await _load(db, release_id, user.institution_id)
+    responses = list(
+        await db.scalars(
+            select(SurveyResponse)
+            .where(
+                SurveyResponse.release_id == release.id,
+                SurveyResponse.institution_id == user.institution_id,
+            )
+            .order_by(SurveyResponse.submitted_at.nulls_last(), SurveyResponse.created_at)
+        )
+    )
+    templates = {
+        template.id: template
+        for template in await db.scalars(
+            select(SurveyTemplate).where(
+                SurveyTemplate.id.in_({response.template_id for response in responses})
+            )
+        )
+    }
+    items: dict[UUID, list[FeedbackItemOut]] = defaultdict(list)
+    for item in await db.scalars(
+        select(SurveyItem)
+        .where(SurveyItem.template_id.in_(list(templates)))
+        .order_by(SurveyItem.position)
+    ):
+        items[item.template_id].append(
+            FeedbackItemOut(
+                key=item.key,
+                question=item.question,
+                kind=item.kind,
+                exclusive=item.exclusive,
+                external=item.external,
+                label_en=item.label_en,
+                label_ja=item.label_ja,
+            )
+        )
+    return [
+        FeedbackResponseOut(
+            id=response.id,
+            source=response.source,
+            template_name=templates[response.template_id].name_en,
+            submitted_at=response.submitted_at,
+            language=response.language,
+            respondent_name=response.respondent_name,
+            answers=response.answers,
+            other_texts=response.other_texts,
+            items=items[response.template_id],
+        )
+        for response in responses
+    ]
 
 
 @router.get("/releases/{release_id}/history", response_model=list[HistoryEntry])

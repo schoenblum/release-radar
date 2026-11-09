@@ -36,8 +36,20 @@ COUNT_ORDER = (
     "fields_new",
     "personal_fields_new",
     "trimmed",
+    # Researcher feedback (step 2.1).
+    "feedback_rows",
+    "feedback_skipped",
+    "feedback_already",
+    "feedback_new",
+    "feedback_linked",
+    "feedback_not_linked",
+    "feedback_releases",
+    "feedback_corrected",
+    "feedback_other_texts",
 )
 _LEVELS: tuple[Level, ...] = ("check", "dash", "info")
+# The sections each kind of import reports. Feedback has no dash rule.
+_SECTIONS: dict[str, tuple[Level, ...]] = {"workbook": _LEVELS, "feedback": ("check", "info")}
 _VALUE_LIMIT = 200
 
 
@@ -84,10 +96,14 @@ def _shown(value: Any) -> str | None:
 class Report:
     entries: list[Entry] = field(default_factory=list)
     counts: dict[str, int] = field(default_factory=dict)
+    # What was imported: "workbook" (step 1.8) or "feedback" (step 2.1).
+    kind: str = "workbook"
 
     @classmethod
-    def from_stored(cls, counts: dict[str, int], entries: list[dict[str, Any]]) -> "Report":
-        return cls(entries=[Entry(**entry) for entry in entries], counts=dict(counts))
+    def from_stored(
+        cls, counts: dict[str, int], entries: list[dict[str, Any]], kind: str = "workbook"
+    ) -> "Report":
+        return cls(entries=[Entry(**entry) for entry in entries], counts=dict(counts), kind=kind)
 
     def add(
         self,
@@ -140,9 +156,15 @@ class Report:
         return buffer.getvalue()
 
     def to_markdown(self, language: str, *, committed: bool, when: str, who: str) -> str:
+        prefix = "" if self.kind == "workbook" else f"{self.kind}_"
         lines = [
             "# "
-            + t(language, "import.md.title_commit" if committed else "import.md.title_dry_run"),
+            + t(
+                language,
+                f"import.md.{prefix}title_commit"
+                if committed
+                else f"import.md.{prefix}title_dry_run",
+            ),
             "",
             t(language, "import.md.made", when=when, who=who),
             "",
@@ -151,7 +173,7 @@ class Report:
         ]
         for label, number in self.summary(language):
             lines.append(f"- {label}: {number}")
-        for level in _LEVELS:
+        for level in _SECTIONS.get(self.kind, _LEVELS):
             chosen = [entry for entry in self.entries if entry.level == level]
             lines += ["", f"## {t(language, f'import.md.section_{level}')} ({len(chosen)})", ""]
             if not chosen:

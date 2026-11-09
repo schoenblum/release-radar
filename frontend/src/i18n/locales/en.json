@@ -407,6 +407,7 @@
       "export_json": "Download JSON",
       "export_xlsx": "Download Excel",
       "import_title": "Import the old workbook",
+      "feedback_title": "Import researcher feedback",
       "jobs_title": "Automatic jobs",
       "jobs_none": "Nothing has run yet.",
       "jobs": {
@@ -458,6 +459,13 @@
       "kind_check": "Check",
       "kind_import": "Import",
       "history_counts": "{{new}} new, {{updated}} updated, {{check}} to check"
+    },
+    "feedback": {
+      "help": "Brings in the researchers' answers from the Microsoft Forms survey: export the responses (Open results in Excel) and choose that file. Each response is linked to its release by the press release ID. Check first: a check changes nothing and lists what is worth a look. Importing a newer export later adds only the new responses.",
+      "file": "Microsoft Forms export (.xlsx)",
+      "levels": "To check: {{check}} · noted on reading: {{info}}",
+      "check_again": "The file changed since the check: check again first.",
+      "history_counts": "{{new}} new, {{already}} already imported, {{check}} to check"
     }
   },
   "researchers": {
@@ -692,7 +700,26 @@
     },
     "grid_keys": "Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record, and Cmd or Ctrl+Enter opens a link. From the first row, the up arrow reaches the column headings, where Enter sorts.",
     "open": "Open",
-    "open_link": "Open the {{field}} in a new tab"
+    "open_link": "Open the {{field}} in a new tab",
+    "feedback": {
+      "title": "Researcher feedback",
+      "no_responses": "No feedback yet.",
+      "not_answered": "Not answered",
+      "none": "None",
+      "other": "Other: {{text}}",
+      "language_en": "English",
+      "language_ja": "Japanese",
+      "imported": "imported from {{template}}",
+      "scale": "{{word}} ({{score}})",
+      "scale_1": "Strongly disagree",
+      "scale_2": "Disagree",
+      "scale_3": "Neither agree nor disagree",
+      "scale_4": "Agree",
+      "scale_5": "Strongly agree",
+      "activities": "Activities",
+      "inquiries": "Inquiries",
+      "comments": "Comments"
+    }
   },
   "writers": {
     "year": "Academic year",

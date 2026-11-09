@@ -51,7 +51,7 @@ function setup(answer?: (body: Record<string, unknown>) => Response, runs: unkno
   const posted: Record<string, unknown>[] = [];
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     if (url.endsWith("/users")) return json(USERS);
-    if (url.endsWith("/imports")) return json(runs);
+    if (url.includes("/imports?kind=")) return json(runs);
     if (url.includes("/report")) {
       return new Response("# Report", {
         headers: { "Content-Disposition": 'attachment; filename="release_radar_import_1.md"' },

@@ -407,6 +407,7 @@
       "export_json": "JSON をダウンロード",
       "export_xlsx": "Excel をダウンロード",
       "import_title": "既存のワークブックをインポート",
+      "feedback_title": "研究者アンケートをインポートする",
       "jobs_title": "自動処理",
       "jobs_none": "まだ実行されていません。",
       "jobs": {
@@ -458,6 +459,13 @@
       "kind_check": "確認",
       "kind_import": "インポート",
       "history_counts": "新規 {{new}} 件、更新 {{updated}} 件、要確認 {{check}} 件"
+    },
+    "feedback": {
+      "help": "Microsoft Forms のアンケートの研究者の回答を取り込みます。回答をエクスポートし（Excel で結果を開く）、そのファイルを選んでください。各回答は、プレスリリース ID でリリースに紐付けます。まず確認してください。確認では何も変更せず、確認が必要な点を一覧にします。後から新しいエクスポートをインポートすると、新しい回答だけが追加されます。",
+      "file": "Microsoft Forms のエクスポート（.xlsx）",
+      "levels": "確認が必要：{{check}} ・ 読み取り時の記録：{{info}}",
+      "check_again": "確認の後にファイルが変わりました。もう一度確認してください。",
+      "history_counts": "新規 {{new}} 件、インポート済み {{already}} 件、要確認 {{check}} 件"
     }
   },
   "researchers": {
@@ -692,7 +700,26 @@
     },
     "grid_keys": "矢印キーでセル間を移動します。入力するとセルの値を置き換え、Enter キーで編集します。Shift+Enter で詳細を、Cmd または Ctrl+Enter でリンクを開きます。先頭の行で上矢印キーを押すと列見出しに移動し、Enter キーで並べ替えます。",
     "open": "開く",
-    "open_link": "{{field}}を新しいタブで開く"
+    "open_link": "{{field}}を新しいタブで開く",
+    "feedback": {
+      "title": "研究者アンケート",
+      "no_responses": "まだ回答はありません。",
+      "not_answered": "未回答",
+      "none": "なし",
+      "other": "その他：{{text}}",
+      "language_en": "英語",
+      "language_ja": "日本語",
+      "imported": "{{template}} からインポート",
+      "scale": "{{word}}（{{score}}）",
+      "scale_1": "まったくそう思わない",
+      "scale_2": "そう思わない",
+      "scale_3": "どちらともいえない",
+      "scale_4": "そう思う",
+      "scale_5": "強くそう思う",
+      "activities": "活動",
+      "inquiries": "問い合わせ",
+      "comments": "コメント"
+    }
   },
   "writers": {
     "year": "年度",

@@ -59,7 +59,7 @@ def _key(text: Any) -> str:
     return text_of(text).casefold()
 
 
-def _open(content: bytes, label: str) -> Any:
+def open_workbook(content: bytes, label: str) -> Any:
     try:
         return load_workbook(io.BytesIO(content), data_only=True, read_only=False)
     except Exception as exc:  # openpyxl raises many kinds for a file that is not a workbook
@@ -75,7 +75,7 @@ class SourceRow:
 
 
 def release_rows(content: bytes) -> list[SourceRow]:
-    workbook = _open(content, "release_list")
+    workbook = open_workbook(content, "release_list")
     if RELEASE_SHEET not in workbook.sheetnames:
         raise WorkbookProblem("sheet_missing", sheet=RELEASE_SHEET)
     sheet = workbook[RELEASE_SHEET]
@@ -188,7 +188,7 @@ def _yes(value: Any) -> bool:
 
 
 def intake(content: bytes) -> Intake:
-    workbook = _open(content, "intake")
+    workbook = open_workbook(content, "intake")
     result = Intake()
     for row in _table(
         workbook,

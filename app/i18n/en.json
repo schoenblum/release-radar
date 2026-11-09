@@ -186,7 +186,22 @@
       "skipped_no_code": "No usable code: not imported.",
       "code_duplicate": "Row {first} has this code too: this release gets {new}.",
       "release_made_in_app": "A release made in the app already has this code: the workbook's values go into it.",
-      "number_shown_as_date": "A date in a number column, probably the number {number} formatted as a date: left as missing. Type the number in if that's right."
+      "number_shown_as_date": "A date in a number column, probably the number {number} formatted as a date: left as missing. Type the number in if that's right.",
+      "feedback_column_by_heading": "Read as {what}, by its heading.",
+      "feedback_column_by_content": "Read as {what}, by its content: its heading says nothing.",
+      "feedback_column_ignored": "Not used ({what}).",
+      "feedback_skipped_staff_test": "The office's own test response: not imported.",
+      "feedback_linked_by_url": "Linked to the release with this EurekAlert link.",
+      "feedback_reference_read_as": "Read as {release}.",
+      "feedback_not_linked": "No release has this ID: the response is kept without a release.",
+      "feedback_release_removed": "The release was removed in the app: the response is linked to it anyway.",
+      "feedback_other_text": "Written in “Other” ({question}): kept as text on the response.",
+      "feedback_none_with_others": "“None” ticked together with other answers ({question}): kept as given.",
+      "feedback_scale_unknown": "Not a point on the agreement scale: this statement is left unanswered.",
+      "feedback_language_unknown": "Unknown language: left empty.",
+      "feedback_corrected": "All three statements were “Strongly disagree”: corrected to “Strongly agree” (inverted scale, response {id}). The response's history shows both.",
+      "feedback_correction_not_needed": "Response {id} was to be corrected for an inverted scale, but its statements are not all “Strongly disagree”: left as given. Please check.",
+      "feedback_all_disagree": "All three statements are “Strongly disagree” (response {id}). An inverted scale, as with four earlier responses? Not corrected: please check."
     },
     "counts": {
       "releases_in_workbook": "Rows in the workbook",
@@ -208,7 +223,16 @@
       "dashes": "Numbers marked not applicable by a dash",
       "values": "Numbers imported",
       "trimmed": "Cells tidied (spaces, line breaks)",
-      "website_off_domain": "Releases whose website views don't apply"
+      "website_off_domain": "Releases whose website views don't apply",
+      "feedback_rows": "Responses in the file",
+      "feedback_skipped": "Rows not imported (test responses)",
+      "feedback_already": "Responses already imported, left as they are",
+      "feedback_new": "New responses",
+      "feedback_linked": "New responses linked to their release",
+      "feedback_not_linked": "New responses without a release",
+      "feedback_releases": "Releases with feedback",
+      "feedback_corrected": "Inverted scales corrected",
+      "feedback_other_texts": "Answers written in “Other”"
     },
     "columns": {
       "level": "Kind",
@@ -231,7 +255,9 @@
       "section_check": "Please check",
       "section_dash": "Dashes and N/A (the dash rule)",
       "section_info": "Changed on reading",
-      "none": "Nothing."
+      "none": "Nothing.",
+      "feedback_title_dry_run": "Researcher feedback import: dry run (nothing changed)",
+      "feedback_title_commit": "Researcher feedback import"
     }
   }
 }

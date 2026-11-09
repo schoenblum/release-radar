@@ -33,6 +33,14 @@ class WorkbookImportRequest(BaseModel):
     language: str = Field("en", pattern="^(en|ja)$")
 
 
+class FeedbackImportRequest(BaseModel):
+    """A Microsoft Forms export of the researcher feedback survey (R8.1.2)."""
+
+    file: UploadedFile
+    commit: bool = False
+    language: str = Field("en", pattern="^(en|ja)$")
+
+
 class ImportCount(BaseModel):
     label: str
     count: int
@@ -57,6 +65,8 @@ class ImportRunOut(BaseModel):
     """One check or import, as the history lists it."""
 
     id: UUID
+    # workbook or feedback.
+    kind: str
     created_at: datetime
     committed: bool
     file_names: list[str]
@@ -67,3 +77,28 @@ class ImportRunOut(BaseModel):
 
 
 ReportFormat = Literal["md", "csv"]
+ImportKind = Literal["workbook", "feedback"]
+
+
+class FeedbackItemOut(BaseModel):
+    key: str
+    question: str
+    kind: str
+    exclusive: bool
+    external: bool
+    label_en: str
+    label_ja: str | None
+
+
+class FeedbackResponseOut(BaseModel):
+    """One researcher's answers, for the record's Researcher feedback section (office only)."""
+
+    id: UUID
+    source: str
+    template_name: str
+    submitted_at: datetime | None
+    language: str | None
+    respondent_name: str | None
+    answers: dict
+    other_texts: dict
+    items: list[FeedbackItemOut]

@@ -186,7 +186,22 @@
       "skipped_no_code": "使えるコードがないため、インポートしていません。",
       "code_duplicate": "{first} 行目にも同じコードがあります。このリリースには {new} を付けました。",
       "release_made_in_app": "アプリで作成したリリースに同じコードがあります。ワークブックの値をそのリリースに入れます。",
-      "number_shown_as_date": "数値の列に日付があります。おそらく数値 {number} が日付の書式で表示されたものです。未入力のままにしました。正しければ数値を入力してください。"
+      "number_shown_as_date": "数値の列に日付があります。おそらく数値 {number} が日付の書式で表示されたものです。未入力のままにしました。正しければ数値を入力してください。",
+      "feedback_column_by_heading": "見出しから {what} として読み取りました。",
+      "feedback_column_by_content": "見出しに手がかりがないため、内容から {what} として読み取りました。",
+      "feedback_column_ignored": "使用しません（{what}）。",
+      "feedback_skipped_staff_test": "事務局のテスト回答のため、インポートしません。",
+      "feedback_linked_by_url": "この EurekAlert のリンクを持つリリースに紐付けました。",
+      "feedback_reference_read_as": "{release} として読み取りました。",
+      "feedback_not_linked": "この ID のリリースがありません。回答はリリースなしで保存します。",
+      "feedback_release_removed": "このリリースはアプリで削除されていますが、回答は紐付けました。",
+      "feedback_other_text": "「その他」に記入（{question}）：回答にテキストとして保存します。",
+      "feedback_none_with_others": "「なし」がほかの回答と一緒に選ばれています（{question}）：そのまま保存します。",
+      "feedback_scale_unknown": "評価の選択肢にない値のため、この項目は未回答とします。",
+      "feedback_language_unknown": "言語が不明のため、空欄にします。",
+      "feedback_corrected": "3 項目すべてが「まったくそう思わない」でした。「強くそう思う」に修正しました（評価の逆転、回答 {id}）。回答の履歴に両方が残ります。",
+      "feedback_correction_not_needed": "回答 {id} は評価の逆転として修正する予定でしたが、すべてが「まったくそう思わない」ではないため、そのままにしました。確認してください。",
+      "feedback_all_disagree": "3 項目すべてが「まったくそう思わない」です（回答 {id}）。以前の 4 件と同じく評価の逆転かもしれません。修正していないので、確認してください。"
     },
     "counts": {
       "releases_in_workbook": "ワークブックの行数",
@@ -208,7 +223,16 @@
       "dashes": "ダッシュで該当なしとした数値",
       "values": "取り込んだ数値",
       "trimmed": "整えたセル（空白、改行）",
-      "website_off_domain": "ウェブサイト閲覧数が該当なしのリリース"
+      "website_off_domain": "ウェブサイト閲覧数が該当なしのリリース",
+      "feedback_rows": "ファイル内の回答",
+      "feedback_skipped": "インポートしなかった行（テスト回答）",
+      "feedback_already": "インポート済みの回答（変更なし）",
+      "feedback_new": "新しい回答",
+      "feedback_linked": "リリースに紐付けた新しい回答",
+      "feedback_not_linked": "リリースのない新しい回答",
+      "feedback_releases": "アンケート回答のあるリリース",
+      "feedback_corrected": "逆向きの評価を修正した回答",
+      "feedback_other_texts": "「その他」に記入された回答"
     },
     "columns": {
       "level": "種類",
@@ -231,7 +255,9 @@
       "section_check": "要確認",
       "section_dash": "ダッシュと N/A（ダッシュのルール）",
       "section_info": "読み取り時の変換",
-      "none": "ありません。"
+      "none": "ありません。",
+      "feedback_title_dry_run": "研究者アンケートのインポート：確認（変更なし）",
+      "feedback_title_commit": "研究者アンケートのインポート"
     }
   }
 }

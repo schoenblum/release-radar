@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ApiError, http } from "../../api/client";
 import { errorMessage } from "../../api/errors";
 import type {
+  ImportKind,
   ImportRun,
   PersonalFieldOwners,
   UploadedFile,
@@ -22,7 +23,7 @@ const PERSONAL_FIELDS = [
 ] as const;
 type OwnerKey = (typeof PERSONAL_FIELDS)[number][0];
 
-async function encode(file: File): Promise<UploadedFile> {
+export async function encode(file: File): Promise<UploadedFile> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   let binary = "";
   // In pieces, as one call with every byte as an argument overflows the stack.
@@ -32,7 +33,7 @@ async function encode(file: File): Promise<UploadedFile> {
   return { name: file.name, content: btoa(binary) };
 }
 
-function save(text: string, name: string, type: string): void {
+export function save(text: string, name: string, type: string): void {
   // A byte-order mark, so Excel reads the Japanese in a CSV right.
   const body = type.startsWith("text/csv") ? `\uFEFF${text}` : text;
   const url = URL.createObjectURL(new Blob([body], { type }));
@@ -46,13 +47,13 @@ function save(text: string, name: string, type: string): void {
 }
 
 /** Every check and import so far, newest first, each with its report to download again. */
-function ImportHistory() {
+export function ImportHistory({ kind }: { kind: ImportKind }) {
   const { t, i18n } = useTranslation();
   const { timezone } = useBrand();
   const [error, setError] = useState<unknown>(null);
   const { data: runs = [] } = useQuery({
-    queryKey: ["imports"],
-    queryFn: () => http.get<ImportRun[]>("/imports"),
+    queryKey: ["imports", kind],
+    queryFn: () => http.get<ImportRun[]>(`/imports?kind=${kind}`),
   });
   if (runs.length === 0) return null;
   const language = i18n.language === "ja" ? "ja" : "en";
@@ -90,11 +91,17 @@ function ImportHistory() {
                 </td>
                 <td>{run.user_name ?? "—"}</td>
                 <td>
-                  {t("settings.import.history_counts", {
-                    new: run.counts.releases_new ?? 0,
-                    updated: run.counts.releases_updated ?? 0,
-                    check: run.levels.check ?? 0,
-                  })}
+                  {kind === "feedback"
+                    ? t("settings.feedback.history_counts", {
+                        new: run.counts.feedback_new ?? 0,
+                        already: run.counts.feedback_already ?? 0,
+                        check: run.levels.check ?? 0,
+                      })
+                    : t("settings.import.history_counts", {
+                        new: run.counts.releases_new ?? 0,
+                        updated: run.counts.releases_updated ?? 0,
+                        check: run.levels.check ?? 0,
+                      })}
                 </td>
                 <td className="whitespace-nowrap">
                   <button type="button" className="btn-small" onClick={() => download(run, "md")}>
@@ -118,7 +125,7 @@ function ImportHistory() {
   );
 }
 
-function FilePicker({
+export function FilePicker({
   id,
   label,
   file,
@@ -142,6 +149,78 @@ function FilePicker({
       />
       {file && <span className="sr-only">{file.name}</span>}
     </div>
+  );
+}
+
+/** What a check or an import did: the counts, the report to download, and Import after a check. */
+export function ImportResultView({
+  result,
+  levels,
+  canImport,
+  busy,
+  onImport,
+  checkAgain,
+}: {
+  result: WorkbookImportResult;
+  levels: string;
+  canImport: boolean;
+  busy: "check" | "import" | null;
+  onImport: () => void;
+  checkAgain: string;
+}) {
+  const { t } = useTranslation();
+  return (
+      <section className="mt-2xs" aria-live="polite">
+        <h4 className="mb-4xs font-semibold">
+          {result.committed ? t("settings.import.done") : t("settings.import.dry_run")}
+        </h4>
+        <dl className="grid gap-x-2xs gap-y-5xs sm:grid-cols-[18rem_auto]">
+          {result.summary.map((line) => (
+            <div key={line.label} className="contents">
+              <dt>{line.label}</dt>
+              <dd className="tabular-nums">{line.count}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4xs">{levels}</p>
+        <div className="mt-4xs flex flex-wrap items-center gap-4xs">
+          <button
+            type="button"
+            className="btn-small"
+            onClick={() => save(result.markdown, `${result.filename}.md`, "text/markdown")}
+          >
+            {t("settings.import.report_md")}
+          </button>
+          <button
+            type="button"
+            className="btn-small"
+            onClick={() =>
+              save(result.csv, `${result.filename}.csv`, "text/csv;charset=utf-8")
+            }
+          >
+            {t("settings.import.report_csv")}
+          </button>
+          <span className="text-sm text-content-secondary">{t("common.personal_data")}</span>
+        </div>
+        {!result.committed && (
+          <div className="mt-3xs">
+            <p className="notice-info mb-4xs">{t("settings.import.before_import")}</p>
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={!canImport || busy !== null}
+              onClick={onImport}
+            >
+              {busy === "import" ? t("settings.import.importing") : t("settings.import.import")}
+            </button>
+            {!canImport && busy === null && (
+              <p className="mt-5xs text-sm text-content-secondary">
+                {checkAgain}
+              </p>
+            )}
+          </div>
+        )}
+      </section>
   );
 }
 
@@ -272,65 +351,20 @@ export default function WorkbookImport() {
       )}
 
       {result && (
-        <section className="mt-2xs" aria-live="polite">
-          <h4 className="mb-4xs font-semibold">
-            {result.committed ? t("settings.import.done") : t("settings.import.dry_run")}
-          </h4>
-          <dl className="grid gap-x-2xs gap-y-5xs sm:grid-cols-[18rem_auto]">
-            {result.summary.map((line) => (
-              <div key={line.label} className="contents">
-                <dt>{line.label}</dt>
-                <dd className="tabular-nums">{line.count}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-4xs">
-            {t("settings.import.levels", {
-              check: result.levels.check ?? 0,
-              dash: result.levels.dash ?? 0,
-              info: result.levels.info ?? 0,
-            })}
-          </p>
-          <div className="mt-4xs flex flex-wrap items-center gap-4xs">
-            <button
-              type="button"
-              className="btn-small"
-              onClick={() => save(result.markdown, `${result.filename}.md`, "text/markdown")}
-            >
-              {t("settings.import.report_md")}
-            </button>
-            <button
-              type="button"
-              className="btn-small"
-              onClick={() =>
-                save(result.csv, `${result.filename}.csv`, "text/csv;charset=utf-8")
-              }
-            >
-              {t("settings.import.report_csv")}
-            </button>
-            <span className="text-sm text-content-secondary">{t("common.personal_data")}</span>
-          </div>
-          {!result.committed && (
-            <div className="mt-3xs">
-              <p className="notice-info mb-4xs">{t("settings.import.before_import")}</p>
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={!canImport || busy !== null}
-                onClick={() => void run(true)}
-              >
-                {busy === "import" ? t("settings.import.importing") : t("settings.import.import")}
-              </button>
-              {!canImport && busy === null && (
-                <p className="mt-5xs text-sm text-content-secondary">
-                  {t("settings.import.check_again")}
-                </p>
-              )}
-            </div>
-          )}
-        </section>
+        <ImportResultView
+          result={result}
+          levels={t("settings.import.levels", {
+            check: result.levels.check ?? 0,
+            dash: result.levels.dash ?? 0,
+            info: result.levels.info ?? 0,
+          })}
+          canImport={canImport}
+          busy={busy}
+          onImport={() => void run(true)}
+          checkAgain={t("settings.import.check_again")}
+        />
       )}
-      <ImportHistory />
+      <ImportHistory kind="workbook" />
     </div>
   );
 }

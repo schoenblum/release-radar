@@ -21,6 +21,7 @@ async def save_run(
     """Keep a run in its own transaction: after a check's rollback, or an import's commit."""
     run = ImportRun(
         institution_id=institution_id,
+        kind=report.kind,
         user_id=user_id,
         committed=committed,
         file_names=file_names,
@@ -33,4 +34,4 @@ async def save_run(
 
 
 def report_of(run: ImportRun) -> Report:
-    return Report.from_stored(run.counts, run.entries)
+    return Report.from_stored(run.counts, run.entries, run.kind)

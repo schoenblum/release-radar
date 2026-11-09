@@ -812,3 +812,52 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:data.inferred` | inferred | 推定 | pending |
 | `frontend:data.inferred_state` | Inferred 0: the paper was published on or after the release date, so it had no Altmetric score before the release. A number typed here replaces it. | 推定の 0：論文の公開日がリリース日以降のため、リリース前の Altmetric スコアはありません。ここに数値を入力すると置き換わります。 | pending |
 | `frontend:data.inferred_why` | Inferred 0: the paper was published on or after the release date, so it had no Altmetric score before the release. Type a number to replace it. | 推定の 0：論文の公開日がリリース日以降のため、リリース前の Altmetric スコアはありません。数値を入力すると置き換わります。 | pending |
+| `frontend:data.feedback.activities` | Activities | 活動 | pending |
+| `frontend:data.feedback.comments` | Comments | コメント | pending |
+| `frontend:data.feedback.imported` | imported from {{template}} | {{template}} からインポート | pending |
+| `frontend:data.feedback.inquiries` | Inquiries | 問い合わせ | pending |
+| `frontend:data.feedback.language_en` | English | 英語 | pending |
+| `frontend:data.feedback.language_ja` | Japanese | 日本語 | pending |
+| `frontend:data.feedback.no_responses` | No feedback yet. | まだ回答はありません。 | pending |
+| `frontend:data.feedback.none` | None | なし | pending |
+| `frontend:data.feedback.not_answered` | Not answered | 未回答 | pending |
+| `frontend:data.feedback.other` | Other: {{text}} | その他：{{text}} | pending |
+| `frontend:data.feedback.scale` | {{word}} ({{score}}) | {{word}}（{{score}}） | pending |
+| `frontend:data.feedback.scale_1` | Strongly disagree | まったくそう思わない | pending |
+| `frontend:data.feedback.scale_2` | Disagree | そう思わない | pending |
+| `frontend:data.feedback.scale_3` | Neither agree nor disagree | どちらともいえない | pending |
+| `frontend:data.feedback.scale_4` | Agree | そう思う | pending |
+| `frontend:data.feedback.scale_5` | Strongly agree | 強くそう思う | pending |
+| `frontend:data.feedback.title` | Researcher feedback | 研究者アンケート | pending |
+| `frontend:settings.data.feedback_title` | Import researcher feedback | 研究者アンケートをインポートする | pending |
+| `frontend:settings.feedback.check_again` | The file changed since the check: check again first. | 確認の後にファイルが変わりました。もう一度確認してください。 | pending |
+| `frontend:settings.feedback.file` | Microsoft Forms export (.xlsx) | Microsoft Forms のエクスポート（.xlsx） | pending |
+| `frontend:settings.feedback.help` | Brings in the researchers' answers from the Microsoft Forms survey: export the responses (Open results in Excel) and choose that file. Each response is linked to its release by the press release ID. Check first: a check changes nothing and lists what is worth a look. Importing a newer export later adds only the new responses. | Microsoft Forms のアンケートの研究者の回答を取り込みます。回答をエクスポートし（Excel で結果を開く）、そのファイルを選んでください。各回答は、プレスリリース ID でリリースに紐付けます。まず確認してください。確認では何も変更せず、確認が必要な点を一覧にします。後から新しいエクスポートをインポートすると、新しい回答だけが追加されます。 | pending |
+| `frontend:settings.feedback.history_counts` | {{new}} new, {{already}} already imported, {{check}} to check | 新規 {{new}} 件、インポート済み {{already}} 件、要確認 {{check}} 件 | pending |
+| `frontend:settings.feedback.levels` | To check: {{check}} · noted on reading: {{info}} | 確認が必要：{{check}} ・ 読み取り時の記録：{{info}} | pending |
+| `backend:import.counts.feedback_already` | Responses already imported, left as they are | インポート済みの回答（変更なし） | pending |
+| `backend:import.counts.feedback_corrected` | Inverted scales corrected | 逆向きの評価を修正した回答 | pending |
+| `backend:import.counts.feedback_linked` | New responses linked to their release | リリースに紐付けた新しい回答 | pending |
+| `backend:import.counts.feedback_new` | New responses | 新しい回答 | pending |
+| `backend:import.counts.feedback_not_linked` | New responses without a release | リリースのない新しい回答 | pending |
+| `backend:import.counts.feedback_other_texts` | Answers written in “Other” | 「その他」に記入された回答 | pending |
+| `backend:import.counts.feedback_releases` | Releases with feedback | アンケート回答のあるリリース | pending |
+| `backend:import.counts.feedback_rows` | Responses in the file | ファイル内の回答 | pending |
+| `backend:import.counts.feedback_skipped` | Rows not imported (test responses) | インポートしなかった行（テスト回答） | pending |
+| `backend:import.md.feedback_title_commit` | Researcher feedback import | 研究者アンケートのインポート | pending |
+| `backend:import.md.feedback_title_dry_run` | Researcher feedback import: dry run (nothing changed) | 研究者アンケートのインポート：確認（変更なし） | pending |
+| `backend:import.report.feedback_all_disagree` | All three statements are “Strongly disagree” (response {id}). An inverted scale, as with four earlier responses? Not corrected: please check. | 3 項目すべてが「まったくそう思わない」です（回答 {id}）。以前の 4 件と同じく評価の逆転かもしれません。修正していないので、確認してください。 | pending |
+| `backend:import.report.feedback_column_by_content` | Read as {what}, by its content: its heading says nothing. | 見出しに手がかりがないため、内容から {what} として読み取りました。 | pending |
+| `backend:import.report.feedback_column_by_heading` | Read as {what}, by its heading. | 見出しから {what} として読み取りました。 | pending |
+| `backend:import.report.feedback_column_ignored` | Not used ({what}). | 使用しません（{what}）。 | pending |
+| `backend:import.report.feedback_corrected` | All three statements were “Strongly disagree”: corrected to “Strongly agree” (inverted scale, response {id}). The response's history shows both. | 3 項目すべてが「まったくそう思わない」でした。「強くそう思う」に修正しました（評価の逆転、回答 {id}）。回答の履歴に両方が残ります。 | pending |
+| `backend:import.report.feedback_correction_not_needed` | Response {id} was to be corrected for an inverted scale, but its statements are not all “Strongly disagree”: left as given. Please check. | 回答 {id} は評価の逆転として修正する予定でしたが、すべてが「まったくそう思わない」ではないため、そのままにしました。確認してください。 | pending |
+| `backend:import.report.feedback_language_unknown` | Unknown language: left empty. | 言語が不明のため、空欄にします。 | pending |
+| `backend:import.report.feedback_linked_by_url` | Linked to the release with this EurekAlert link. | この EurekAlert のリンクを持つリリースに紐付けました。 | pending |
+| `backend:import.report.feedback_none_with_others` | “None” ticked together with other answers ({question}): kept as given. | 「なし」がほかの回答と一緒に選ばれています（{question}）：そのまま保存します。 | pending |
+| `backend:import.report.feedback_not_linked` | No release has this ID: the response is kept without a release. | この ID のリリースがありません。回答はリリースなしで保存します。 | pending |
+| `backend:import.report.feedback_other_text` | Written in “Other” ({question}): kept as text on the response. | 「その他」に記入（{question}）：回答にテキストとして保存します。 | pending |
+| `backend:import.report.feedback_reference_read_as` | Read as {release}. | {release} として読み取りました。 | pending |
+| `backend:import.report.feedback_release_removed` | The release was removed in the app: the response is linked to it anyway. | このリリースはアプリで削除されていますが、回答は紐付けました。 | pending |
+| `backend:import.report.feedback_scale_unknown` | Not a point on the agreement scale: this statement is left unanswered. | 評価の選択肢にない値のため、この項目は未回答とします。 | pending |
+| `backend:import.report.feedback_skipped_staff_test` | The office's own test response: not imported. | 事務局のテスト回答のため、インポートしません。 | pending |

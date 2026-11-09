@@ -59,7 +59,7 @@ If a colleague changed the same cell a moment before you, the cell says what the
 
 ### The full record
 
-Double-click any cell of a release, or press Shift+Enter, to open its full record beside the grid. On a phone or tablet, a tap opens it. The record shows every field, the paper's details, all the numbers with their notes, and the history of who changed what. **Open ↗** beside the DOI and the links opens their page. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
+Double-click any cell of a release, or press Shift+Enter, to open its full record beside the grid. On a phone or tablet, a tap opens it. The record shows every field, the paper's details, all the numbers with their notes, the researcher's feedback, and the history of who changed what. **Open ↗** beside the DOI and the links opens their page. To remove a release, use the button at the bottom. You can undo that straight away, and its code stays taken.
 
 ### Choose your columns
 
@@ -157,3 +157,11 @@ Then in **Settings → Integrations**:
 8. Click **Fetch now**. The first fetch collects every release since the new website went live. After that, Release Radar fetches by itself every day after the nightly backup, and a day the computer was off costs nothing.
 
 To check a number, open Google Analytics → Reports → Engagement → Pages and screens for the same 28 days and look up the page. A number typed into a release's record always counts instead, and fetching never changes it. When a release's page address or release date changes, its fetched number is cleared and fetched again. Releases whose 28 days have passed but which have no website views are listed under Integrations: usually the page address in the record needs a look.
+
+## Import researcher feedback
+
+*For admins.* The researchers' answers to the feedback survey come from Microsoft Forms until Release Radar has its own survey page. In Forms, open the survey → **Responses** → **Open results in Excel**, and save the file. Then in **Settings → Data**, under *Import researcher feedback*, choose it and click **Check**.
+
+The check changes nothing. Its report says which column was read as what (the inquiries question is headed just "1" in the export, so it is recognised by its answers), how each response was linked to its release by the press release ID (`AY2025-011` is read as AY2025-11, and an EurekAlert link finds its release), and what is worth a look: an ID no release has, an answer written in "Other", a response with all three statements at "Strongly disagree". Four early responses used the scale the wrong way round, and the import corrects exactly those four; the response's history shows the file's answer and the correction. A new response like that is only listed, for you to decide. Then click **Import**.
+
+Importing a newer export later is safe: each response is found again by the export's Id, so only new ones are added and imported ones stay as they are. The answers appear in each release's record under *Researcher feedback*, with the researcher's name. Names stay in the record: summary pages for researchers never show them.

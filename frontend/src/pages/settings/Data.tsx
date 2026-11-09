@@ -9,6 +9,7 @@ import { useBrand } from "../../brand";
 import { useToast } from "../../components/Toast";
 import { formatDateTime } from "../../dates";
 import { SectionHeader, SubHeading } from "./SettingsLayout";
+import FeedbackImport from "./FeedbackImport";
 import WorkbookImport from "./WorkbookImport";
 
 function formatSize(bytes: number): string {
@@ -129,6 +130,9 @@ export default function DataSettings() {
 
       <SubHeading>{t("settings.data.import_title")}</SubHeading>
       <WorkbookImport />
+
+      <SubHeading>{t("settings.data.feedback_title")}</SubHeading>
+      <FeedbackImport />
 
       <SubHeading>{t("settings.data.jobs_title")}</SubHeading>
       {runs && runs.length > 0 ? (

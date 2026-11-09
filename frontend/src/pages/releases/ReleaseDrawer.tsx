@@ -29,6 +29,7 @@ import {
 } from "./columns";
 import { GENDERS } from "./gender";
 import { normaliseDate } from "./parse";
+import ResearcherFeedback from "./ResearcherFeedback";
 import ResearcherPicker from "./ResearcherPicker";
 import { useReleaseActions, useReleaseHistory } from "./useReleaseData";
 
@@ -863,6 +864,7 @@ export default function ReleaseDrawer({
       {configs.some((c) => c.key === "notes") && (
         <Section title={labelOf("notes")}>{text("notes", "notes", { multiline: true })}</Section>
       )}
+      <ResearcherFeedback releaseId={release.id} />
       <History release={release} context={context} />
       {canEdit && (
         <div className="drawer-section">

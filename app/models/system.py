@@ -51,7 +51,8 @@ class JobRun(InstitutionScoped, Base):
 
 
 class ImportRun(InstitutionScoped, Base):
-    """One check or import of the old workbook (step 1.8), with its report.
+    """One check or import of the old workbook (step 1.8) or of researcher feedback (step 2.1),
+    with its report.
 
     The report is kept as entries, not as text, so it can be read later in either language.
     The files themselves are not kept: once imported, the data lives in Release Radar.
@@ -60,6 +61,10 @@ class ImportRun(InstitutionScoped, Base):
     __tablename__ = "import_runs"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # What was imported: the old workbook, or researcher feedback (step 2.1).
+    kind: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="workbook", server_default="workbook"
+    )
     user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=True
     )

@@ -568,12 +568,39 @@ export interface WorkbookImportResult {
 }
 
 /** One check or import, as the import history lists it. */
+export type ImportKind = "workbook" | "feedback";
+
 export interface ImportRun {
   id: string;
+  kind: ImportKind;
   created_at: string;
   committed: boolean;
   file_names: string[];
   user_name: string | null;
   counts: Record<string, number>;
   levels: Record<string, number>;
+}
+
+/** One item of a survey template (R11.1): a box, a statement on the 1–5 scale, or a text. */
+export interface FeedbackItem {
+  key: string;
+  question: "inquiries" | "activities" | "satisfaction" | "comments";
+  kind: "flag" | "scale" | "text";
+  exclusive: boolean;
+  external: boolean;
+  label_en: string;
+  label_ja: string | null;
+}
+
+/** One researcher's answers, for the record (office only, R8.1.2). */
+export interface FeedbackResponse {
+  id: string;
+  source: "legacy_import" | "survey";
+  template_name: string;
+  submitted_at: string | null;
+  language: "en" | "ja" | null;
+  respondent_name: string | null;
+  answers: Record<string, boolean | number | string>;
+  other_texts: Record<string, string>;
+  items: FeedbackItem[];
 }
