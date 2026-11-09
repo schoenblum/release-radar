@@ -33,6 +33,7 @@ from app.models import (
     Measure,
     Reading,
     Release,
+    ReleaseType,
     Researcher,
     ResearchField,
     Unit,
@@ -67,6 +68,7 @@ class Lookups:
     units: dict[UUID, Unit]
     fields: dict[UUID, ResearchField]
     writers: dict[UUID, Writer]
+    release_types: dict[UUID, ReleaseType]
     researchers: dict[UUID, Researcher]
     readings: dict[tuple[UUID, UUID], Reading]
     choices: dict[str, dict[str, str]]
@@ -125,6 +127,9 @@ def _core_value(key: str, release: Release, look: Lookups, start_month: int) -> 
         return (
             look.named(research_field.name_en, research_field.name_ja) if research_field else None
         )
+    if key == "release_type":
+        kind = look.release_types.get(release.release_type_id)
+        return look.named(kind.name_en, kind.name_ja) if kind else None
     if key in ("embargoed", "ea_top_page"):
         return _flag(bool(getattr(release, key)))
     if key == "release_time_et":
@@ -250,6 +255,12 @@ async def release_table(
             row.id: row
             for row in await db.scalars(
                 select(Writer).where(Writer.institution_id == institution.id)
+            )
+        },
+        release_types={
+            row.id: row
+            for row in await db.scalars(
+                select(ReleaseType).where(ReleaseType.institution_id == institution.id)
             )
         },
         researchers={

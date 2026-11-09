@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReleaseFilters, Writer } from "../../api/types";
 import { applyLanguage } from "../../i18n";
 import FilterBar from "./FilterBar";
-import { context, UNIT } from "./testing";
+import { context, coreFields, FEATURE, PAPER, RETIRED, UNIT } from "./testing";
 
 const WRITER: Writer = {
   id: "writer-1",
@@ -38,7 +38,7 @@ function Stateful() {
   );
 }
 
-function setup(filters: ReleaseFilters = {}, showWriter = true) {
+function setup(filters: ReleaseFilters = {}, showWriter = true, typeHidden = false) {
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
@@ -59,7 +59,11 @@ function setup(filters: ReleaseFilters = {}, showWriter = true) {
         filters={filters}
         years={[2026, 2025]}
         showWriter={showWriter}
-        context={context({ writers: [WRITER] })}
+        context={context({
+          writers: [WRITER],
+          releaseTypes: [PAPER, FEATURE, RETIRED],
+          coreFields: coreFields({ release_type: { hidden: typeHidden } }),
+        })}
         onChange={onChange}
         onClear={onClear}
       />
@@ -86,6 +90,27 @@ describe("the filters", () => {
     expect(onChange).toHaveBeenCalledWith("unit_id", UNIT.id);
     await user.selectOptions(screen.getByRole("combobox", { name: "Writer" }), "Any writer");
     expect(onChange).toHaveBeenLastCalledWith("writer_id", null);
+  });
+
+  it("offers every active type and releases without one, all of them by default", async () => {
+    const { onChange, user } = setup();
+    const kind = screen.getByRole("combobox", { name: "Release type" });
+    expect(kind).toHaveValue("");
+    expect(within(kind).getAllByRole("option").map((o) => o.textContent)).toEqual([
+      "Any type",
+      "Peer-reviewed publication",
+      "Feature story",
+      "No type",
+    ]);
+    await user.selectOptions(kind, "Feature story");
+    expect(onChange).toHaveBeenCalledWith("release_type_id", FEATURE.id);
+    await user.selectOptions(kind, "No type");
+    expect(onChange).toHaveBeenLastCalledWith("release_type_id", "none");
+  });
+
+  it("has no type filter where Settings hides the type", () => {
+    setup({}, true, true);
+    expect(screen.queryByRole("combobox", { name: "Release type" })).not.toBeInTheDocument();
   });
 
   it("years read as 年度 in Japanese", () => {

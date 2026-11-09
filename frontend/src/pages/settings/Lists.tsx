@@ -5,6 +5,8 @@ import { NavLink, useParams } from "react-router-dom";
 
 import { http } from "../../api/client";
 import type {
+  Institution,
+  ReleaseType,
   ResearchField,
   Unit,
   User,
@@ -18,7 +20,8 @@ import { SelectField, TextField, ToggleField } from "../../components/fields/Aut
 import { useFieldSaver } from "../../components/fields/useFieldSaver";
 import { SectionHeader, SubHeading } from "./SettingsLayout";
 
-const KINDS = ["units", "fields", "writers", "vocabularies"] as const;
+const KINDS = ["units", "fields", "writers", "release_types", "vocabularies"] as const;
+const INSTITUTION_KEY = ["settings", "institution"];
 const UNIT_TYPES = ["school", "institute", "center", "other"] as const;
 
 function useList<T>(kind: string) {
@@ -338,6 +341,133 @@ function Writers() {
   );
 }
 
+function ReleaseTypeRow({ kind }: { kind: ReleaseType }) {
+  const { t } = useTranslation();
+  const saver = useFieldSaver(`/lists/release_types/${kind.id}`, ["lists", "release_types"]);
+  const versions = kind.field_versions;
+  return (
+    <tr className={kind.is_active ? undefined : "opacity-60"}>
+      <td className="w-20">
+        <TextField
+          type="number"
+          label={t("settings.lists.position")}
+          value={kind.position}
+          version={versions.position}
+          save={saver("position")}
+        />
+      </td>
+      <td>
+        <TextField
+          label={t("settings.lists.name_en")}
+          value={kind.name_en}
+          version={versions.name_en}
+          save={saver("name_en")}
+        />
+      </td>
+      <td>
+        <TextField
+          label={t("settings.lists.name_ja")}
+          value={kind.name_ja}
+          version={versions.name_ja}
+          save={saver("name_ja")}
+        />
+      </td>
+      <td>
+        <TextField
+          label={t("settings.lists.aliases")}
+          value={kind.aliases.join(", ")}
+          version={versions.aliases}
+          save={async (value, version) => {
+            const result = await saver("aliases")(value, version);
+            return { ...result, value: (result.value as string[]).join(", ") };
+          }}
+        />
+      </td>
+      <td className="text-center">
+        <ToggleField
+          label={t("common.active")}
+          value={kind.is_active}
+          version={versions.is_active}
+          save={saver("is_active")}
+        />
+      </td>
+    </tr>
+  );
+}
+
+/** R6.4.1: EurekAlert's categories, and which one a new release starts as. */
+function ReleaseTypes() {
+  const { t, i18n } = useTranslation();
+  const { data } = useList<ReleaseType>("release_types");
+  const { data: institution } = useQuery({
+    queryKey: INSTITUTION_KEY,
+    queryFn: () => http.get<Institution>("/settings/institution"),
+  });
+  const saveInstitution = useFieldSaver("/settings/institution", INSTITUTION_KEY);
+  const add = useAdd("/lists/release_types", ["lists", "release_types"]);
+  const refresh = useRefresh(["lists", "release_types"]);
+  const rows = data ?? [];
+  const chosen = institution?.default_release_type_id ?? null;
+  return (
+    <>
+      <p className="mb-3xs max-w-3xl text-content-secondary">
+        {t("settings.lists.release_types_help")}
+      </p>
+      {institution && (
+        <div className="mb-2xs max-w-md">
+          <label className="field-label" htmlFor="default-release-type">
+            {t("settings.lists.default_release_type")}
+          </label>
+          <SelectField
+            id="default-release-type"
+            className="input"
+            label={t("settings.lists.default_release_type")}
+            value={chosen}
+            version={institution.field_versions.default_release_type_id}
+            save={saveInstitution("default_release_type_id")}
+            emptyLabel={t("settings.lists.no_default_release_type")}
+            hint={t("settings.lists.default_release_type_hint")}
+            options={rows
+              .filter((row) => row.is_active || row.id === chosen)
+              .map((row) => ({
+                value: row.id,
+                label: (i18n.language === "ja" && row.name_ja) || row.name_en,
+              }))}
+          />
+        </div>
+      )}
+      <CsvTools
+        exportPath="/lists/release_types/export"
+        importPath="/lists/release_types/import"
+        filename="release_types.csv"
+        onImported={refresh}
+      />
+      <div className="table-scroll">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>{t("settings.lists.position")}</th>
+              <th>{t("settings.lists.name_en")}</th>
+              <th>{t("settings.lists.name_ja")}</th>
+              <th>{t("settings.lists.aliases")}</th>
+              <th>{t("common.active")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((kind) => (
+              <ReleaseTypeRow key={kind.id} kind={kind} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <AddEntry
+        label={t("settings.lists.add_release_type")}
+        onAdd={(name) => add({ name_en: name })}
+      />
+    </>
+  );
+}
+
 function ItemRow({ item, vocabularyId }: { item: VocabularyItem; vocabularyId: string }) {
   const { t } = useTranslation();
   const saver = useFieldSaver(`/lists/vocabulary-items/${item.id}`, [
@@ -539,6 +669,7 @@ export default function ListsSettings() {
       {kind === "units" && <Units />}
       {kind === "fields" && <Fields />}
       {kind === "writers" && <Writers />}
+      {kind === "release_types" && <ReleaseTypes />}
       {kind === "vocabularies" && <Vocabularies />}
     </div>
   );

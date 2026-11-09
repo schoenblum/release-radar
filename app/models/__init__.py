@@ -5,7 +5,14 @@ from app import record_events  # noqa: F401
 from app.models.audit import AuditLog
 from app.models.custom_field import CoreFieldConfig, CustomField
 from app.models.institution import Institution
-from app.models.lists import ResearchField, Unit, Vocabulary, VocabularyItem, Writer
+from app.models.lists import (
+    ReleaseType,
+    ResearchField,
+    Unit,
+    Vocabulary,
+    VocabularyItem,
+    Writer,
+)
 from app.models.release import Checkpoint, Measure, Reading, Release
 from app.models.researcher import Researcher
 from app.models.system import ImportRun, JobRun, RateLimitHit
@@ -25,6 +32,7 @@ __all__ = [
     "Reading",
     "RefreshToken",
     "Release",
+    "ReleaseType",
     "ResearchField",
     "Researcher",
     "Unit",

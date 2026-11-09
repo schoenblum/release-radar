@@ -17,7 +17,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.deps import get_current_user
 from app.i18n import t
-from app.models import Institution, Release, Researcher, ResearchField, Unit, User, Writer
+from app.models import (
+    Institution,
+    Release,
+    ReleaseType,
+    Researcher,
+    ResearchField,
+    Unit,
+    User,
+    Writer,
+)
 from app.routers.releases import NEWEST_FIRST
 from app.schemas.releases import ReleaseExportFilters, ReleaseExportRequest
 from app.services import release_export, release_filters
@@ -41,6 +50,7 @@ def _filters(sent: ReleaseExportFilters | None) -> ReleaseFilters:
         unit_id=sent.unit_id,
         researcher_id=sent.researcher_id,
         writer_id=sent.writer_id,
+        release_type_id=sent.release_type_id,
         search=sent.q,
     )
 
@@ -61,11 +71,14 @@ async def _describe(
         (Unit, filters.unit_id, lambda row: named(row.name_en, row.name_ja)),
         (Researcher, filters.researcher_id, lambda row: named(row.name, row.name_ja)),
         (Writer, filters.writer_id, lambda row: named(row.display_name_en, row.display_name_ja)),
+        (ReleaseType, filters.release_type_id, lambda row: named(row.name_en, row.name_ja)),
     ]
     if filters.writer_id == release_filters.NO_WRITER:
         parts.append(t(language, "export.readme.no_writer"))
+    if filters.release_type_id == release_filters.NO_TYPE:
+        parts.append(t(language, "export.readme.no_release_type"))
     for model, wanted, label in lookups:
-        if wanted is None or wanted == release_filters.NO_WRITER:
+        if wanted is None or wanted in (release_filters.NO_WRITER, release_filters.NO_TYPE):
             continue
         row = await db.scalar(
             select(model).where(model.id == wanted, model.institution_id == institution.id)

@@ -31,6 +31,19 @@
       "hp_views_d28": "ウェブサイト閲覧数（28 日間）",
       "pickups_all": "ピックアップ数（全体）",
       "pickups_major": "ピックアップ数（主要メディア）"
+    },
+    "release_type": {
+      "peer_reviewed": "査読付き論文",
+      "reports_proceedings": "報告書・会議録",
+      "business": "ビジネスに関する発表",
+      "meeting": "会議の告知",
+      "grant_award": "助成・受賞の発表",
+      "book": "書籍の発表",
+      "multimedia": "マルチメディアリリース",
+      "media_advisory": "取材案内",
+      "feature": "特集記事",
+      "article_highlight": "論文ハイライト",
+      "press_summary": "プレスサマリー"
     }
   },
   "export": {
@@ -63,7 +76,8 @@
       "ea_top_page": "EurekAlert トップページ掲載",
       "ea_top_position": "トップページの掲載順",
       "notes": "メモ",
-      "academic_year": "年度"
+      "academic_year": "年度",
+      "release_type": "リリースの種類"
     },
     "values": {
       "not_applicable": "該当なし"
@@ -110,7 +124,8 @@
       "year": "年度：その年度が始まる年の数字です。{year}年度は {first} から {last} までです。リリース日から求めています。",
       "code_year": "リリースコードは付いたときの年度のままです。あとで日付が動いても変わりません。",
       "colleagues": "括弧内に氏名のある列は、その人の個人項目です。",
-      "personal": "このファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。"
+      "personal": "このファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。",
+      "no_release_type": "種類なし"
     }
   },
   "writers_export": {

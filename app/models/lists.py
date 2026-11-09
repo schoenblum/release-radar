@@ -1,4 +1,4 @@
-"""The lists that releases refer to (BRIEF section 6.2). Names exist in EN and JA (R5.4.3)."""
+"""The lists that releases refer to (BRIEF sections 6.2, 6.4). Names exist in EN and JA (R5.4.3)."""
 
 import uuid
 
@@ -89,6 +89,24 @@ class VocabularyItem(Record, FieldVersioned, Base):
     key: Mapped[str] = mapped_column(String(64), nullable=False)
     label_en: Mapped[str] = mapped_column(String(255), nullable=False)
     label_ja: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    aliases: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+
+class ReleaseType(Record, FieldVersioned, Base):
+    """What kind of release it is, after EurekAlert's categories (R6.4.1).
+
+    Types stay apart in analysis (Phase 2). The built-in ones are seeded by key, which also
+    lets a file round-trip; an admin can rename, reorder or retire them, and add others.
+    """
+
+    __tablename__ = "release_types"
+    __table_args__ = (UniqueConstraint("institution_id", "key", name="uq_release_types_key"),)
+
+    key: Mapped[str] = mapped_column(String(64), nullable=False)
+    name_en: Mapped[str] = mapped_column(String(255), nullable=False)
+    name_ja: Mapped[str | None] = mapped_column(String(255), nullable=True)
     aliases: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)

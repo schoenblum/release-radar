@@ -9,6 +9,7 @@ import type {
   Measure,
   Reading,
   Release,
+  ReleaseType,
   ResearchField,
   Unit,
   VocabularyItem,
@@ -103,10 +104,13 @@ export interface GridContext {
   units: Unit[];
   fields: ResearchField[];
   writers: Writer[];
+  releaseTypes: ReleaseType[];
   vocabularyItems: Record<string, VocabularyItem[]>;
 }
 
-// R7.5.2, and the paper's date: it decides how soon a release is needed.
+// R7.5.2, the paper's date (it decides how soon a release is needed), and whatever analysis
+// tells releases apart by, so people see it and fill it in (Daniel, 2026-11-09): the field,
+// the type and the embargo, which decides whether embargoed views count.
 const DEFAULT_CORE = new Set([
   "code",
   "title",
@@ -114,8 +118,11 @@ const DEFAULT_CORE = new Set([
   "researcher",
   "researcher_gender",
   "unit",
+  "field",
+  "release_type",
   "doi",
   "publication_date",
+  "embargoed",
   "ea_top_page",
 ]);
 const PAPER_FIELDS = new Set(["doi", "journal", "paper_title", "publication_date", "authors"]);
@@ -127,6 +134,7 @@ const WIDTHS: Record<string, number> = {
   title: 320,
   title_ja: 280,
   release_date: 116,
+  release_type: 200,
   doi: 64,
   researcher_gender: 120,
   publication_date: 116,
@@ -214,6 +222,17 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
   const allFields: Option[] = context.fields.map((field) => ({
     value: field.id,
     label: named(language, field.name_en, field.name_ja),
+  }));
+  const releaseTypes: Option[] = context.releaseTypes
+    .filter((kind) => kind.is_active)
+    .map((kind) => ({
+      value: kind.id,
+      label: named(language, kind.name_en, kind.name_ja),
+      words: [kind.key, kind.name_en, kind.name_ja ?? "", ...kind.aliases],
+    }));
+  const allReleaseTypes: Option[] = context.releaseTypes.map((kind) => ({
+    value: kind.id,
+    label: named(language, kind.name_en, kind.name_ja),
   }));
   const allWriters: Option[] = context.writers.map((writer) => ({
     value: writer.id,
@@ -303,6 +322,13 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
         editor: "select",
         options: fields,
         view: (release) => viewOption(allFields, release.field_id),
+      };
+    case "release_type":
+      return {
+        field: "release_type_id",
+        editor: "select",
+        options: releaseTypes,
+        view: (release) => viewOption(allReleaseTypes, release.release_type_id),
       };
     case "publication_date":
     case "release_date":

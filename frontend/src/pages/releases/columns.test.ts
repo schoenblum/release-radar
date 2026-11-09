@@ -2,7 +2,18 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { applyLanguage } from "../../i18n";
 import { buildColumns, isVisible, toggleColumn, type GridColumn } from "./columns";
-import { context, coreFields, customField, measure, reading, release, UNIT } from "./testing";
+import {
+  context,
+  coreFields,
+  customField,
+  FEATURE,
+  measure,
+  PAPER,
+  reading,
+  release,
+  RETIRED,
+  UNIT,
+} from "./testing";
 
 const MEASURES = [
   measure("ea_views.d0", { position: 0 }),
@@ -24,11 +35,11 @@ function shown(columns: GridColumn[]): string[] {
 describe("which columns there are", () => {
   beforeEach(() => applyLanguage("en"));
 
-  it("shows the default columns of the brief, in its order", () => {
+  it("shows the default columns of the brief and what analysis tells apart, in order", () => {
     const columns = buildColumns(
       context({ measures: MEASURES, customFields: [customField("clicks")] }),
     );
-    // R7.5.2.
+    // R7.5.2, plus field, type and embargo (Daniel, 2026-11-09).
     expect(shown(columns)).toEqual([
       "code",
       "title",
@@ -36,14 +47,50 @@ describe("which columns there are", () => {
       "researcher",
       "researcher_gender",
       "unit",
+      "field",
+      "release_type",
       "doi",
       "publication_date",
       "measure:ea_views.d0",
       "measure:altmetric.d0",
       "measure:hp_views.d28",
+      "embargoed",
       "ea_top_page",
       "custom:clicks",
     ]);
+  });
+
+  it("offers the active release types and reads a name, an alias or the key", () => {
+    const columns = buildColumns(context({ releaseTypes: [PAPER, FEATURE, RETIRED] }));
+    const column = find(columns, "release_type");
+    expect(column.editor).toBe("select");
+    expect(column.options.map((option) => option.label)).toEqual([
+      "Peer-reviewed publication",
+      "Feature story",
+    ]);
+    const draft = release("1", { release_type_id: PAPER.id });
+    expect(column.view(draft).text).toBe("Peer-reviewed publication");
+    // A retired type still shows on the releases that have it.
+    expect(column.view(release("2", { release_type_id: RETIRED.id })).text).toBe(
+      "Book announcement",
+    );
+    for (const written of ["feature story", "FEATURE", "Feature story（日本語）"]) {
+      expect(column.parse(written, draft)).toEqual({
+        ok: true,
+        commit: { kind: "field", field: "release_type_id", value: FEATURE.id },
+      });
+    }
+    expect(column.parse("paper", draft)).toMatchObject({ ok: true });
+    expect(column.parse("Book announcement", draft)).toEqual({ ok: false, code: "field_invalid" });
+    expect(column.parse("", draft)).toEqual({
+      ok: true,
+      commit: { kind: "field", field: "release_type_id", value: null },
+    });
+    expect(column.snapshot(draft)).toEqual({
+      kind: "field",
+      field: "release_type_id",
+      value: PAPER.id,
+    });
   });
 
   it("puts the paper's date right after the DOI, wherever Settings puts either", () => {

@@ -31,6 +31,19 @@
       "hp_views_d28": "Website views, 28 days",
       "pickups_all": "Pickups, all",
       "pickups_major": "Pickups, major outlets"
+    },
+    "release_type": {
+      "peer_reviewed": "Peer-reviewed publication",
+      "reports_proceedings": "Reports and proceedings",
+      "business": "Business announcement",
+      "meeting": "Meeting announcement",
+      "grant_award": "Grant and award announcement",
+      "book": "Book announcement",
+      "multimedia": "Multimedia release",
+      "media_advisory": "Media advisory",
+      "feature": "Feature story",
+      "article_highlight": "Article highlight",
+      "press_summary": "Press summary"
     }
   },
   "export": {
@@ -63,7 +76,8 @@
       "ea_top_page": "EurekAlert top page",
       "ea_top_position": "Top page position",
       "notes": "Notes",
-      "academic_year": "Academic year"
+      "academic_year": "Academic year",
+      "release_type": "Release type"
     },
     "values": {
       "not_applicable": "N/A"
@@ -110,7 +124,8 @@
       "year": "Academic year: the year it begins in, so {year} runs from {first} to {last}. It comes from the release date.",
       "code_year": "A release code keeps the year it was given, even if the date moved later.",
       "colleagues": "A column with a name in brackets is that person's own field.",
-      "personal": "This file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need."
+      "personal": "This file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need.",
+      "no_release_type": "No release type"
     }
   },
   "writers_export": {

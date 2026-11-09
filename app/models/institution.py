@@ -1,7 +1,9 @@
 """The institution that owns all data. Exactly one row in v1 (R5.2.1)."""
 
-from sqlalchemy import BigInteger, CheckConstraint, Integer, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB
+import uuid
+
+from sqlalchemy import BigInteger, CheckConstraint, ForeignKey, Integer, String, Text, text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -54,4 +56,11 @@ class Institution(UuidKeyed, Timestamped, Audited, FieldVersioned, Base):
     )
     # Sent to Crossref as the polite contact (step 1.4). An office address, not a person's.
     contact_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # The type a new release starts with (R6.4.1). None: new releases start without one.
+    # Filled at the first seed, so an admin's later choice of none stays.
+    default_release_type_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("release_types.id", ondelete="RESTRICT", use_alter=True),
+        nullable=True,
+    )
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

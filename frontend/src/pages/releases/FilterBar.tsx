@@ -190,8 +190,9 @@ function Choose({
 }
 
 /**
- * Narrows the view (R7.6.1): year, field, unit, researcher, writer, and words anywhere. Each
- * choice is one click and goes into the address, so a view can be bookmarked.
+ * Narrows the view (R7.6.1): year, field, type, unit, researcher, writer, and words anywhere.
+ * Each choice is one click and goes into the address, so a view can be bookmarked. Every type
+ * shows by default: data entry needs them all, whatever analysis leaves out.
  */
 export default function FilterBar({
   filters,
@@ -217,6 +218,8 @@ export default function FilterBar({
   // A retired entry stays in the list only while it is chosen.
   const offered = <T extends { id: string; is_active: boolean }>(rows: T[], chosen?: string) =>
     rows.filter((row) => row.is_active || row.id === chosen);
+  // An institution that hides the type in Settings has no use for its filter either.
+  const showType = context.coreFields.some((row) => row.key === "release_type" && !row.hidden);
 
   return (
     <div className="filter-bar" role="search" aria-label={t("data.filters.label")}>
@@ -245,6 +248,21 @@ export default function FilterBar({
         }))}
         onChange={(value) => onChange("field_id", value)}
       />
+      {showType && (
+        <Choose
+          label={t("data.filters.release_type")}
+          anyLabel={t("data.filters.any_release_type")}
+          value={filters.release_type_id}
+          options={[
+            ...offered(context.releaseTypes, filters.release_type_id).map((row) => ({
+              value: row.id,
+              label: named(row.name_en, row.name_ja),
+            })),
+            { value: "none", label: t("data.filters.no_release_type") },
+          ]}
+          onChange={(value) => onChange("release_type_id", value)}
+        />
+      )}
       <Choose
         label={t("data.filters.unit")}
         anyLabel={t("data.filters.any_unit")}

@@ -716,3 +716,29 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.import.kind_check` | Check | 確認 | pending |
 | `frontend:settings.import.kind_import` | Import | インポート | pending |
 | `backend:export.readme.no_writer` | no writer yet | ライター未設定 | pending |
+| `frontend:data.filters.any_release_type` | Any type | すべての種類 | pending |
+| `frontend:data.filters.no_release_type` | No type | 種類未設定 | pending |
+| `frontend:data.filters.release_type` | Release type | リリースの種類 | pending |
+| `frontend:data.grid_keys` | Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record. From the first row, the up arrow reaches the column headings, where Enter sorts. | 矢印キーでセル間を移動します。入力するとセルの値を置き換え、Enter キーで編集します。Shift+Enter で詳細を開きます。先頭の行で上矢印キーを押すと列見出しに移動し、Enter キーで並べ替えます。 | pending |
+| `frontend:manual.contents` | On this page | このページの内容 | pending |
+| `frontend:release_fields.release_type` | Release type | リリースの種類 | pending |
+| `frontend:settings.lists.add_release_type` | Add a type | 種類を追加 | pending |
+| `frontend:settings.lists.default_release_type` | New releases start as | 新しいリリースの既定の種類 | pending |
+| `frontend:settings.lists.default_release_type_hint` | Imported releases too. Anyone can change a release's type afterwards. | インポートしたリリースにも適用されます。種類は後からいつでも変更できます。 | pending |
+| `frontend:settings.lists.kinds.release_types` | Release types | リリースの種類 | pending |
+| `frontend:settings.lists.no_default_release_type` | No type | 種類なし | pending |
+| `frontend:settings.lists.position` | Order | 順番 | pending |
+| `frontend:settings.lists.release_types_help` | What kind of release it is, after EurekAlert's categories. Analysis will keep the types apart, so each release should have the right one. | EurekAlert の分類に沿った、リリースの種類です。分析では種類ごとに分けて扱うため、各リリースに正しい種類を設定してください。 | pending |
+| `backend:export.fields.release_type` | Release type | リリースの種類 | pending |
+| `backend:export.readme.no_release_type` | No release type | 種類なし | pending |
+| `backend:seed.release_type.article_highlight` | Article highlight | 論文ハイライト | pending |
+| `backend:seed.release_type.book` | Book announcement | 書籍の発表 | pending |
+| `backend:seed.release_type.business` | Business announcement | ビジネスに関する発表 | pending |
+| `backend:seed.release_type.feature` | Feature story | 特集記事 | pending |
+| `backend:seed.release_type.grant_award` | Grant and award announcement | 助成・受賞の発表 | pending |
+| `backend:seed.release_type.media_advisory` | Media advisory | 取材案内 | pending |
+| `backend:seed.release_type.meeting` | Meeting announcement | 会議の告知 | pending |
+| `backend:seed.release_type.multimedia` | Multimedia release | マルチメディアリリース | pending |
+| `backend:seed.release_type.peer_reviewed` | Peer-reviewed publication | 査読付き論文 | pending |
+| `backend:seed.release_type.press_summary` | Press summary | プレスサマリー | pending |
+| `backend:seed.release_type.reports_proceedings` | Reports and proceedings | 報告書・会議録 | pending |

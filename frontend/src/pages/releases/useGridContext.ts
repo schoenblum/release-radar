@@ -8,6 +8,7 @@ import type {
   CoreField,
   CustomField,
   Measure,
+  ReleaseType,
   ResearchField,
   Unit,
   VocabularyItem,
@@ -39,6 +40,7 @@ export function useGridColumns(): { columns: GridColumn[] | null; context: GridC
   const units = useList<Unit>("/lists/units", ["lists", "units"]);
   const fields = useList<ResearchField>("/lists/fields", ["lists", "fields"]);
   const writers = useList<Writer>("/lists/writers", ["lists", "writers"]);
+  const releaseTypes = useList<ReleaseType>("/lists/release_types", ["lists", "release_types"]);
 
   const vocabularyIds = useMemo(
     () => [
@@ -64,7 +66,8 @@ export function useGridColumns(): { columns: GridColumn[] | null; context: GridC
       !customFields.data ||
       !units.data ||
       !fields.data ||
-      !writers.data
+      !writers.data ||
+      !releaseTypes.data
     ) {
       return null;
     }
@@ -81,6 +84,7 @@ export function useGridColumns(): { columns: GridColumn[] | null; context: GridC
       units: units.data,
       fields: fields.data,
       writers: writers.data,
+      releaseTypes: releaseTypes.data,
       vocabularyItems: Object.fromEntries(
         vocabularyIds.map((id, index) => [id, vocabularies[index]?.data ?? []]),
       ),
@@ -99,6 +103,7 @@ export function useGridColumns(): { columns: GridColumn[] | null; context: GridC
     units.data,
     fields.data,
     writers.data,
+    releaseTypes.data,
     vocabularyIds,
     vocabularyKey,
   ]);

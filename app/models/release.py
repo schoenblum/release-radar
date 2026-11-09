@@ -71,6 +71,13 @@ class Release(Record, FieldVersioned, Base):
         nullable=True,
         index=True,
     )
+    # R6.4.1. New releases start with the institution's default type, which may be none.
+    release_type_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("release_types.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     doi: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     journal: Mapped[str | None] = mapped_column(Text, nullable=True)
     paper_title: Mapped[str | None] = mapped_column(Text, nullable=True)

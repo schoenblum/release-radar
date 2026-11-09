@@ -45,6 +45,7 @@ from app.services.readings import (
     on_domain,
 )
 from app.services.release_codes import _numbering, academic_year, format_code
+from app.services.release_types import default_release_type_id
 from app.services.workbook_import import sheets
 from app.services.workbook_import.report import Report
 from app.services.workbook_import.values import (
@@ -500,8 +501,13 @@ class _Importer:
         is_new = release is None
         if release is None:
             # A release needs its title or DOI from the start (R7.5.6).
+            # R6.4.1: imported releases start as the institution's default type.
             release = Release(
-                institution_id=self.institution.id, code=code, title=title or None, doi=doi
+                institution_id=self.institution.id,
+                code=code,
+                title=title or None,
+                doi=doi,
+                release_type_id=await default_release_type_id(self.db, self.institution),
             )
             self.db.add(release)
             await self.db.flush()

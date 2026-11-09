@@ -238,7 +238,8 @@
         "units": "部局",
         "fields": "分野",
         "writers": "ライター",
-        "vocabularies": "語彙リスト"
+        "vocabularies": "語彙リスト",
+        "release_types": "リリースの種類"
       },
       "name_en": "名称（英語）",
       "name_ja": "名称（日本語）",
@@ -266,7 +267,13 @@
       "add_vocabulary": "語彙リストを追加",
       "add_item": "項目を追加",
       "show_items": "項目を表示",
-      "items_of": "「{{name}}」の項目"
+      "items_of": "「{{name}}」の項目",
+      "release_types_help": "EurekAlert の分類に沿った、リリースの種類です。分析では種類ごとに分けて扱うため、各リリースに正しい種類を設定してください。",
+      "default_release_type": "新しいリリースの既定の種類",
+      "no_default_release_type": "種類なし",
+      "default_release_type_hint": "インポートしたリリースにも適用されます。種類は後からいつでも変更できます。",
+      "position": "順番",
+      "add_release_type": "種類を追加"
     },
     "form": {
       "core_title": "標準項目",
@@ -490,7 +497,8 @@
     "website_url": "ウェブサイトのリンク",
     "ea_top_page": "EurekAlert トップページ掲載",
     "ea_top_position": "トップページの掲載順",
-    "notes": "メモ"
+    "notes": "メモ",
+    "release_type": "リリースの種類"
   },
   "data": {
     "views": {
@@ -591,7 +599,10 @@
       "researcher": "研究者",
       "researcher_placeholder": "すべての研究者",
       "clear_one": "「{{name}}」での絞り込みをやめる",
-      "clear": "絞り込みを解除"
+      "clear": "絞り込みを解除",
+      "release_type": "リリースの種類",
+      "any_release_type": "すべての種類",
+      "no_release_type": "種類未設定"
     },
     "export": {
       "button": "エクスポート",
@@ -606,7 +617,8 @@
       "personal_data": "ファイルには研究者の氏名などの個人情報が含まれます。オフィス内で扱い、不要になった複製は削除してください。",
       "download": "ダウンロード",
       "preparing": "準備中…"
-    }
+    },
+    "grid_keys": "矢印キーでセル間を移動します。入力するとセルの値を置き換え、Enter キーで編集します。Shift+Enter で詳細を開きます。先頭の行で上矢印キーを押すと列見出しに移動し、Enter キーで並べ替えます。"
   },
   "writers": {
     "year": "年度",
@@ -621,5 +633,8 @@
     "export_title": "件数をエクスポート",
     "export_xlsx": "Excel（「はじめにお読みください」シート付き）",
     "export_notice": "ファイルには同僚の氏名が含まれます。オフィス内で扱ってください。"
+  },
+  "manual": {
+    "contents": "このページの内容"
   }
 }

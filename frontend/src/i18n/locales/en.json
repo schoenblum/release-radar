@@ -238,7 +238,8 @@
         "units": "Units",
         "fields": "Fields",
         "writers": "Writers",
-        "vocabularies": "Vocabularies"
+        "vocabularies": "Vocabularies",
+        "release_types": "Release types"
       },
       "name_en": "Name (EN)",
       "name_ja": "Name (JA)",
@@ -266,7 +267,13 @@
       "add_vocabulary": "Add a vocabulary",
       "add_item": "Add an item",
       "show_items": "Show items",
-      "items_of": "Items in {{name}}"
+      "items_of": "Items in {{name}}",
+      "release_types_help": "What kind of release it is, after EurekAlert's categories. Analysis will keep the types apart, so each release should have the right one.",
+      "default_release_type": "New releases start as",
+      "no_default_release_type": "No type",
+      "default_release_type_hint": "Imported releases too. Anyone can change a release's type afterwards.",
+      "position": "Order",
+      "add_release_type": "Add a type"
     },
     "form": {
       "core_title": "Built-in fields",
@@ -490,7 +497,8 @@
     "website_url": "Website link",
     "ea_top_page": "EurekAlert top page",
     "ea_top_position": "Top page position",
-    "notes": "Notes"
+    "notes": "Notes",
+    "release_type": "Release type"
   },
   "data": {
     "views": {
@@ -591,7 +599,10 @@
       "researcher": "Researcher",
       "researcher_placeholder": "Any researcher",
       "clear_one": "Stop filtering by {{name}}",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "release_type": "Release type",
+      "any_release_type": "Any type",
+      "no_release_type": "No type"
     },
     "export": {
       "button": "Export",
@@ -606,7 +617,8 @@
       "personal_data": "The file contains personal data, such as researchers' names. Keep it within the office and delete copies you no longer need.",
       "download": "Download",
       "preparing": "Preparing…"
-    }
+    },
+    "grid_keys": "Arrow keys move between cells. Type to replace a cell, or press Enter to change it. Shift+Enter opens the full record. From the first row, the up arrow reaches the column headings, where Enter sorts."
   },
   "writers": {
     "year": "Academic year",
@@ -621,5 +633,8 @@
     "export_title": "Export the counts",
     "export_xlsx": "Excel, with a Read me sheet",
     "export_notice": "The file contains colleagues' names. Keep it within the office."
+  },
+  "manual": {
+    "contents": "On this page"
   }
 }

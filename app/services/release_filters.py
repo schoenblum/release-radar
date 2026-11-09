@@ -24,8 +24,9 @@ View = Literal["all", "mine"]
 _MAX_WORDS = 8
 
 
-# The writer filter's value for releases that have no writer yet.
+# The writer and type filters' value for releases that have none.
 NO_WRITER = "none"
+NO_TYPE = "none"
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,8 @@ class ReleaseFilters:
     researcher_id: UUID | None = None
     # "none": releases that have no writer yet.
     writer_id: UUID | Literal["none"] | None = None
+    # "none": releases that have no type.
+    release_type_id: UUID | Literal["none"] | None = None
     search: str | None = None
 
     @property
@@ -50,6 +53,7 @@ class ReleaseFilters:
                 self.unit_id,
                 self.researcher_id,
                 self.writer_id,
+                self.release_type_id,
             )
         ) or bool(search_words(self.search))
 
@@ -119,13 +123,16 @@ def conditions(
         where.append(Release.release_date < date(filters.academic_year + 1, start, 1))
     if filters.writer_id == NO_WRITER:
         where.append(Release.writer_id.is_(None))
+    if filters.release_type_id == NO_TYPE:
+        where.append(Release.release_type_id.is_(None))
     for column, value in (
         (Release.field_id, filters.field_id),
         (Release.unit_id, filters.unit_id),
         (Release.researcher_id, filters.researcher_id),
         (Release.writer_id, filters.writer_id),
+        (Release.release_type_id, filters.release_type_id),
     ):
-        if value is not None and value != NO_WRITER:
+        if value is not None and value not in (NO_WRITER, NO_TYPE):
             where.append(column == value)
     where.extend(_matches(word, institution.id) for word in search_words(filters.search))
     return where

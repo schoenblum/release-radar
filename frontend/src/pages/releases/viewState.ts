@@ -11,6 +11,7 @@ const IN_ADDRESS = {
   unit_id: "unit",
   researcher_id: "researcher",
   writer_id: "writer",
+  release_type_id: "type",
   q: "q",
 } as const satisfies Record<keyof ReleaseFilters, string>;
 

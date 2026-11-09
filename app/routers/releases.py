@@ -31,6 +31,7 @@ from app.models import (
     Measure,
     Reading,
     Release,
+    ReleaseType,
     Researcher,
     ResearchField,
     Unit,
@@ -83,6 +84,7 @@ from app.services.readings import (
 )
 from app.services.release_codes import academic_year, assign_code
 from app.services.release_filters import ReleaseFilters
+from app.services.release_types import default_release_type_id
 
 router = APIRouter(tags=["releases"])
 
@@ -104,6 +106,7 @@ _CORE_ATTRIBUTES = {
     "researcher": "researcher_id",
     "unit": "unit_id",
     "field": "field_id",
+    "release_type": "release_type_id",
 }
 _ATTRIBUTE_CORE = {attribute: key for key, attribute in _CORE_ATTRIBUTES.items()}
 
@@ -147,6 +150,7 @@ SPECS: dict[str, FieldSpec] = {
     "also_featured": field_patch.text(2000),
     "unit_id": field_patch.reference(Unit),
     "field_id": field_patch.reference(ResearchField),
+    "release_type_id": field_patch.reference(ReleaseType),
     "doi": FieldSpec(_parse_doi),
     "journal": field_patch.text(1000),
     "paper_title": field_patch.text(2000),
@@ -360,6 +364,7 @@ def filters_from_query(
     unit_id: UUID | None = Query(default=None),
     researcher_id: UUID | None = Query(default=None),
     writer_id: UUID | Literal["none"] | None = Query(default=None),
+    release_type_id: UUID | Literal["none"] | None = Query(default=None),
     q: str | None = Query(default=None, max_length=200),
 ) -> ReleaseFilters:
     return ReleaseFilters(
@@ -369,6 +374,7 @@ def filters_from_query(
         unit_id=unit_id,
         researcher_id=researcher_id,
         writer_id=writer_id,
+        release_type_id=release_type_id,
         search=q,
     )
 
@@ -535,7 +541,13 @@ async def create_release(
     writer_id = await db.scalar(
         select(Writer.id).where(Writer.institution_id == institution.id, Writer.user_id == user.id)
     )
-    release = Release(institution_id=institution.id, title=title, doi=doi, writer_id=writer_id)
+    release = Release(
+        institution_id=institution.id,
+        title=title,
+        doi=doi,
+        writer_id=writer_id,
+        release_type_id=await default_release_type_id(db, institution),
+    )
     if result is not None and result.paper is not None:
         for name in _PAPER_FIELDS:
             setattr(release, name, getattr(result.paper, name))

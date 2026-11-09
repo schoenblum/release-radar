@@ -1,4 +1,4 @@
-"""Built-in checkpoints, measures and core-field settings (BRIEF sections 6.5, 6.6).
+"""Built-in checkpoints, measures, release types and core-field settings (BRIEF 6.4–6.6).
 
 Seeding adds only what is absent, so it can run at every start without undoing what an
 admin has changed. Labels come from the message catalogue, so the JA drafts are tracked
@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.i18n import t
-from app.models import Checkpoint, CoreFieldConfig, Institution, Measure
+from app.models import Checkpoint, CoreFieldConfig, Institution, Measure, ReleaseType
 
 
 class MeasureSeed(NamedTuple):
@@ -39,6 +39,24 @@ MEASURES = (
     MeasureSeed("pickups_major", "pickups_major", None, "derived", "always", "count", False),
 )
 
+# EurekAlert's categories, in its order (R6.4.1; www.eurekalert.org/releaseguidelines,
+# checked 2026-11-09), each with EurekAlert's own wording as an alias, so a paste of it works.
+RELEASE_TYPES = (
+    ("peer_reviewed", ("Peer-reviewed publications", "Peer-reviewed", "Paper")),
+    ("reports_proceedings", ("Reports and proceedings", "Report", "Proceedings")),
+    ("business", ("Business announcements", "Business")),
+    ("meeting", ("Meeting announcements", "Meeting")),
+    ("grant_award", ("Grant and award announcements", "Grant", "Award")),
+    ("book", ("Book announcements", "Book")),
+    ("multimedia", ("Multimedia",)),
+    ("media_advisory", ("Advisory",)),
+    ("feature", ("Feature stories", "Feature")),
+    ("article_highlight", ("Article highlights",)),
+    ("press_summary", ("Press summaries",)),
+)
+# New and imported releases start as this, until an admin chooses another or none (R6.4.1).
+DEFAULT_RELEASE_TYPE = "peer_reviewed"
+
 # In their default order on forms.
 CORE_FIELDS = (
     "code",
@@ -51,6 +69,8 @@ CORE_FIELDS = (
     "also_featured",
     "unit",
     "field",
+    # What kind of release: types stay apart in analysis (R6.4.1).
+    "release_type",
     "doi",
     # Next to the DOI: when the paper came out decides how soon a release is needed.
     "publication_date",
@@ -117,6 +137,28 @@ async def seed_defaults(db: AsyncSession, institution: Institution) -> None:
                     is_active=seed.is_active,
                 )
             )
+
+    type_keys = set(
+        await db.scalars(
+            select(ReleaseType.key).where(ReleaseType.institution_id == institution_id)
+        )
+    )
+    for position, (key, aliases) in enumerate(RELEASE_TYPES):
+        if key in type_keys:
+            continue
+        release_type = ReleaseType(
+            institution_id=institution_id,
+            key=key,
+            name_en=t("en", f"seed.release_type.{key}"),
+            name_ja=t("ja", f"seed.release_type.{key}"),
+            aliases=list(aliases),
+            position=position,
+        )
+        db.add(release_type)
+        # Only when the default type is first made: an admin's later choice of none stays.
+        if key == DEFAULT_RELEASE_TYPE and institution.default_release_type_id is None:
+            await db.flush()
+            institution.default_release_type_id = release_type.id
 
     core_keys = set(
         await db.scalars(

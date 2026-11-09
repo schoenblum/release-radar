@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.deps import get_current_user, require_admin
-from app.models import Checkpoint, CoreFieldConfig, Institution, Measure
+from app.models import Checkpoint, CoreFieldConfig, Institution, Measure, ReleaseType
 from app.models.user import User
 from app.schemas.settings import (
     CheckpointOut,
@@ -99,6 +99,8 @@ INSTITUTION_SPECS: dict[str, FieldSpec] = {
     "release_code_pattern": FieldSpec(_parse_code_pattern),
     "landing_pages": FieldSpec(_parse_landing_pages),
     "contact_email": field_patch.email(),
+    # R6.4.1: what new releases start as; empty means they start with no type.
+    "default_release_type_id": field_patch.reference(ReleaseType),
 }
 CHECKPOINT_SPECS: dict[str, FieldSpec] = {
     "label_en": field_patch.text(required=True),

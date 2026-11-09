@@ -79,6 +79,20 @@ export interface Institution {
   release_code_pattern: string;
   landing_pages: Record<UserRole, LandingView>;
   contact_email: string | null;
+  /** What new releases start as (R6.4.1); null: they start without a type. */
+  default_release_type_id: string | null;
+  field_versions: FieldVersions;
+}
+
+/** What kind of release it is, after EurekAlert's categories (R6.4.1). */
+export interface ReleaseType {
+  id: string;
+  key: string;
+  name_en: string;
+  name_ja: string | null;
+  aliases: string[];
+  position: number;
+  is_active: boolean;
   field_versions: FieldVersions;
 }
 
@@ -332,6 +346,7 @@ export interface Release {
   also_featured: string | null;
   unit_id: string | null;
   field_id: string | null;
+  release_type_id: string | null;
   doi: string | null;
   journal: string | null;
   paper_title: string | null;
@@ -373,6 +388,8 @@ export interface ReleaseFilters {
   unit_id?: string;
   researcher_id?: string;
   writer_id?: string;
+  /** "none": releases without a type. */
+  release_type_id?: string;
   q?: string;
 }
 

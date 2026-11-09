@@ -702,3 +702,88 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
             await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
         finally:
             await connection.close()
+
+
+async def test_release_types_arrive_with_every_existing_release_peer_reviewed():
+    """0009 seeds the list for an existing install, sets the default, fills in every release
+    (removed ones too) and puts the field after the field (STEM/HSS) on forms."""
+    name = "release_radar_types_test"
+    url = _PARSED_URL.set(database=name).render_as_string(hide_password=False)
+    connection = await admin_connection()
+    try:
+        await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        await connection.execute(f'CREATE DATABASE "{name}"')
+    finally:
+        await connection.close()
+
+    import asyncpg
+
+    async def run(statement: str, *arguments):
+        database = await asyncpg.connect(
+            host=_PARSED_URL.host,
+            port=_PARSED_URL.port or 5432,
+            user=_PARSED_URL.username,
+            password=_PARSED_URL.password,
+            database=name,
+        )
+        try:
+            return await database.fetch(statement, *arguments)
+        finally:
+            await database.close()
+
+    try:
+        assert _alembic("upgrade", "0008", database_url=url).returncode == 0
+        institution = (
+            await run(
+                "INSERT INTO institutions (id, name_en, timezone, ay_start_month, settings) "
+                "VALUES (gen_random_uuid(), 'Existing', 'Asia/Tokyo', 4, '{}') RETURNING id"
+            )
+        )[0]["id"]
+        for position, key in enumerate(("code", "title", "unit", "field", "doi")):
+            await run(
+                "INSERT INTO core_field_configs (id, institution_id, key, hidden, required, "
+                "position) VALUES (gen_random_uuid(), $1, $2, false, false, $3)",
+                institution,
+                key,
+                position,
+            )
+        for title, removed in (("Kept", None), ("Removed", date(2026, 1, 1))):
+            await run(
+                "INSERT INTO releases (id, institution_id, title, authors, embargoed, "
+                "ea_top_page, custom_values, field_versions, deleted_at) VALUES "
+                "(gen_random_uuid(), $1, $2, '[]', false, false, '{}', '{}', $3)",
+                institution,
+                title,
+                removed,
+            )
+        upgraded = _alembic("upgrade", "head", database_url=url)
+        assert upgraded.returncode == 0, upgraded.stderr
+        types = await run("SELECT id, key FROM release_types ORDER BY position")
+        assert len(types) == 11
+        assert types[0]["key"] == "peer_reviewed"
+        default = (await run("SELECT default_release_type_id AS id FROM institutions"))[0]["id"]
+        assert default == types[0]["id"]
+        assert {row["t"] for row in await run("SELECT release_type_id AS t FROM releases")} == {
+            default
+        }
+        rows = await run("SELECT key, position FROM core_field_configs ORDER BY position")
+        assert [row["key"] for row in rows] == [
+            "code",
+            "title",
+            "unit",
+            "field",
+            "release_type",
+            "doi",
+        ]
+        assert [row["position"] for row in rows] == list(range(len(rows)))
+        assert _alembic("downgrade", "0008", database_url=url).returncode == 0
+        assert (await run("SELECT to_regclass('release_types') AS t"))[0]["t"] is None
+        assert "release_type" not in [
+            row["key"] for row in await run("SELECT key FROM core_field_configs")
+        ]
+    finally:
+        connection = await admin_connection()
+        try:
+            await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        finally:
+            await connection.close()

@@ -39,6 +39,7 @@ class ReleaseOut(BaseModel):
     also_featured: str | None
     unit_id: UUID | None
     field_id: UUID | None
+    release_type_id: UUID | None
     doi: str | None
     journal: str | None
     paper_title: str | None
@@ -182,6 +183,8 @@ class ReleaseExportFilters(BaseModel):
     researcher_id: UUID | None = None
     # "none": releases that have no writer yet.
     writer_id: UUID | Literal["none"] | None = None
+    # "none": releases that have no type.
+    release_type_id: UUID | Literal["none"] | None = None
     q: str | None = Field(default=None, max_length=200)
 
 

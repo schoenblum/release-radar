@@ -1,4 +1,4 @@
-"""List editors: units, fields, writers and vocabularies (R5.4.3, step 1.3).
+"""List editors: units, fields, writers, release types and vocabularies (R5.4.3, R6.4.1).
 
 Everyone signed in can read the lists, because the grid needs them. Only admins change
 them. Entries are retired by switching off "active", never deleted, as releases may
@@ -26,10 +26,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.deps import get_current_user, require_admin
-from app.models import ResearchField, Unit, User, Vocabulary, VocabularyItem, Writer
+from app.models import (
+    ReleaseType,
+    ResearchField,
+    Unit,
+    User,
+    Vocabulary,
+    VocabularyItem,
+    Writer,
+)
 from app.schemas.settings import (
     CreateEntry,
     CsvImport,
+    ReleaseTypeOut,
     ResearchFieldOut,
     UnitOut,
     VocabularyItemOut,
@@ -204,6 +213,24 @@ def _writer_row(writer: Writer, context: CsvContext) -> dict[str, str]:
     }
 
 
+def _type_row(kind: ReleaseType, _: CsvContext) -> dict[str, str]:
+    return {
+        "key": kind.key,
+        "name_en": kind.name_en,
+        "name_ja": kind.name_ja or "",
+        "aliases": ", ".join(kind.aliases),
+        "position": str(kind.position),
+        "active": _flag(kind.is_active),
+    }
+
+
+def _read_position(cell: str, _context: CsvContext, current: Any) -> int:
+    """An empty cell keeps the place, and a new entry goes last."""
+    if cell == "":
+        return current.position if current is not None else 100_000
+    return cell
+
+
 def _item_row(item: VocabularyItem, _: CsvContext) -> dict[str, str]:
     return {
         "key": item.key,
@@ -308,6 +335,30 @@ WRITERS = ListConfig(
     ),
     to_row=_writer_row,
 )
+RELEASE_TYPES = ListConfig(
+    model=ReleaseType,
+    out=ReleaseTypeOut,
+    specs={
+        "name_en": field_patch.text(required=True),
+        "name_ja": field_patch.text(),
+        "aliases": field_patch.string_list(),
+        "position": field_patch.integer(0, 100_000),
+        "is_active": field_patch.boolean(),
+    },
+    required=("name_en",),
+    order="position",
+    key_column="key",
+    key_attribute="key",
+    csv_columns=(
+        "key",
+        CsvColumn("name_en", "name_en", falls_back_to_key=True),
+        CsvColumn("name_ja", "name_ja"),
+        CsvColumn("aliases", "aliases"),
+        CsvColumn("position", "position", _read_position),
+        _ACTIVE_COLUMN,
+    ),
+    to_row=_type_row,
+)
 VOCABULARIES = ListConfig(
     model=Vocabulary,
     out=VocabularyOut,
@@ -342,7 +393,13 @@ VOCABULARY_ITEMS = ListConfig(
     ),
     to_row=_item_row,
 )
-CONFIGS = {"units": UNITS, "fields": FIELDS, "writers": WRITERS, "vocabularies": VOCABULARIES}
+CONFIGS = {
+    "units": UNITS,
+    "fields": FIELDS,
+    "writers": WRITERS,
+    "release_types": RELEASE_TYPES,
+    "vocabularies": VOCABULARIES,
+}
 
 
 def _config(kind: str) -> ListConfig:
@@ -633,8 +690,15 @@ async def _rows(db: AsyncSession, config: ListConfig, institution_id: UUID) -> l
 async def _new_entry(
     db: AsyncSession, config: ListConfig, institution_id: UUID, key: str, values: dict[str, Any]
 ) -> Any:
-    # Only these two keep a key apart from their name.
-    extra = {"key": key} if config.model in (Unit, Vocabulary) else {}
+    # Only these keep a key apart from their name.
+    extra = {"key": key} if config.model in (Unit, Vocabulary, ReleaseType) else {}
+    if config.model is ReleaseType and values.get("position", 100_000) == 100_000:
+        # Last, after the built-in ones.
+        values["position"] = 1 + await db.scalar(
+            select(func.coalesce(func.max(ReleaseType.position), -1)).where(
+                ReleaseType.institution_id == institution_id
+            )
+        )
     row = config.model(institution_id=institution_id, **extra, **values)
     db.add(row)
     return row
@@ -664,9 +728,9 @@ async def create_entry(
     if config.model is Unit:
         # What the workbook calls a unit. New units simply use their name.
         key = values["name_en"]
-    elif config.model is Vocabulary:
+    elif config.model in (Vocabulary, ReleaseType):
         key = await _unique_key(
-            db, Vocabulary, values["name_en"], Vocabulary.institution_id == institution_id
+            db, config.model, values["name_en"], config.model.institution_id == institution_id
         )
     row = await _new_entry(db, config, institution_id, key, values)
     await commit_unique(db)

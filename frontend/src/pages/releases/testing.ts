@@ -6,6 +6,7 @@ import type {
   Measure,
   Reading,
   Release,
+  ReleaseType,
   Unit,
 } from "../../api/types";
 import type { GridContext } from "./columns";
@@ -20,6 +21,7 @@ const CORE_KEYS = [
   "also_featured",
   "unit",
   "field",
+  "release_type",
   "doi",
   "publication_date",
   "journal",
@@ -34,6 +36,26 @@ const CORE_KEYS = [
   "ea_top_position",
   "notes",
 ];
+
+function releaseType(key: string, name: string, changes: Partial<ReleaseType> = {}): ReleaseType {
+  return {
+    id: `type-${key}`,
+    key,
+    name_en: name,
+    name_ja: `${name}（日本語）`,
+    aliases: [],
+    position: 0,
+    is_active: true,
+    field_versions: {},
+    ...changes,
+  };
+}
+
+export const PAPER = releaseType("peer_reviewed", "Peer-reviewed publication", {
+  aliases: ["Paper"],
+});
+export const FEATURE = releaseType("feature", "Feature story", { position: 1 });
+export const RETIRED = releaseType("book", "Book announcement", { position: 2, is_active: false });
 
 export function coreFields(changes: Partial<Record<string, Partial<CoreField>>> = {}): CoreField[] {
   return CORE_KEYS.map((key, position) => ({
@@ -140,6 +162,7 @@ export function release(id: string, changes: Partial<Release> = {}): Release {
     also_featured: null,
     unit_id: null,
     field_id: null,
+    release_type_id: null,
     doi: null,
     journal: null,
     paper_title: null,
@@ -179,6 +202,7 @@ export function context(changes: Partial<GridContext> = {}): GridContext {
     units: [UNIT],
     fields: [],
     writers: [],
+    releaseTypes: [],
     vocabularyItems: {},
     ...changes,
   };

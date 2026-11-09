@@ -21,6 +21,7 @@ class InstitutionOut(_Out):
     release_code_pattern: str
     landing_pages: dict[str, str]
     contact_email: str | None
+    default_release_type_id: UUID | None
     field_versions: dict[str, int]
 
 
@@ -71,6 +72,17 @@ class VocabularyItemOut(_Out):
     key: str
     label_en: str
     label_ja: str | None
+    aliases: list[str]
+    position: int
+    is_active: bool
+    field_versions: dict[str, int]
+
+
+class ReleaseTypeOut(_Out):
+    id: UUID
+    key: str
+    name_en: str
+    name_ja: str | None
     aliases: list[str]
     position: int
     is_active: bool

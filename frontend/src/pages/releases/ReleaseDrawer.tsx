@@ -41,6 +41,7 @@ const RELEASE_SECTION = new Set([
   "also_featured",
   "unit",
   "field",
+  "release_type",
   "embargoed",
   "release_date",
   "release_time_et",
@@ -335,14 +336,16 @@ function History({ release, context }: { release: Release; context: GridContext 
     context.units.forEach((u) => map.set(u.id, (isJa && u.name_ja) || u.name_en));
     context.fields.forEach((f) => map.set(f.id, (isJa && f.name_ja) || f.name_en));
     context.writers.forEach((w) => map.set(w.id, (isJa && w.display_name_ja) || w.display_name_en));
+    context.releaseTypes.forEach((r) => map.set(r.id, (isJa && r.name_ja) || r.name_en));
     return map;
-  }, [context.units, context.fields, context.writers, isJa]);
+  }, [context.units, context.fields, context.writers, context.releaseTypes, isJa]);
 
   const CORE_NAMES: Record<string, string> = {
     writer_id: "writer",
     researcher_id: "researcher",
     unit_id: "unit",
     field_id: "field",
+    release_type_id: "release_type",
   };
 
   function fieldLabel(entry: HistoryEntry): string {
@@ -654,6 +657,16 @@ export default function ReleaseDrawer({
           key,
           "field_id",
           context.fields.map((row) => ({
+            id: row.id,
+            label: (isJa && row.name_ja) || row.name_en,
+            active: row.is_active,
+          })),
+        );
+      case "release_type":
+        return select(
+          key,
+          "release_type_id",
+          context.releaseTypes.map((row) => ({
             id: row.id,
             label: (isJa && row.name_ja) || row.name_en,
             active: row.is_active,

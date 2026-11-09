@@ -220,9 +220,13 @@ async def test_readings_created_by_a_rule_are_stamped_with_whoever_saved_the_rel
 async def test_institution_changes_are_logged():
     async with SessionLocal() as db:
         institution = await db.scalar(select(Institution))
+    # The first seed chose the default release type, which is logged too.
+    before = {entry.id for entry in await _entries(institution.id, "update")}
+    async with SessionLocal() as db:
+        institution = await db.scalar(select(Institution))
         institution.contact_email = "office@example.org"
         await db.commit()
-    entries = await _entries(institution.id, "update")
+    entries = [e for e in await _entries(institution.id, "update") if e.id not in before]
     assert [(entry.field, entry.new_value) for entry in entries] == [
         ("contact_email", "office@example.org")
     ]
