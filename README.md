@@ -44,6 +44,14 @@ This runs the same checks as CI, inside the containers:
 sh scripts/check.sh
 ```
 
+The end-to-end tests drive the production image in Chromium and WebKit with Playwright,
+against a throwaway database and a stand-in for Crossref. They need nothing on the host but
+Docker, and remove what they start:
+
+```bash
+sh scripts/e2e.sh
+```
+
 ## Stack
 
 | Layer | Choice |
@@ -62,6 +70,7 @@ frontend/   Frontend: pages, components, translations, Manual
 ops/        Backup restore, lockout recovery, HTTPS proxy
 scripts/    Environment setup and checks
 tests/      Backend tests, which run against a real PostgreSQL
+e2e/        End-to-end tests (Playwright) and their Compose stack
 docs/       Japanese strings awaiting native-speaker review
 ```
 

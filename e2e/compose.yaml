@@ -1,0 +1,76 @@
+# End-to-end tests (step 1.9): the production image against a throwaway database, with a
+# stand-in for Crossref, driven by Playwright. Run with scripts/e2e.sh, never by hand on a
+# real database. Every value here is a public test value for this stack only.
+name: release-radar-e2e
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: e2e
+      POSTGRES_PASSWORD: e2e
+      POSTGRES_DB: release_radar_e2e
+    # Thrown away with the stack.
+    tmpfs: /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U e2e -d release_radar_e2e"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  crossref:
+    image: python:3.12-alpine
+    command: python -I /stub/stub.py
+    volumes:
+      - ./crossref:/stub:ro
+
+  app:
+    build:
+      context: ..
+      target: runtime
+    image: release-radar-e2e:latest
+    environment:
+      ENVIRONMENT: production
+      BASE_URL: http://localhost:8000
+      DATABASE_URL: postgresql+asyncpg://e2e:e2e@db:5432/release_radar_e2e
+      SECRET_KEY: e2e-only-not-a-secret-0123456789abcdef
+      FERNET_KEY: ZTJlLW9ubHktZmVybmV0LWtleS1ub3Qtc2VjcmV0ISE=
+      BOOTSTRAP_ADMIN_EMAIL: admin@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: e2e-bootstrap-password
+      INSTITUTION_NAME_EN: Example University
+      INSTITUTION_NAME_JA: 例大学
+      INSTITUTION_WEBSITE_DOMAIN: news.example.org
+      SCHEDULER_ENABLED: "false"
+      BACKUP_PASSPHRASE: ""
+      BCRYPT_ROUNDS: "4"
+      CROSSREF_API_URL: http://crossref:8080/works/
+      UVICORN_WORKERS: "2"
+    volumes:
+      - ../app/brand_default:/brand:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      crossref:
+        condition: service_started
+    ports:
+      # For looking at the stack in a browser while it runs. Nothing else listens here.
+      - "127.0.0.1:${E2E_PORT:-8098}:8000"
+
+  tests:
+    image: mcr.microsoft.com/playwright:v1.64.1-noble
+    # The app's own network, so pages run on localhost: a secure context, as in production.
+    network_mode: "service:app"
+    working_dir: /srv/e2e
+    environment:
+      BASE_URL: http://localhost:8000
+      CI: ${CI:-}
+    volumes:
+      - .:/srv/e2e
+      - e2e-node-modules:/srv/e2e/node_modules
+    command: sh -c "npm ci --no-audit --no-fund && npx tsc --noEmit && npx playwright test"
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  e2e-node-modules:

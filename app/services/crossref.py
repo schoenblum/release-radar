@@ -17,10 +17,10 @@ from urllib.parse import quote
 import httpx
 
 from app import __version__
+from app.config import get_settings
 
 logger = logging.getLogger("release-radar.crossref")
 
-API_URL = "https://api.crossref.org/works/"
 PROJECT_URL = "https://github.com/schoenblum/release-radar"
 FOUND = "found"
 NOT_FOUND = "not_found"
@@ -120,7 +120,7 @@ async def lookup(doi: str, contact_email: str | None) -> Lookup:
             follow_redirects=True,
             headers={"User-Agent": user_agent(contact_email)},
         ) as client:
-            response = await client.get(API_URL + quote(doi, safe=""))
+            response = await client.get(get_settings().CROSSREF_API_URL + quote(doi, safe=""))
         if response.status_code == httpx.codes.NOT_FOUND:
             return Lookup(NOT_FOUND)
         response.raise_for_status()

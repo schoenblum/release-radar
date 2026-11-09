@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     BACKUP_RETENTION_DAYS: int = 14
     BACKUP_HOUR: int = Field(default=3, ge=0, le=23)
 
+    # Crossref's works endpoint (step 1.4). Changed only by the end-to-end tests, which answer
+    # with a stand-in so they never depend on Crossref being up.
+    CROSSREF_API_URL: str = "https://api.crossref.org/works/"
+
     SCHEDULER_ENABLED: bool = True
     # A positive value registers a no-op job at this interval, used only to
     # verify single-firing after a deploy (see HANDOVER section 9).
