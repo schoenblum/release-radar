@@ -73,6 +73,10 @@ Click a column's heading to sort by it, again to reverse, and a third time to go
 
 What you choose is kept in the page's address, so you can bookmark a view, such as one unit's releases this year, or send the link to a colleague.
 
+### Positions
+
+In **All**, a small grey chip beside a number shows where it stands: its percentile among comparable releases, as the default score profile compares them (the same and the two previous academic years, among the releases the Analysis pages analyse). 73 means the release did better than about 73 % of them. Hover over the cell for the words. A release the Analysis pages leave out, such as a feature story, has no chips, and its numbers say so on hover; so does a number with too few others to compare with yet. **Positions** above the grid switches the chips off or on again, and Release Radar remembers your choice. They never go into an export.
+
 ## The Writers page
 
 **Writers** counts each writer's releases in each month of an academic year, by release date, with a total for every writer and every month. Choose the year at the top, or **All years** to see one column per academic year instead of per month. Everyone in the writers list has a row, and so does anyone who wrote that year and has left since. Releases without a writer have a row of their own. A release without a release date is counted once it has one.
@@ -80,6 +84,32 @@ What you choose is kept in the page's address, so you can bookmark a view, such 
 The page counts releases only, on purpose: how a release does depends mostly on its topic, not on who wrote it. The export on the Data page has every release with its writer, if you need more.
 
 Click a name to see that writer's releases of the year on the Data page. **Export** downloads the table as Excel or CSV.
+
+## Read the Analysis pages
+
+**Analysis** shows how the releases did in their first 28 days, compared with each other. It is for the office: guest pages for researchers never show any of it. **Overview** has a card per measure, each page after it ranks the releases by one measure, and **Top & bottom 5** lists the highest and lowest.
+
+### The two filters
+
+The bar at the top has two rows. **Analysed** decides which releases every number is computed from: the boxes, medians, ranks and percentiles, and the scores' comparisons. **Shown** picks which of those appear as points and rows, and never changes a number. Click a filter, such as **Unit**, and choose one or more values; **All** takes the restriction off. Shown only offers what Analysed includes.
+
+Both start as an admin set them in Settings (peer-reviewed publications to begin with). The sentence under the bar says what you are looking at, for example "Analysed releases: 108 (Peer-reviewed publication), AY2025–AY2026. Shown: 23 of them (Graduate School of Science)." **Reset** goes back to where they start. Your choice is kept in the address and goes with you to every Analysis page, so you can bookmark it or send it to a colleague. The writer is never a filter: how a release does depends mostly on its topic.
+
+### Reading a card
+
+The coloured box holds the middle half of the analysed releases: a quarter did better than its right edge, a quarter worse than its left. The thick line is the median, and the thin lines reach to the lowest and highest values. The dots above are the shown releases, one each; hover over a dot to see which. With both filters at their start, the dots are the same releases as the box. The caption says the same in words, and the line under it counts the releases with a value, missing and not applicable, so gaps stay visible. **Show as table** gives the same numbers as a table.
+
+Some measures have a few very large values that squash the rest into one corner. **Log scale** spreads the small values out; Release Radar remembers it per card. The Altmetric card follows the score profile: the increase from day 0 to day 28, or the score on day 28, with a switch for the other. Medians and quartiles are calculated as Excel's QUARTILE.INC does, so any number can be checked in a spreadsheet.
+
+### Scores
+
+A score, from 0 to 100, says how a release did compared with similar releases: its percentile on each measure, weighted by the score profile (see *Change a score profile*). There is no score, but "too little data", when the measures with a value carry less than 60 % of the weight; a release less than 30 days old has a *provisional* score that may still change. If there is more than one profile, **Score profile** at the top chooses which one the pages use.
+
+### Rankings, top and bottom 5
+
+A measure's page shows its card, larger, and below it every shown release, highest first. **Rank** counts among the analysed releases with a value, and equal values share a rank. **Percentile** is the one the score uses. Rows without a value come last; provisional ones are marked. Click a heading to sort by it, and a title to open the release's record. **Export** downloads the list as Excel or CSV, with a Read me naming both filters, the score profile and the date.
+
+**Top & bottom 5** lists the five highest and five lowest shown releases by the score, or by any measure chosen at the top. Only finished releases with a value count, so a release less than 30 days old, or with too little data for a score, never lands at the bottom.
 
 ## My fields
 
@@ -121,7 +151,7 @@ Use the button next to your name at the top right to switch between English and 
 
 **Settings** is only visible to admins, and every section works without changing anything. Changes save themselves when you leave a field. If a colleague changed the same field a moment earlier, you see what they entered and choose which to keep.
 
-- **Institution:** names, time zone, the month the academic year starts, your news website, and where people land after signing in.
+- **Institution:** names, time zone, the month the academic year starts, your news website, and where people land after signing in: their own releases, all releases, or **Analysis**.
 - **Users:** invite people and set their role. To remove someone, switch off **Active**: their name stays in the history. If they tracked personal fields, pass those on or make them institution fields here.
 - **Lists:** units, fields, writers, release types and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
 - **Release types:** EurekAlert's eleven categories, in the order the menus show them. Rename, reorder or switch off any, or add your own. **New releases start as** sets the type new and imported releases get; choose **No type** to have people choose every time.

@@ -259,7 +259,7 @@ const GridRow = memo(function GridRow({
               <span className="grid-text grid-title">{text}</span>
             ) : (view.badge || view.position !== undefined) && !shown ? (
               <span className="grid-text">
-                {text}
+                <span className="grid-value">{text}</span>
                 {view.badge && <span className="grid-badge">{view.badge}</span>}
                 {view.position !== undefined && (
                   <span className="position-chip">
@@ -269,7 +269,9 @@ const GridRow = memo(function GridRow({
                 )}
               </span>
             ) : (
-              <span className="grid-text">{text}</span>
+              <span className="grid-text">
+                <span className="grid-value">{text}</span>
+              </span>
             )}
             {isActive && !isEditing && cellPending?.status === "failed" && (
               <CellMessage pending={cellPending} column={column} />

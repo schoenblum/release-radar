@@ -97,17 +97,23 @@ export default function ChartBlock({
                     ] as const
                   ).map(([name, value]) => (
                     <tr key={name}>
-                      <th scope="row">{t(`analysis.card.${name}`)}</th>
+                      <th scope="row" className="is-text">
+                        {t(`analysis.card.${name}`)}
+                      </th>
                       <td>{show(value)}</td>
                     </tr>
                   ))}
                   <tr>
-                    <th scope="row">{t("analysis.card.analysed_n")}</th>
+                    <th scope="row" className="is-text">
+                      {t("analysis.card.analysed_n")}
+                    </th>
                     <td>{card.box.n}</td>
                   </tr>
                   {!sameSet && (
                     <tr>
-                      <th scope="row">{t("analysis.card.shown_median_label", { count: card.points.length })}</th>
+                      <th scope="row" className="is-text">
+                        {t("analysis.card.shown_median_label", { count: card.points.length })}
+                      </th>
                       <td>{card.shown_median === null ? "–" : show(card.shown_median)}</td>
                     </tr>
                   )}
@@ -118,8 +124,12 @@ export default function ChartBlock({
                   <table className="count-table">
                     <thead>
                       <tr>
-                        <th scope="col">{t("analysis.columns.code")}</th>
-                        <th scope="col">{t("analysis.columns.title")}</th>
+                        <th scope="col" className="is-text">
+                          {t("analysis.columns.code")}
+                        </th>
+                        <th scope="col" className="is-text">
+                          {t("analysis.columns.title")}
+                        </th>
                         <th scope="col">{t("analysis.columns.value")}</th>
                       </tr>
                     </thead>
@@ -128,8 +138,10 @@ export default function ChartBlock({
                         .sort((a, b) => b.value - a.value)
                         .map((point) => (
                           <tr key={point.id}>
-                            <th scope="row">{point.code ?? ""}</th>
-                            <td className="analysis-title-cell">{point.title ?? ""}</td>
+                            <th scope="row" className="is-text">
+                              {point.code ?? ""}
+                            </th>
+                            <td className="is-text analysis-title-cell">{point.title ?? ""}</td>
                             <td>
                               {show(point.value)}
                               {point.inferred ? <span className="grid-badge">{t("data.inferred")}</span> : null}

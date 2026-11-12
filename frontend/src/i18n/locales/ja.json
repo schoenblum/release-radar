@@ -850,7 +850,8 @@
         "type": "種類なし",
         "unit": "部局なし",
         "field": "分野なし"
-      }
+      },
+      "name_label": "{{name}}："
     },
     "sentence": {
       "analysed": "分析対象：{{count}} 件{{filters}}{{years}}。",

@@ -18,6 +18,9 @@ type Column =
   | "based_on"
   | "state";
 
+// Words read from the left; numbers line up on the right.
+const TEXT_COLUMNS = new Set<Column>(["code", "title", "unit", "field", "based_on", "state"]);
+
 /** The record opens on the Data page, in the All view, where every release is listed. */
 export function recordLink(id: string): string {
   return `/data?${new URLSearchParams({ view: "all", release: id }).toString()}`;
@@ -149,6 +152,7 @@ export default function RankingTable({
                 <th
                   key={column}
                   scope="col"
+                  className={TEXT_COLUMNS.has(column) ? "is-text" : undefined}
                   aria-sort={active ? (sort.desc ? "descending" : "ascending") : undefined}
                 >
                   {sortable ? (
@@ -168,8 +172,10 @@ export default function RankingTable({
           {ordered.map((entry) => (
             <tr key={entry.id} className={entry.value === null ? "is-empty" : undefined}>
               <td>{entry.rank ?? "–"}</td>
-              <th scope="row">{entry.code ?? ""}</th>
-              <td className="analysis-title-cell">
+              <th scope="row" className="is-text">
+                {entry.code ?? ""}
+              </th>
+              <td className="is-text analysis-title-cell">
                 <Link to={recordLink(entry.id)}>{entry.title || t("data.no_title")}</Link>
                 {entry.provisional && (
                   <span className="grid-badge" title={t("analysis.provisional_hint")}>
@@ -178,8 +184,8 @@ export default function RankingTable({
                 )}
               </td>
               <td>{entry.release_date}</td>
-              <td className="text-left">{listName(options.units, entry.unit_id, language)}</td>
-              <td className="text-left">{listName(options.fields, entry.field_id, language)}</td>
+              <td className="is-text">{listName(options.units, entry.unit_id, language)}</td>
+              <td className="is-text">{listName(options.fields, entry.field_id, language)}</td>
               <td>
                 {entry.value === null ? "" : formatValue(entry.value, decimals, language)}
                 {entry.inferred && (
@@ -191,14 +197,16 @@ export default function RankingTable({
               {isScore ? (
                 <>
                   <td>{entry.coverage === null ? "" : `${Math.round(entry.coverage * 100)} %`}</td>
-                  <td className="analysis-based-on">{componentNames(entry, options, language)}</td>
+                  <td className="is-text analysis-based-on">
+                    {componentNames(entry, options, language)}
+                  </td>
                 </>
               ) : (
                 <td title={entry.percentile === null && entry.value !== null ? t("analysis.too_few") : undefined}>
                   {entry.percentile === null ? "" : Math.round(entry.percentile)}
                 </td>
               )}
-              <td className="text-left text-content-secondary">{t(`analysis.states.${entry.state}`)}</td>
+              <td className="is-text text-content-secondary">{t(`analysis.states.${entry.state}`)}</td>
             </tr>
           ))}
         </tbody>

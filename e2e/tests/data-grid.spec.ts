@@ -1,6 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-import { ADA, ADA_STATE, Api, BO, cell, copyText, dueRelease, openData, reading, tag } from "../support";
+import {
+  ADA,
+  ADA_STATE,
+  Api,
+  BO,
+  cell,
+  copyText,
+  dueRelease,
+  openData,
+  reading,
+  tag,
+  value,
+} from "../support";
 
 test.use({ storageState: ADA_STATE });
 
@@ -49,12 +61,13 @@ test("@webkit editing a cell saves it, and Cmd/Ctrl+Z undoes it", async ({ page 
   // Typing replaces, as in a spreadsheet; a thousands separator is fine.
   await page.keyboard.type("1,234");
   await page.keyboard.press("Enter");
-  await expect(views).toHaveText("1,234");
+  // The value alone: a position chip may sit beside it in All (phase-2 brief §5.5).
+  await expect(value(views)).toHaveText("1,234");
   await expect.poll(async () => reading(await ada.fetch(release), "ea_views.d28").value).toBe(1234);
 
   await views.click();
   await page.keyboard.press("ControlOrMeta+z");
-  await expect(views).toHaveText("");
+  await expect(value(views)).toHaveText("");
   await expect
     .poll(async () => reading(await ada.fetch(release), "ea_views.d28").state)
     .toBe("missing");
@@ -72,11 +85,11 @@ test("@webkit pasting a column fills a cell per line, each checked on its own", 
   await page.keyboard.press("ControlOrMeta+v");
 
   await expect(page.getByText("2 saved, 1 invalid")).toBeVisible();
-  await expect(await cell(grid, `Pasted one ${word}`, DAY_28)).toHaveText("120");
-  await expect(await cell(grid, `Pasted two ${word}`, DAY_28)).toHaveText("2,500");
+  await expect(value(await cell(grid, `Pasted one ${word}`, DAY_28))).toHaveText("120");
+  await expect(value(await cell(grid, `Pasted two ${word}`, DAY_28))).toHaveText("2,500");
   // The one that is not a number stays on its cell, pink, and is not saved.
   const bad = await cell(grid, `Pasted three ${word}`, DAY_28);
-  await expect(bad).toHaveText("lots");
+  await expect(value(bad)).toHaveText("lots");
   await expect(bad).toHaveClass(/is-failed/);
   expect(reading(await ada.fetch(first), "ea_views.d28").value).toBe(120);
   expect(reading(await ada.fetch(second), "ea_views.d28").value).toBe(2500);
@@ -93,7 +106,7 @@ test("N/A: a dash in the grid, or the button in Due now", async ({ page }) => {
   await views.click();
   await page.keyboard.type("-");
   await page.keyboard.press("Enter");
-  await expect(views).toHaveText("N/A");
+  await expect(value(views)).toHaveText("N/A");
   await expect
     .poll(async () => reading(await ada.fetch(inGrid), "ea_views.d28").state)
     .toBe("not_applicable");
@@ -102,7 +115,7 @@ test("N/A: a dash in the grid, or the button in Due now", async ({ page }) => {
   const item = strip.getByRole("listitem").filter({ hasText: `Strip ${word}` }).filter({ hasText: DAY_28 });
   await item.getByRole("button", { name: "N/A" }).click();
   await expect(item).toHaveCount(0);
-  await expect(await cell(grid, `Strip ${word}`, DAY_28)).toHaveText("N/A");
+  await expect(value(await cell(grid, `Strip ${word}`, DAY_28))).toHaveText("N/A");
   expect(reading(await ada.fetch(inStrip), "ea_views.d28").state).toBe("not_applicable");
 });
 

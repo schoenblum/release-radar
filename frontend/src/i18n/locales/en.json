@@ -850,7 +850,8 @@
         "type": "No type",
         "unit": "No unit",
         "field": "No field"
-      }
+      },
+      "name_label": "{{name}}:"
     },
     "sentence": {
       "analysed": "Analysed releases: {{count}}{{filters}}{{years}}.",

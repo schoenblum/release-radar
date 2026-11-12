@@ -115,6 +115,11 @@ export async function cell(grid: Locator, title: string, heading: string | RegEx
   return row.locator(`[role="gridcell"][aria-colindex="${index}"]`);
 }
 
+/** What a cell holds, without what is shown beside it (an "inferred" mark, a position chip). */
+export function value(gridCell: Locator): Locator {
+  return gridCell.locator(".grid-value");
+}
+
 /**
  * Put text on the clipboard the way a person does: select it somewhere and copy it. No
  * clipboard permission is involved, so this works the same in Chromium and WebKit.

@@ -1106,3 +1106,4 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:data.positions.outside` | Not in the analysis: the analysis defaults leave this release out. | 分析対象外：分析の既定の設定ではこのリリースを含めていません。 | pending |
 | `frontend:data.positions.sr` | percentile | パーセンタイル | pending |
 | `frontend:data.positions.toggle_hint` | Show next to each number its percentile among comparable releases, as the default score profile compares them. | 各数値の横に、既定のスコアのプロファイルで比べた同種のリリースの中でのパーセンタイルを表示します。 | pending |
+| `frontend:analysis.filters.name_label` | {{name}}: | {{name}}： | pending |

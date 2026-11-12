@@ -2,7 +2,7 @@ import { generateKeyPairSync } from "node:crypto";
 
 import { expect, test, type Page } from "@playwright/test";
 
-import { ADMIN, Api, cell, daysAgo, openData, reading, tag } from "../support";
+import { ADMIN, Api, cell, daysAgo, openData, reading, tag, value } from "../support";
 
 /** A key file shaped like Google's download, made for this run and never written anywhere. */
 function keyFile(): Buffer {
@@ -76,7 +76,7 @@ test("Google Analytics: connect, test, fetch now, and see the website views", as
 
   // The number is on the Data page, read-only there (R7.5.2), and the API agrees.
   const grid = await openData(page, word);
-  await expect(await cell(grid, `Website views ${word}`, /^Website views/)).toHaveText("321");
+  await expect(value(await cell(grid, `Website views ${word}`, /^Website views/))).toHaveText("321");
   expect(reading(await admin.fetch(counted), "hp_views.d28")).toMatchObject({
     value: 321,
     state: "value",

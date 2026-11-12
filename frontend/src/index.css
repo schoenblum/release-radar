@@ -694,6 +694,9 @@
   .rank-table th {
     @apply align-top;
   }
+  .count-table .is-text {
+    @apply text-left;
+  }
   .rank-table tr.is-empty td,
   .rank-table tr.is-empty th {
     @apply text-content-secondary;

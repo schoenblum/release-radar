@@ -10,13 +10,32 @@ import type {
 } from "../../api/types";
 import { optionLabel, optionsOf, scopeSentence, type Language } from "./labels";
 import {
+  ALL,
   DIMENSIONS,
   hasFilters,
   narrowShown,
+  paramName,
   type FilterSide,
   withChoice,
   withoutFilters,
 } from "./state";
+
+/**
+ * What the address says for one dimension: a list, null for every value, or undefined when it
+ * says nothing (the server's default applies). Read straight from the address, a second click
+ * builds on the first even before the page's numbers have caught up.
+ */
+export function addressChoice(
+  params: URLSearchParams,
+  side: FilterSide,
+  dimension: FilterDimension,
+): string[] | null | undefined {
+  const raw = params.get(paramName(side, dimension));
+  if (raw === null) return undefined;
+  if (raw === ALL) return null;
+  const values = raw.split(",").filter(Boolean);
+  return values.length ? values : undefined;
+}
 
 /** The values after a click on one: from "all" it picks that one; else it toggles it. */
 export function toggled(current: string[] | null, value: string): string[] | null {
@@ -97,7 +116,7 @@ function Picker({
         })}
         onClick={() => setOpen((now) => !now)}
       >
-        <span className="text-content-secondary">{name}:</span>{" "}
+        <span className="text-content-secondary">{t("analysis.filters.name_label", { name })}</span>
         <span className="max-w-[12rem] truncate">{summary}</span>
         <span aria-hidden="true"> ▾</span>
       </button>
@@ -168,17 +187,27 @@ export default function AnalysisFilterBar({
           <span className="analysis-filter-side">
             {t(`analysis.filters.${side === "a" ? "analysed" : "shown"}`)}
           </span>
-          {DIMENSIONS.map((dimension) => (
-            <Picker
-              key={dimension}
-              side={side}
-              dimension={dimension}
-              options={options}
-              current={filter[dimension]}
-              within={side === "s" ? scope.analysed[dimension] : null}
-              onChoose={(values) => choose(side, dimension, values)}
-            />
-          ))}
+          {DIMENSIONS.map((dimension) => {
+            const asked = addressChoice(params, side, dimension);
+            const analysed = addressChoice(params, "a", dimension);
+            return (
+              <Picker
+                key={dimension}
+                side={side}
+                dimension={dimension}
+                options={options}
+                current={asked === undefined ? filter[dimension] : asked}
+                within={
+                  side === "s"
+                    ? analysed === undefined
+                      ? scope.analysed[dimension]
+                      : analysed
+                    : null
+                }
+                onChoose={(values) => choose(side, dimension, values)}
+              />
+            );
+          })}
         </div>
       ))}
       <div className="flex flex-wrap items-baseline gap-x-4xs gap-y-5xs">
