@@ -705,7 +705,10 @@
   /* A survey question's releases (AnswersPage.tsx): a narrow column per box, its long heading
      wrapping; a tick in the middle. Two classes, to outweigh the table's own rule. */
   .count-table .answer-head {
-    @apply w-28 min-w-[7rem] max-w-[7rem] whitespace-normal text-center align-bottom;
+    @apply w-32 min-w-[7rem] max-w-[8rem] whitespace-normal text-center align-bottom;
+    /* A word still too long breaks inside rather than run into the next column (Safari keeps
+       the column's width, Daniel 2026-11-13). */
+    overflow-wrap: anywhere;
   }
   /* On a question's own page the card is wide: bars as long as on the Overview read better. */
   .analysis-card-wide .answer-bars {

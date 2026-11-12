@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
@@ -21,6 +21,25 @@ type Question = AnalysisAnswerChart["question"];
 type Column = "code" | "title" | "release_date" | "unit" | "ticked" | `box:${string}`;
 
 const TEXT_COLUMNS = new Set<Column>(["code", "title", "unit"]);
+
+/**
+ * A box's heading may break after a slash: "Journalists/" "media". Without the chance, Safari
+ * keeps a word such as "faculty/researchers" whole and lets it run into the next column
+ * (Daniel, 2026-11-13).
+ */
+export function breakable(text: string): ReactNode {
+  const parts = text.split("/");
+  return parts.map((part, index) => (
+    <Fragment key={index}>
+      {part}
+      {index < parts.length - 1 && (
+        <>
+          /<wbr />
+        </>
+      )}
+    </Fragment>
+  ));
+}
 
 /**
  * The releases under a survey question's bars (Daniel, 2026-11-13): every shown release with
@@ -77,10 +96,10 @@ function AnswerTable({
     });
   }, [rows, sort, options.units, language]);
 
-  function heading(column: Column): string {
+  function heading(column: Column): ReactNode {
     if (column.startsWith("box:")) {
       const choice = choices.find((item) => item.key === column.slice(4));
-      return choice ? named(language, choice.label_en, choice.label_ja) : column;
+      return choice ? breakable(named(language, choice.label_en, choice.label_ja)) : column;
     }
     if (column === "ticked") return t("analysis.answers.columns.ticked");
     return t(`analysis.columns.${column as "code" | "title" | "release_date" | "unit"}`);

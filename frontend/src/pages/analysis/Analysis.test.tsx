@@ -638,8 +638,12 @@ describe("the Analysis pages", () => {
     expect(screen.getByText(/3 of the 4 shown releases have an answer/)).toBeInTheDocument();
     const lastRow = within(table).getByRole("rowheader", { name: "AY2025-09" }).closest("tr");
     expect(within(lastRow as HTMLElement).getByText("No answer")).toBeInTheDocument();
+    // A box's heading may break after its slash, so Safari never runs it into the next column
+    // (Daniel, 2026-11-13); what it says stays the same.
+    const media = within(table).getByRole("button", { name: "Journalists/media" });
+    expect(media.querySelectorAll("wbr")).toHaveLength(1);
     // A box's heading puts the releases that ticked it first.
-    await actor.click(within(table).getByRole("button", { name: "Journalists/media" }));
+    await actor.click(media);
     expect(codes()).toEqual(["AY2025-07", "AY2025-08", "AY2025-06", "AY2025-09"]);
     const ticked = within(table).getByRole("rowheader", { name: "AY2025-07" }).closest("tr");
     expect(within(ticked as HTMLElement).getAllByText("Ticked")).toHaveLength(2);
