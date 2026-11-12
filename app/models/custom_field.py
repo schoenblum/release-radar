@@ -53,6 +53,9 @@ class CustomField(Record, FieldVersioned, Base):
     required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # The workbook column this field is filled from by an import (Daniel, 2026-11-12): its
+    # heading, so a later import of an updated workbook fills it again.
+    import_heading: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Setting this creates due items (section 7.5).
     due_checkpoint_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("checkpoints.id", ondelete="RESTRICT"), nullable=True

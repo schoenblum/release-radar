@@ -198,16 +198,31 @@ def _file(name: str, content: bytes) -> dict:
     return {"name": name, "content": base64.b64encode(content).decode()}
 
 
-def _body(commit=False, owners=None, files=None, language="en", **extra):
+def _body(commit=False, columns=None, files=None, language="en", **extra):
     list_bytes, intake_bytes = files or (release_list(), intake())
     return {
         "release_list": _file("Press release list.xlsx", list_bytes),
-        "intake": _file("Release Radar intake.xlsx", intake_bytes),
-        "owners": owners or {},
+        "intake": _file("Release Radar intake.xlsx", intake_bytes) if intake_bytes else None,
+        "columns": columns or [],
         "commit": commit,
         "language": language,
         **extra,
     }
+
+
+def _private(owner, *keys_and_types):
+    """Each column a private field of this person's."""
+    return [
+        {"key": key, "action": "personal", "field_type": kind, "owners": [str(owner.id)]}
+        for key, kind in keys_and_types
+    ]
+
+
+OTHER_COLUMNS = (
+    ("Request received", "date"),
+    ("28 day engagements", "integer"),
+    ("Pitches", "integer"),
+)
 
 
 @pytest.fixture(autouse=True)
@@ -368,11 +383,7 @@ async def test_the_import_brings_everything_in(client, admin_headers, make_user)
         client,
         admin_headers,
         commit=True,
-        owners={
-            "bitly": str(owner.id),
-            "pitches": str(owner.id),
-            "request_received": str(owner.id),
-        },
+        columns=_private(owner, *OTHER_COLUMNS),
     )
     assert result["committed"] is True
     releases = await _releases()
@@ -422,12 +433,13 @@ async def test_the_import_brings_everything_in(client, admin_headers, make_user)
     assert readings["hp_views.d28"].state == "missing"
     by_key = {field.key: field for field in fields.values()}
     assert frogs.custom_values == {
-        fields["Bitly clicks, 28 days"].key: {"state": "value", "value": 40},
+        fields["28 day engagements"].key: {"state": "value", "value": 40},
         fields["Pitches"].key: {"state": "value", "value": 3},
         fields["Request received"].key: {"state": "value", "value": "2025-04-01"},
     }
     assert all(field.owner_id == owner.id for field in by_key.values())
-    assert fields["Bitly clicks, 28 days"].due_checkpoint_id is not None
+    # Each remembers its column, for the next import.
+    assert fields["28 day engagements"].import_heading == "28 day engagements"
 
     salt = releases["AY2025-02"]
     assert salt.unit_id == units["Science"].id  # through the alias
@@ -444,7 +456,7 @@ async def test_the_import_brings_everything_in(client, admin_headers, make_user)
     assert salt_readings["altmetric.d0"].value == 5
     assert salt_readings["altmetric.d28"].state == "missing"  # a 1900 date
     assert salt_readings["hp_views.d28"].state == "not_applicable"  # off the domain
-    assert salt.custom_values[fields["Bitly clicks, 28 days"].key] == {"state": "not_applicable"}
+    assert salt.custom_values[fields["28 day engagements"].key] == {"state": "not_applicable"}
     assert salt.custom_values[fields["Request received"].key]["value"] == "2026-01-23"
 
     moss = releases["AY2025-08"]
@@ -507,6 +519,78 @@ async def test_importing_again_finds_everything_and_clears_nothing(client, admin
         assert await db.scalar(select(func.count()).select_from(Writer)) == 2
         names = list(await db.scalars(select(Researcher.name)))
     assert len(names) == len(set(names))
+
+
+async def test_a_check_lists_the_columns_release_radar_has_no_field_for(client, admin_headers):
+    """Daniel, 2026-11-12: nothing about a person's columns is written into the code."""
+    result = await _post(client, admin_headers, commit=True)
+    columns = {column["key"]: column for column in result["columns"]}
+    assert set(columns) == {"Request received", "28 day engagements", "Pitches"}
+    bitly = columns["28 day engagements"]
+    assert (bitly["group"], bitly["suggested_type"], bitly["known"], bitly["fills"]) == (
+        "Bitly",
+        "integer",
+        False,
+        [],
+    )
+    assert bitly["examples"] == ["40"]
+    assert columns["Request received"]["suggested_type"] == "date"
+    assert columns["Request received"]["examples"] == ["2025-04-01", "23-Jan-2026"]
+    # Without a choice, nothing is made and the report says what waits.
+    assert "A column Release Radar has no field for" in result["markdown"]
+    async with SessionLocal() as db:
+        assert await db.scalar(select(func.count()).select_from(CustomField)) == 0
+
+
+async def test_a_new_column_becomes_a_shared_field_or_a_private_copy_per_person(
+    client, admin_headers, make_user
+):
+    one = await make_user("one@example.org", role=UserRole.editor)
+    two = await make_user("two@example.org", role=UserRole.editor)
+    columns = [
+        {
+            "key": "28 day engagements",
+            "action": "personal",
+            "field_type": "integer",
+            "owners": [str(one.id), str(two.id)],
+        },
+        {"key": "Pitches", "action": "shared", "field_type": "integer"},
+    ]
+    result = await _post(client, admin_headers, commit=True, columns=columns)
+    assert result["counts"]["column_fields_new"] == 3
+    fills = {column["key"]: column["fills"] for column in result["columns"]}
+    assert sorted(fill["owner"] for fill in fills["28 day engagements"]) == [
+        "one@example.org",
+        "two@example.org",
+    ]
+    assert fills["Pitches"] == [{"label": "Pitches", "owner": None}]
+    async with SessionLocal() as db:
+        fields = list(await db.scalars(select(CustomField)))
+    copies = [field for field in fields if field.import_heading == "28 day engagements"]
+    assert {field.owner_id for field in copies} == {one.id, two.id}
+    assert all(field.scope == "personal" for field in copies)
+    pitches = next(field for field in fields if field.import_heading == "Pitches")
+    assert (pitches.scope, pitches.owner_id) == ("institution", None)
+    frogs = (await _releases())["AY2025-01"]
+    assert [frogs.custom_values[field.key]["value"] for field in copies] == [40, 40]
+
+    # An updated workbook, without the intake workbook: the fields remember their columns.
+    rows = [{**ROWS[0], "bitly": 55}, *ROWS[1:]]
+    result = await _post(client, admin_headers, commit=True, files=(release_list(rows), None))
+    known = {column["key"]: column for column in result["columns"]}
+    assert known["28 day engagements"]["known"] is True
+    assert result["counts"].get("column_fields_new", 0) == 0
+    frogs = (await _releases())["AY2025-01"]
+    assert [frogs.custom_values[field.key]["value"] for field in copies] == [55, 55]
+    async with SessionLocal() as db:
+        assert await db.scalar(select(func.count()).select_from(Writer)) == 2
+
+
+async def test_a_private_field_needs_a_person_who_can_enter_data(client, admin_headers, make_user):
+    reader = await make_user("reader@example.org", role=UserRole.viewer)
+    columns = _private(reader, ("Pitches", "integer"))
+    response = await client.post(URL, headers=admin_headers, json=_body(columns=columns))
+    assert response.json() == {"detail": "import_owner_unknown"}
 
 
 async def test_a_release_made_in_the_app_with_a_workbook_code_is_named(client, admin_headers):

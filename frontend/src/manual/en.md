@@ -123,7 +123,9 @@ A measure's page shows its card, larger, and below it every shown release, highe
 
 ## My fields
 
-Numbers you track for yourself, such as clicks on your own links, go here. Open the menu with your name and choose **My fields**, then add a field. Set **Due at** to get a reminder at that checkpoint. Colleagues can see your fields next to your name, and only you can change them.
+Numbers you track for yourself, such as clicks on your own links, go here. Open the menu with your name and choose **My fields**, then add a field. Set **Due at** to get a reminder at that checkpoint. Colleagues can see your fields next to your name, and only you can change them. A field an import made from a workbook column says which column fills it.
+
+**Share with everyone** turns one of your fields into a shared one: everyone sees and fills it, and admins look after it from then on, in **Settings → Form**. It can't be made private again.
 
 ## Researchers
 
@@ -172,7 +174,9 @@ Use the button next to your name at the top right to switch between English and 
 
 ### Import the old workbook
 
-In **Settings → Data**, choose the press-release workbook and the intake workbook, and choose whose the workbook's personal fields are. **Check** changes nothing: it shows what an import would do and offers a report to download, in Markdown or CSV, listing everything worth a look: names that couldn't be settled, numbers that weren't numbers, every dash, codes used twice. Read it, fix the workbook if you like, and check again. **Import** then does exactly what was checked.
+In **Settings → Data**, choose the press-release workbook. The first time, choose the intake workbook too: its staff, units, fields and two-name releases set up the lists. Later imports can leave it out and use the lists in Settings. **Check** changes nothing: it shows what an import would do and offers a report to download, in Markdown or CSV, listing everything worth a look: names that couldn't be settled, numbers that weren't numbers, every dash, codes used twice. Read it, fix the workbook if you like, and check again. **Import**, beside it, is ready once a check has been made with what is chosen now, and does exactly what was checked.
+
+Columns Release Radar has no place of its own for, such as a colleague's Bitly clicks, are listed after a check under *Other columns in the workbook*, with a few example values. For each, choose what it becomes: a shared field that everyone sees and fills, or a private field for each person you tick (each gets a copy with the workbook's values). Choose what it holds, too: whole numbers, numbers, dates or text. Then click **Check again**, and **Import**. A field remembers its column, so the next import fills it again by itself. A column you leave out is not imported, and the next import offers it again.
 
 Importing again is safe. Each release is found by its code and updated; an empty cell never empties anything, and a researcher chosen in Release Radar since stays. Units, fields and writers are only added, never changed: Settings looks after them.
 

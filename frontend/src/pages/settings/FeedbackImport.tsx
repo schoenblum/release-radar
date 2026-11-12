@@ -5,7 +5,13 @@ import { useTranslation } from "react-i18next";
 import { ApiError, http } from "../../api/client";
 import { errorMessage } from "../../api/errors";
 import type { WorkbookImportResult } from "../../api/types";
-import { encode, FilePicker, ImportHistory, ImportResultView } from "./WorkbookImport";
+import {
+  CheckAndImport,
+  encode,
+  FilePicker,
+  ImportHistory,
+  ImportResultView,
+} from "./WorkbookImport";
 
 /**
  * Import of researcher feedback from a Microsoft Forms export (R8.1.2), beside the workbook
@@ -59,14 +65,15 @@ export default function FeedbackImport() {
         file={file}
         onPick={setFile}
       />
-      <button
-        type="button"
-        className="btn-quiet"
-        disabled={!file || busy !== null}
-        onClick={() => void run(false)}
-      >
-        {busy === "check" ? t("settings.import.checking") : t("settings.import.check")}
-      </button>
+      <CheckAndImport
+        ready={file !== null}
+        busy={busy}
+        checked={checked !== null}
+        canImport={canImport}
+        onCheck={() => void run(false)}
+        onImport={() => void run(true)}
+        changed={t("settings.feedback.check_again")}
+      />
       {error !== null && (
         <p role="alert" className="notice-error mt-3xs">
           {errorMessage(t, error)} {missing}
@@ -79,10 +86,6 @@ export default function FeedbackImport() {
             check: result.levels.check ?? 0,
             info: result.levels.info ?? 0,
           })}
-          canImport={canImport}
-          busy={busy}
-          onImport={() => void run(true)}
-          checkAgain={t("settings.feedback.check_again")}
         />
       )}
       <ImportHistory kind="feedback" />

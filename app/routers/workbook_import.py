@@ -21,6 +21,8 @@ from app.database import get_db
 from app.deps import require_admin
 from app.models import ImportRun, Institution, User
 from app.schemas.imports import (
+    ColumnFillOut,
+    ColumnOut,
     FeedbackImportRequest,
     ImportCount,
     ImportKind,
@@ -56,16 +58,18 @@ async def import_workbook(
     timezone, who = institution.timezone, admin.full_name or admin.email
     institution_id, admin_id = institution.id, admin.id
     files = importer.Files(
-        release_list=_decode(request.release_list.content), intake=_decode(request.intake.content)
+        release_list=_decode(request.release_list.content),
+        intake=_decode(request.intake.content) if request.intake else None,
     )
+    choices = {
+        column.key: importer.ColumnChoice(
+            action=column.action, field_type=column.field_type, owners=tuple(column.owners)
+        )
+        for column in request.columns
+    }
     try:
         report = await importer.run_import(
-            db,
-            institution,
-            admin,
-            files,
-            request.owners.model_dump(),
-            fill_empty_only=request.fill_empty_only,
+            db, institution, admin, files, choices, fill_empty_only=request.fill_empty_only
         )
     except sheets.WorkbookProblem as problem:
         await db.rollback()
@@ -82,7 +86,7 @@ async def import_workbook(
         institution_id,
         admin_id,
         committed=request.commit,
-        file_names=[request.release_list.name, request.intake.name],
+        file_names=[request.release_list.name, *([request.intake.name] if request.intake else [])],
         report=report,
     )
 
@@ -108,6 +112,18 @@ def _result(
             who=who,
         ),
         csv=report.to_csv(language),
+        columns=[
+            ColumnOut(
+                key=column.key,
+                heading=column.heading,
+                group=column.group,
+                examples=column.examples,
+                suggested_type=column.suggested_type,
+                fills=[ColumnFillOut(label=label, owner=owner) for label, owner in column.fills],
+                known=column.known,
+            )
+            for column in report.columns
+        ],
         filename=_filename(committed, now, report.kind),
     )
 

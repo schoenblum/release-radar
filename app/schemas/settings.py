@@ -173,6 +173,8 @@ class CustomFieldOut(_Out):
     is_active: bool
     due_checkpoint_id: UUID | None
     score_eligible: bool
+    # The workbook column an import fills it from, if any.
+    import_heading: str | None = None
     created_at: datetime
     field_versions: dict[str, int]
 

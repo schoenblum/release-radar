@@ -16,18 +16,21 @@ class UploadedFile(BaseModel):
     content: str = Field(max_length=_MAX_BASE64)
 
 
-class PersonalFieldOwners(BaseModel):
-    """Who owns each personal field seeded from the workbook. None: not imported."""
+class ColumnChoiceIn(BaseModel):
+    """What to do with a workbook column Release Radar doesn't know yet (Daniel, 2026-11-12):
+    nothing, a shared field, or a private field for each chosen person."""
 
-    bitly: UUID | None = None
-    pitches: UUID | None = None
-    request_received: UUID | None = None
+    key: str = Field(max_length=600)
+    action: Literal["skip", "shared", "personal"] = "skip"
+    field_type: Literal["integer", "number", "date", "text"] = "text"
+    owners: list[UUID] = Field(default=[], max_length=100)
 
 
 class WorkbookImportRequest(BaseModel):
     release_list: UploadedFile
-    intake: UploadedFile
-    owners: PersonalFieldOwners = PersonalFieldOwners()
+    # Only for the first import: later ones take writers, units and fields from Settings.
+    intake: UploadedFile | None = None
+    columns: list[ColumnChoiceIn] = Field(default=[], max_length=200)
     # The catch-up before D1 (phase-2 brief §3.4): existing releases get only what is empty.
     fill_empty_only: bool = False
     # False: a dry run, which changes nothing and says what an import would do.
@@ -48,6 +51,25 @@ class ImportCount(BaseModel):
     count: int
 
 
+class ColumnFillOut(BaseModel):
+    label: str
+    # The owner's name for a private field; None for a shared one.
+    owner: str | None
+
+
+class ColumnOut(BaseModel):
+    """A workbook column with no place of its own, and the fields it fills."""
+
+    key: str
+    heading: str
+    group: str
+    examples: list[str]
+    suggested_type: str
+    fills: list[ColumnFillOut]
+    # A field remembered it from an earlier import.
+    known: bool
+
+
 class WorkbookImportResult(BaseModel):
     # In the import history, where its report can be downloaded again.
     run_id: UUID
@@ -61,6 +83,7 @@ class WorkbookImportResult(BaseModel):
     csv: str
     # A file name without extension, for the two report downloads.
     filename: str
+    columns: list[ColumnOut] = []
 
 
 class ImportRunOut(BaseModel):

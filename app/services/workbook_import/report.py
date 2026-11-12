@@ -34,7 +34,7 @@ COUNT_ORDER = (
     "writers_linked",
     "units_new",
     "fields_new",
-    "personal_fields_new",
+    "column_fields_new",
     "trimmed",
     # Only filling what is empty (phase-2 brief §3.4).
     "cells_filled",
@@ -101,6 +101,8 @@ class Report:
     counts: dict[str, int] = field(default_factory=dict)
     # What was imported: "workbook" (step 1.8) or "feedback" (step 2.1).
     kind: str = "workbook"
+    # The workbook's other columns and what they fill, for the screen (not stored).
+    columns: list[Any] = field(default_factory=list)
 
     @classmethod
     def from_stored(

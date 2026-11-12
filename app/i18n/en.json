@@ -152,7 +152,7 @@
   "import": {
     "report": {
       "writer_without_account": "Writes releases but has no account with this email yet: the writer is not linked to a user. Invite them in Settings → Users and import again to link.",
-      "personal_field_skipped": "No owner chosen for this personal field: its values were not imported.",
+      "column_not_imported": "A column Release Radar has no field for: not imported. To import it, choose a shared or private field for it under Other columns in the workbook, and check again.",
       "researcher_resolved": "Surname only: read as {name}, the one author of the paper with this family name. Marked unverified.",
       "researcher_unresolved": "Surname only, and the paper's authors don't settle it ({matches} with this family name): kept as written, marked incomplete.",
       "gender_conflict": "This researcher's gender is recorded differently on another release: {kept} was kept.",
@@ -184,6 +184,7 @@
       "top_page": "On the EurekAlert top page (place {place}).",
       "number_from_text": "Text read as the number {number}.",
       "not_a_number": "Not a number: left as missing.",
+      "not_a_whole_number": "Not a whole number, which this field takes: left as it is.",
       "dash_na": "Means not applicable (the dash rule).",
       "value_where_na": "A number where the rules say there can't be one: kept.",
       "skipped_unit_writer": "Written by a unit, not by the office: not imported.",
@@ -221,7 +222,7 @@
       "units_new": "New units",
       "writers_new": "New writers",
       "writers_linked": "Writers linked to their account",
-      "personal_fields_new": "New personal fields",
+      "column_fields_new": "New fields for workbook columns",
       "researchers_new": "New researchers",
       "researchers_incomplete": "New researchers marked incomplete",
       "researchers_linked": "Researchers found already in Release Radar",

@@ -607,20 +607,17 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:errors.import_sheet_missing` | A sheet the import needs is missing. | インポートに必要なシートがありません。 | pending |
 | `frontend:settings.import.before_import` | Please read the report first. Import does exactly what was checked, in one go. | 先にレポートをお読みください。インポートは、確認した内容をそのまま一度に実行します。 | pending |
 | `frontend:settings.import.check` | Check | 確認 | pending |
-| `frontend:settings.import.check_again` | The files or owners changed since the check: check again first. | 確認の後にファイルまたは所有者が変わりました。先にもう一度確認してください。 | pending |
+| `frontend:settings.import.check_again` | The files or choices changed since the check: check again first. | 確認の後にファイルまたは選択が変わりました。先にもう一度確認してください。 | pending |
 | `frontend:settings.import.checking` | Checking… | 確認しています… | pending |
 | `frontend:settings.import.done` | Imported | インポートしました | pending |
 | `frontend:settings.import.dry_run` | What an import would do (nothing has changed yet) | インポートした場合の結果（まだ何も変更していません） | pending |
-| `frontend:settings.import.help` | Brings in the releases from the press-release workbook (sheet PR DATA), with the staff, units, fields and two-name releases from the intake workbook. Check first: a check changes nothing and lists everything worth a look. Importing again later finds each release by its code, updates it, and never empties anything. | プレスリリースのワークブック（PR DATA シート）のリリースを、インテーク用ワークブックのスタッフ、部局、分野、複数研究者のリリースとあわせて取り込みます。まず確認してください。確認では何も変更せず、確認が必要な点をすべて一覧にします。後でもう一度インポートすると、各リリースをコードで見つけて更新します。空欄で上書きすることはありません。 | pending |
+| `frontend:settings.import.help` | Brings in the releases from the press-release workbook (sheet PR DATA). Check first: a check changes nothing and lists everything worth a look. Importing again later finds each release by its code, updates it, and never empties anything. | プレスリリースのワークブック（シート PR DATA）からリリースをインポートします。まず確認してください。確認では何も変更せず、見ておくべき点を一覧にします。後でもう一度インポートすると、各リリースをコードで見つけて更新し、空欄で上書きすることはありません。 | pending |
 | `frontend:settings.import.import` | Import | インポート | pending |
 | `frontend:settings.import.importing` | Importing… | インポートしています… | pending |
-| `frontend:settings.import.intake` | Intake workbook (.xlsx) | インテーク用ワークブック（.xlsx） | pending |
+| `frontend:settings.import.intake` | Intake workbook (.xlsx), for the first import | インテーク用ワークブック（.xlsx、初回のインポート用） | pending |
 | `frontend:settings.import.levels` | To check: {{check}} · dashes and N/A: {{dash}} · changed on reading: {{info}} | 要確認：{{check}} · ダッシュと N/A：{{dash}} · 読み取り時の変換：{{info}} | pending |
 | `frontend:settings.import.missing_column` | Missing column: {{column}}. | 列がありません：{{column}} | pending |
 | `frontend:settings.import.missing_sheet` | Missing sheet: {{sheet}}. | シートがありません：{{sheet}} | pending |
-| `frontend:settings.import.not_imported` | Not imported | 取り込まない | pending |
-| `frontend:settings.import.owners` | Whose are the personal fields in the workbook? | ワークブックの個人項目は誰のものですか？ | pending |
-| `frontend:settings.import.owners_help` | Each becomes that person's own field, with the workbook's values. Leave one as it is to skip it; importing again later adds it. | それぞれ、その人の個人項目としてワークブックの値とともに作成します。取り込まない項目はそのままにしてください。後でもう一度インポートすると追加できます。 | pending |
 | `frontend:settings.import.release_list` | Press-release workbook (.xlsx) | プレスリリースのワークブック（.xlsx） | pending |
 | `frontend:settings.import.report_csv` | Report (CSV) | レポート（CSV） | pending |
 | `frontend:settings.import.report_md` | Report (Markdown) | レポート（Markdown） | pending |
@@ -636,7 +633,6 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:import.counts.crossref_unavailable` | DOIs Crossref didn't answer for | Crossref から応答のなかった DOI | pending |
 | `backend:import.counts.dashes` | Numbers marked not applicable by a dash | ダッシュで該当なしとした数値 | pending |
 | `backend:import.counts.fields_new` | New fields | 新しい分野 | pending |
-| `backend:import.counts.personal_fields_new` | New personal fields | 新しい個人項目 | pending |
 | `backend:import.counts.releases_in_workbook` | Rows in the workbook | ワークブックの行数 | pending |
 | `backend:import.counts.releases_new` | New releases | 新しいリリース | pending |
 | `backend:import.counts.releases_skipped` | Rows not imported | インポートしなかった行 | pending |
@@ -682,7 +678,6 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:import.report.not_a_number` | Not a number: left as missing. | 数値ではないため、未入力のままです。 | pending |
 | `backend:import.report.number_from_text` | Text read as the number {number}. | 文字列を数値 {number} と読みました。 | pending |
 | `backend:import.report.number_shown_as_date` | A date in a number column, probably the number {number} formatted as a date: left as missing. Type the number in if that's right. | 数値の列に日付があります。おそらく数値 {number} が日付の書式で表示されたものです。未入力のままにしました。正しければ数値を入力してください。 | pending |
-| `backend:import.report.personal_field_skipped` | No owner chosen for this personal field: its values were not imported. | この個人項目の所有者が選ばれていないため、値はインポートしていません。 | pending |
 | `backend:import.report.release_made_in_app` | A release made in the app already has this code: the workbook's values go into it. | アプリで作成したリリースに同じコードがあります。ワークブックの値をそのリリースに入れます。 | pending |
 | `backend:import.report.release_restored` | This release had been removed in the app: it is back. | このリリースはアプリで削除されていましたが、元に戻しました。 | pending |
 | `backend:import.report.researcher_first_listed` | Several names: {name}, the first, is the corresponding researcher; the others went to Also featured. | 複数の氏名があります。最初の {name} を対応研究者とし、ほかは「その他の掲載者」に入れました。 | pending |
@@ -1141,3 +1136,29 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:analysis.score_time.caption` | Each dot is a shown release with a final score, by its release date. Each line is an academic year's median: {{medians}}. | 点は最終スコアのある表示中のリリースで、リリース日の位置に置いています。線は各年度の中央値です：{{medians}}。 | pending |
 | `frontend:analysis.score_time.median` | {{year}} {{median}} | {{year}} {{median}} | pending |
 | `frontend:analysis.pick.in_ranking` | Show it in the ranking | ランキングで見る | pending |
+| `frontend:custom_field.from_column` | From the workbook column: {{column}} | ワークブックの列：{{column}} | pending |
+| `frontend:custom_field.share` | Share with everyone | 全員と共有する | pending |
+| `frontend:custom_field.share_heading` | Share | 共有 | pending |
+| `frontend:custom_field.share_question` | Everyone will see and fill this field, and admins will look after it. It can't be made private again. Share it? | 全員がこの項目を見て入力できるようになり、管理者が管理します。個人の項目には戻せません。共有しますか？ | pending |
+| `frontend:settings.import.check_again_button` | Check again | もう一度確認 | pending |
+| `frontend:settings.import.check_first` | Import is ready after a check, and does exactly what the check showed. | 確認の後でインポートできます。インポートは確認した内容のとおりに行います。 | pending |
+| `frontend:settings.import.column_action` | What {{name}} becomes | {{name}} の扱い | pending |
+| `frontend:settings.import.column_empty` | Empty in this workbook. | このワークブックでは空です。 | pending |
+| `frontend:settings.import.column_examples` | For example: {{examples}} | 例：{{examples}} | pending |
+| `frontend:settings.import.column_fills` | Fills: {{fields}} | 入力先：{{fields}} | pending |
+| `frontend:settings.import.column_owners` | Whose private field {{name}} becomes | {{name}} を個人の項目にする人 | pending |
+| `frontend:settings.import.column_personal` | A private field for … | 個人の項目（対象者を選ぶ） | pending |
+| `frontend:settings.import.column_shared` | A shared field | 共有の項目 | pending |
+| `frontend:settings.import.column_skip` | Not imported | インポートしない | pending |
+| `frontend:settings.import.column_type` | What {{name}} holds | {{name}} の値の種類 | pending |
+| `frontend:settings.import.column_types.date` | Dates | 日付 | pending |
+| `frontend:settings.import.column_types.integer` | Whole numbers | 整数 | pending |
+| `frontend:settings.import.column_types.number` | Numbers | 数値 | pending |
+| `frontend:settings.import.column_types.text` | Text | テキスト | pending |
+| `frontend:settings.import.columns_help` | Release Radar has no field for these yet. Choose what each becomes, then check again: a shared field everyone sees and fills, or a private field for each person you tick (a copy each). Left out, a column is simply not imported; the next import offers it again. | これらの列にはまだ Release Radar の項目がありません。それぞれをどうするか選び、もう一度確認してください。全員が見て入力する共有の項目にするか、チェックを付けた人ごとの個人の項目（一人ずつ別々）にします。選ばない列はインポートせず、次回のインポートで再び表示されます。 | pending |
+| `frontend:settings.import.columns_known` | These fill fields that remember them from an earlier import: | 以前のインポートで対応付けた項目に入力します： | pending |
+| `frontend:settings.import.columns_title` | Other columns in the workbook | ワークブックのその他の列 | pending |
+| `frontend:settings.import.intake_help` | Its staff, units, fields and two-name releases set up the lists the first time. Later imports can leave it out: they use the lists in Settings. | スタッフ、部局、分野、研究者が 2 名のリリースを、初回にリストとして登録します。2 回目以降は不要で、設定のリストを使います。 | pending |
+| `backend:import.counts.column_fields_new` | New fields for workbook columns | ワークブックの列のための新しい項目 | pending |
+| `backend:import.report.column_not_imported` | A column Release Radar has no field for: not imported. To import it, choose a shared or private field for it under Other columns in the workbook, and check again. | Release Radar に対応する項目がない列です。インポートしていません。インポートする場合は、確認結果の上で共有または個人の項目を選んでください。 | pending |
+| `backend:import.report.not_a_whole_number` | Not a whole number, which this field takes: left as it is. | この項目は整数のみ受け付けます。整数でないため、変更していません。 | pending |

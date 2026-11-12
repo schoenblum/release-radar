@@ -261,8 +261,10 @@ async def test_converting_to_an_institution_field_keeps_the_values(client, heade
         db.add(release)
         await db.commit()
 
-    denied = await client.post(f"{URL}/{field['id']}/convert", headers=owner)
-    assert denied.status_code == 403
+    # Only an admin, or the field's owner (Daniel, 2026-11-12).
+    someone = await headers_for(UserRole.editor, "someone@example.org")
+    denied = await client.post(f"{URL}/{field['id']}/convert", headers=someone)
+    assert denied.json() == {"detail": "personal_field_read_only"}
     converted = (await client.post(f"{URL}/{field['id']}/convert", headers=admin)).json()
     assert converted["scope"] == "institution"
     assert converted["owner_id"] is None
@@ -273,3 +275,12 @@ async def test_converting_to_an_institution_field_keeps_the_values(client, heade
     # Now it behaves like one, and a second conversion has nothing to do.
     again = await client.post(f"{URL}/{field['id']}/convert", headers=admin)
     assert again.json() == {"detail": "field_not_editable"}
+
+
+async def test_the_owner_can_share_their_own_field(client, headers_for):
+    owner = await headers_for(UserRole.editor, "owner@example.org")
+    field = (await client.post(URL, headers=owner, json=NEW_PERSONAL)).json()
+    shared = (await client.post(f"{URL}/{field['id']}/convert", headers=owner)).json()
+    assert (shared["scope"], shared["owner_id"]) == ("institution", None)
+    # Shared now, it is the admins' to look after.
+    assert (await _patch(client, field["id"], owner, "label_en", "Mine", 0)).status_code == 403

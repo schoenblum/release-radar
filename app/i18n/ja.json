@@ -152,7 +152,7 @@
   "import": {
     "report": {
       "writer_without_account": "リリースを担当していますが、このメールアドレスのアカウントがまだありません。ライターはユーザーに紐づいていません。設定 → ユーザーで招待してから、もう一度インポートすると紐づきます。",
-      "personal_field_skipped": "この個人項目の所有者が選ばれていないため、値はインポートしていません。",
+      "column_not_imported": "Release Radar に対応する項目がない列です。インポートしていません。インポートする場合は、確認結果の上で共有または個人の項目を選んでください。",
       "researcher_resolved": "姓のみの記載です。論文の著者のうちこの姓を持つ唯一の人物として {name} と読みました。「未確認」としています。",
       "researcher_unresolved": "姓のみの記載で、論文の著者からは特定できません（この姓の著者：{matches} 人）。記載のまま「不完全」としています。",
       "gender_conflict": "この研究者の性別は、別のリリースで異なる記録になっています。{kept} のままにしました。",
@@ -184,6 +184,7 @@
       "top_page": "EurekAlert のトップページ掲載（{place} 番目）。",
       "number_from_text": "文字列を数値 {number} と読みました。",
       "not_a_number": "数値ではないため、未入力のままです。",
+      "not_a_whole_number": "この項目は整数のみ受け付けます。整数でないため、変更していません。",
       "dash_na": "「該当なし」としました（ダッシュのルール）。",
       "value_where_na": "ルール上は存在しないはずの数値があります。そのまま残しました。",
       "skipped_unit_writer": "部局が執筆したリリースで、オフィスの担当ではないため、インポートしていません。",
@@ -221,7 +222,7 @@
       "units_new": "新しい部局",
       "writers_new": "新しいライター",
       "writers_linked": "アカウントに紐づけたライター",
-      "personal_fields_new": "新しい個人項目",
+      "column_fields_new": "ワークブックの列のための新しい項目",
       "researchers_new": "新しい研究者",
       "researchers_incomplete": "「不完全」とした新しい研究者",
       "researchers_linked": "Release Radar にすでにいた研究者",

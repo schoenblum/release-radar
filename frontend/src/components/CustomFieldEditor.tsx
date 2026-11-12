@@ -11,6 +11,7 @@ import type {
   CustomFieldType,
   Vocabulary,
 } from "../api/types";
+import ConfirmButton from "./ConfirmButton";
 import { SelectField, TextField, ToggleField } from "./fields/Autosave";
 import { useFieldSaver } from "./fields/useFieldSaver";
 
@@ -30,7 +31,9 @@ const SELECTS: CustomFieldType[] = ["single_select", "multi_select"];
 const QUERY_KEY = ["custom-fields"];
 
 /** "English | 日本語", one per line, as the options editor shows them. */
-export function parseOptions(text: string): { label_en: string; label_ja: string | null }[] {
+export function parseOptions(
+  text: string,
+): { label_en: string; label_ja: string | null }[] {
   return text
     .split("\n")
     .map((line) => line.trim())
@@ -43,7 +46,11 @@ export function parseOptions(text: string): { label_en: string; label_ja: string
 
 export function formatOptions(options: CustomFieldOption[]): string {
   return options
-    .map((option) => (option.label_ja ? `${option.label_en} | ${option.label_ja}` : option.label_en))
+    .map((option) =>
+      option.label_ja
+        ? `${option.label_en} | ${option.label_ja}`
+        : option.label_en,
+    )
     .join("\n");
 }
 
@@ -55,7 +62,8 @@ function useCheckpointOptions() {
   });
   return (data ?? []).map((checkpoint) => ({
     value: checkpoint.id,
-    label: (i18n.language === "ja" && checkpoint.label_ja) || checkpoint.label_en,
+    label:
+      (i18n.language === "ja" && checkpoint.label_ja) || checkpoint.label_en,
   }));
 }
 
@@ -72,6 +80,7 @@ function FieldRow({
 }) {
   const { t, i18n } = useTranslation();
   const saver = useFieldSaver(`/custom-fields/${field.id}`, QUERY_KEY);
+  const queryClient = useQueryClient();
   const checkpoints = useCheckpointOptions();
   const { data: vocabularies } = useQuery({
     queryKey: ["lists", "vocabularies"],
@@ -91,6 +100,11 @@ function FieldRow({
           save={saver("label_en")}
         />
         <p className="px-5xs text-sm text-content-secondary">{field.key}</p>
+        {field.import_heading && (
+          <p className="px-5xs text-sm text-content-secondary">
+            {t("custom_field.from_column", { column: field.import_heading })}
+          </p>
+        )}
       </td>
       <td>
         <TextField
@@ -100,7 +114,9 @@ function FieldRow({
           save={saver("label_ja")}
         />
       </td>
-      <td className="whitespace-nowrap">{t(`custom_field.types.${field.field_type}`)}</td>
+      <td className="whitespace-nowrap">
+        {t(`custom_field.types.${field.field_type}`)}
+      </td>
       <td>
         {isSelect && (
           <>
@@ -112,7 +128,9 @@ function FieldRow({
               emptyLabel={t("custom_field.options_on_field")}
               options={(vocabularies ?? []).map((vocabulary) => ({
                 value: vocabulary.id,
-                label: (i18n.language === "ja" && vocabulary.name_ja) || vocabulary.name_en,
+                label:
+                  (i18n.language === "ja" && vocabulary.name_ja) ||
+                  vocabulary.name_en,
               }))}
             />
             {!field.vocabulary_id && (
@@ -162,6 +180,22 @@ function FieldRow({
           save={saver("is_active")}
         />
       </td>
+      {!isInstitution && (
+        <td>
+          {/* The owner can hand their field to everyone (Daniel, 2026-11-12). */}
+          <ConfirmButton
+            label={t("custom_field.share")}
+            question={t("custom_field.share_question")}
+            onConfirm={() =>
+              void http
+                .post(`/custom-fields/${field.id}/convert`)
+                .then(() =>
+                  queryClient.invalidateQueries({ queryKey: QUERY_KEY }),
+                )
+            }
+          />
+        </td>
+      )}
       <td className="whitespace-nowrap">
         <button
           type="button"
@@ -254,7 +288,9 @@ function NewFieldForm({ scope }: { scope: "institution" | "personal" }) {
             id={`${scope}-type`}
             className="input"
             value={fieldType}
-            onChange={(event) => setFieldType(event.target.value as CustomFieldType)}
+            onChange={(event) =>
+              setFieldType(event.target.value as CustomFieldType)
+            }
           >
             {FIELD_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -327,7 +363,9 @@ export default function CustomFieldEditor({
     refetchInterval: 60_000,
   });
   const fields = (data ?? []).filter(
-    (field) => field.scope === scope && (scope === "institution" || field.owner_id === ownerId),
+    (field) =>
+      field.scope === scope &&
+      (scope === "institution" || field.owner_id === ownerId),
   );
   const isInstitution = scope === "institution";
 
@@ -359,6 +397,7 @@ export default function CustomFieldEditor({
                   </>
                 )}
                 <th>{t("common.active")}</th>
+                {!isInstitution && <th>{t("custom_field.share_heading")}</th>}
                 <th>{t("common.order")}</th>
               </tr>
             </thead>

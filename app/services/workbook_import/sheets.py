@@ -34,7 +34,6 @@ RELEASE_COLUMNS: dict[str, tuple[str, str | None]] = {
     "writer": ("Writer", None),
     "unit": ("School", None),
     "researcher": ("Researcher", None),
-    "request_received": ("Request received", None),
     "gender": ("First author (M/F)", None),
     "embargo": ("Embargo", None),
     "paper_title": ("Title", "Paper"),
@@ -47,8 +46,6 @@ RELEASE_COLUMNS: dict[str, tuple[str, str | None]] = {
     "altmetric_d28": ("28 day score", None),
     "ea_url": ("EurekAlert", "URLs"),
     "website_url": ("Website", None),
-    "bitly": ("28 day engagements", None),
-    "pitches": ("Pitches", None),
     "notes": ("NOTES", None),
 }
 # Not imported on purpose (BRIEF step 1.8): the original workbook stays the archive.
@@ -72,9 +69,34 @@ class SourceRow:
     cells: dict[str, Any]
     # As the workbook heads it, for the report.
     headings: dict[str, str]
+    # The other columns' cells, by the column's key.
+    others: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class OtherColumn:
+    """A column with no place of its own in Release Radar, such as a person's Bitly clicks. It
+    fills the fields that remember it, or new ones the importing admin asks for (Daniel,
+    2026-11-12); nothing about it is written into the code."""
+
+    # What the column is known by: its heading, with its group when two share a heading.
+    key: str
+    heading: str
+    group: str
+    index: int
+
+
+@dataclass
+class ReleaseSheet:
+    rows: list[SourceRow]
+    others: list[OtherColumn]
 
 
 def release_rows(content: bytes) -> list[SourceRow]:
+    return release_sheet(content).rows
+
+
+def release_sheet(content: bytes) -> ReleaseSheet:
     workbook = open_workbook(content, "release_list")
     if RELEASE_SHEET not in workbook.sheetnames:
         raise WorkbookProblem("sheet_missing", sheet=RELEASE_SHEET)
@@ -104,6 +126,28 @@ def release_rows(content: bytes) -> list[SourceRow]:
             raise WorkbookProblem("column_missing", column=heading, group=wanted_group or "")
         found[name] = matches[0]
 
+    used = set(found.values())
+    skipped = {_key(heading) for heading in SKIPPED_HEADINGS}
+    unplaced = [
+        (index, text, group)
+        for index, (text, group) in enumerate(columns)
+        if index not in used and text and _key(text) not in skipped
+    ]
+    shared = {
+        _key(text)
+        for _, text, _ in unplaced
+        if sum(_key(t) == _key(text) for _, t, _ in unplaced) > 1
+    }
+    others = [
+        OtherColumn(
+            key=f"{group} / {text}" if _key(text) in shared and group and group != text else text,
+            heading=text,
+            group=group if group != text else "",
+            index=index,
+        )
+        for index, text, group in unplaced
+    ]
+
     rows = []
     for number in range(_FIRST_DATA_ROW, sheet.max_row + 1):
         values = [sheet.cell(number, index + 1).value for index in range(width)]
@@ -114,9 +158,10 @@ def release_rows(content: bytes) -> list[SourceRow]:
                 number=number,
                 cells={name: values[index] for name, index in found.items()},
                 headings={name: columns[index][0] for name, index in found.items()},
+                others={column.key: values[column.index] for column in others},
             )
         )
-    return rows
+    return ReleaseSheet(rows, others)
 
 
 @dataclass

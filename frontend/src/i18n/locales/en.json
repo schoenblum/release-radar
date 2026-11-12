@@ -489,12 +489,10 @@
       }
     },
     "import": {
-      "help": "Brings in the releases from the press-release workbook (sheet PR DATA), with the staff, units, fields and two-name releases from the intake workbook. Check first: a check changes nothing and lists everything worth a look. Importing again later finds each release by its code, updates it, and never empties anything.",
+      "help": "Brings in the releases from the press-release workbook (sheet PR DATA). Check first: a check changes nothing and lists everything worth a look. Importing again later finds each release by its code, updates it, and never empties anything.",
       "release_list": "Press-release workbook (.xlsx)",
-      "intake": "Intake workbook (.xlsx)",
-      "owners": "Whose are the personal fields in the workbook?",
-      "owners_help": "Each becomes that person's own field, with the workbook's values. Leave one as it is to skip it; importing again later adds it.",
-      "not_imported": "Not imported",
+      "intake": "Intake workbook (.xlsx), for the first import",
+      "intake_help": "Its staff, units, fields and two-name releases set up the lists the first time. Later imports can leave it out: they use the lists in Settings.",
       "fill_empty_only": "Only fill what is empty",
       "fill_empty_only_help": "For bringing in what the team still entered in Excel. Releases already here get only what is empty or missing in Release Radar: no value, N/A, researcher, release type or removed release changes. New codes are added in full. The report lists every cell filled and every difference left alone.",
       "check": "Check",
@@ -508,7 +506,9 @@
       "before_import": "Please read the report first. Import does exactly what was checked, in one go.",
       "import": "Import",
       "importing": "Importing…",
-      "check_again": "The files or owners changed since the check: check again first.",
+      "check_again": "The files or choices changed since the check: check again first.",
+      "check_first": "Import is ready after a check, and does exactly what the check showed.",
+      "check_again_button": "Check again",
       "missing_column": "Missing column: {{column}}.",
       "missing_sheet": "Missing sheet: {{sheet}}.",
       "history": "Checks and imports so far",
@@ -519,7 +519,25 @@
       "history_report": "Report",
       "kind_check": "Check",
       "kind_import": "Import",
-      "history_counts": "{{new}} new, {{updated}} updated, {{check}} to check"
+      "history_counts": "{{new}} new, {{updated}} updated, {{check}} to check",
+      "columns_title": "Other columns in the workbook",
+      "columns_help": "Release Radar has no field for these yet. Choose what each becomes, then check again: a shared field everyone sees and fills, or a private field for each person you tick (a copy each). Left out, a column is simply not imported; the next import offers it again.",
+      "columns_known": "These fill fields that remember them from an earlier import:",
+      "column_examples": "For example: {{examples}}",
+      "column_empty": "Empty in this workbook.",
+      "column_action": "What {{name}} becomes",
+      "column_skip": "Not imported",
+      "column_shared": "A shared field",
+      "column_personal": "A private field for …",
+      "column_type": "What {{name}} holds",
+      "column_types": {
+        "integer": "Whole numbers",
+        "number": "Numbers",
+        "date": "Dates",
+        "text": "Text"
+      },
+      "column_owners": "Whose private field {{name}} becomes",
+      "column_fills": "Fills: {{fields}}"
     },
     "feedback": {
       "help": "Brings in the researchers' answers from the Microsoft Forms survey: export the responses (Open results in Excel) and choose that file. Each response is linked to its release by the press release ID. Check first: a check changes nothing and lists what is worth a look. Importing a newer export later adds only the new responses.",
@@ -609,7 +627,11 @@
     "required": "Required",
     "score_eligible": "Can count in scores",
     "add": "Add field",
-    "none_yet": "None yet."
+    "none_yet": "None yet.",
+    "from_column": "From the workbook column: {{column}}",
+    "share": "Share with everyone",
+    "share_heading": "Share",
+    "share_question": "Everyone will see and fill this field, and admins will look after it. It can't be made private again. Share it?"
   },
   "release_fields": {
     "code": "Code",

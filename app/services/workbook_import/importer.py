@@ -24,7 +24,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
     AuditLog,
-    Checkpoint,
     CustomField,
     Institution,
     Measure,
@@ -34,6 +33,7 @@ from app.models import (
     ResearchField,
     Unit,
     User,
+    UserRole,
     Writer,
 )
 from app.services import audit, crossref, time_zones
@@ -52,6 +52,7 @@ from app.services.workbook_import import sheets
 from app.services.workbook_import.report import Level, Report
 from app.services.workbook_import.values import (
     Read,
+    is_dash,
     normalised_name,
     read_count,
     read_date,
@@ -70,13 +71,62 @@ MEASURE_COLUMNS = {
     "altmetric_d0": "altmetric.d0",
     "altmetric_d28": "altmetric.d28",
 }
-# Personal fields seeded from the workbook (BRIEF §6.6): label, type, due checkpoint.
-# Their owners are chosen at import time, so no one's name lives in the code.
-PERSONAL_FIELDS = {
-    "bitly": ("Bitly clicks, 28 days", "integer", "d28"),
-    "pitches": ("Pitches", "integer", None),
-    "request_received": ("Request received", "date", None),
-}
+# What a new field made from a workbook column can be (Daniel, 2026-11-12).
+COLUMN_TYPES = ("integer", "number", "date", "text")
+# Fields of these types can take a workbook column's values.
+_FILLABLE = frozenset({"integer", "number", "date", "text", "long_text", "url"})
+_EXAMPLES = 3
+
+
+@dataclass(frozen=True)
+class ColumnChoice:
+    """What the importing admin chose for a column Release Radar doesn't know yet: nothing, a
+    shared field, or a private field for each chosen person (a copy each)."""
+
+    action: str  # skip, shared or personal
+    field_type: str = "text"
+    owners: tuple[uuid.UUID, ...] = ()
+
+
+@dataclass
+class ColumnSummary:
+    key: str
+    heading: str
+    group: str
+    examples: list[str]
+    suggested_type: str
+    # The fields it fills: (label, owner's name or None), in this run.
+    fills: list[tuple[str, str | None]]
+    # Known: a field remembered it before this run.
+    known: bool
+
+
+def _example(cell: Any) -> str:
+    """A cell as the check shows it: a date as YYYY-MM-DD, without Excel's midnight."""
+    if isinstance(cell, datetime):
+        return cell.date().isoformat()
+    if isinstance(cell, date):
+        return cell.isoformat()
+    return text_of(cell)
+
+
+def suggested_type(cells: list[Any]) -> str:
+    """What a column's cells look like: whole numbers, numbers, dates or text."""
+    found = [cell for cell in cells if read_text(cell).how == "native"]
+    if not found:
+        return "text"
+    if all(read_date(cell).usable and not read_count(cell).usable for cell in found):
+        return "date"
+    counts = [read_count(cell) for cell in found]
+    if all(count.usable for count in counts):
+        return (
+            "integer"
+            if all(count.value == count.value.to_integral() for count in counts)
+            else "number"
+        )
+    return "text"
+
+
 _DECIMAL_UNITS = frozenset({"score"})
 _READING_LIMIT = Decimal("1e12")
 _CROSSREF_AT_ONCE = 4
@@ -89,7 +139,8 @@ AUDIT_NOTE = "workbook_import"
 @dataclass
 class Files:
     release_list: bytes
-    intake: bytes
+    # Only for the first import; later ones can do without it.
+    intake: bytes | None
 
 
 async def look_up_papers(dois: set[str], contact_email: str | None) -> dict[str, crossref.Lookup]:
@@ -135,14 +186,17 @@ class _Importer:
     user: User
     intake: sheets.Intake
     papers: dict[str, crossref.Lookup]
-    owners: dict[str, uuid.UUID | None]
+    choices: dict[str, ColumnChoice]
     report: Report = field(default_factory=Report)
     units: dict[str, Unit] = field(default_factory=dict)
     unit_keys: set[str] = field(default_factory=set)
     writers: dict[str, Writer] = field(default_factory=dict)
     researchers: dict[tuple[str, uuid.UUID | None], Researcher] = field(default_factory=dict)
     known_researchers: set[uuid.UUID] = field(default_factory=set)
-    personal: dict[str, CustomField] = field(default_factory=dict)
+    # Each other column's key, and the fields it fills.
+    filling: dict[str, list[CustomField]] = field(default_factory=dict)
+    # The other columns' headings by key, for the report.
+    other_headings: dict[str, str] = field(default_factory=dict)
     planned: list[_Planned] = field(default_factory=list)
     # Brief §3.4, the catch-up before D1: releases already in Release Radar get only what is
     # empty or missing there. Nothing already there changes, and every difference is listed.
@@ -297,55 +351,98 @@ class _Importer:
             if writer is not None:
                 self.writers.setdefault(normalised_name(entry.name_in_workbook), writer)
 
-    async def personal_fields(self) -> None:
+    async def column_fields(
+        self, others: list[sheets.OtherColumn], rows: list[sheets.SourceRow]
+    ) -> None:
+        """Every other column: the fields that remember it, or new ones as the admin chose. A
+        field remembers its column by ``import_heading``, so a later import fills it again."""
         institution_id = self.institution.id
-        for name, (label, field_type, due) in PERSONAL_FIELDS.items():
-            owner_id = self.owners.get(name)
-            if owner_id is None:
-                self.report.add("check", "personal_field_skipped", column=label)
-                continue
-            owner = await self.db.scalar(
-                select(User).where(User.id == owner_id, User.institution_id == institution_id)
-            )
-            if owner is None:
-                raise sheets.WorkbookProblem("owner_unknown")
-            found = await self.db.scalar(
+        fields = list(
+            await self.db.scalars(
                 select(CustomField).where(
                     CustomField.institution_id == institution_id,
-                    CustomField.scope == "personal",
-                    CustomField.owner_id == owner.id,
-                    func.lower(CustomField.label_en) == label.lower(),
+                    CustomField.is_active.is_(True),
+                    CustomField.import_heading.is_not(None),
                 )
             )
-            if found is None:
-                checkpoint = (
-                    await self.db.scalar(
-                        select(Checkpoint.id).where(
-                            Checkpoint.institution_id == institution_id, Checkpoint.key == due
-                        )
-                    )
-                    if due
-                    else None
+        )
+        people = {
+            user.id: user
+            for user in await self.db.scalars(
+                select(User).where(User.institution_id == institution_id)
+            )
+        }
+
+        def owner_name(found: CustomField) -> str | None:
+            owner = people.get(found.owner_id) if found.owner_id else None
+            return (owner.full_name or owner.email) if owner else None
+
+        for column in others:
+            self.other_headings[column.key] = column.heading
+            cells = [row.others.get(column.key) for row in rows]
+            examples = list(
+                dict.fromkeys(
+                    text for cell in cells if (text := _example(cell)) and not is_dash(cell)
                 )
-                position = await self.db.scalar(
-                    select(func.coalesce(func.max(CustomField.position), -1)).where(
-                        CustomField.institution_id == institution_id
-                    )
+            )[:_EXAMPLES]
+            known = [
+                found
+                for found in fields
+                if found.import_heading.casefold() == column.key.casefold()
+                and found.field_type in _FILLABLE
+            ]
+            filled = list(known)
+            choice = self.choices.get(column.key)
+            if not known and choice is not None and choice.action in ("shared", "personal"):
+                field_type = choice.field_type if choice.field_type in COLUMN_TYPES else "text"
+                if choice.action == "shared":
+                    filled.append(await self._new_field(column, field_type, None))
+                else:
+                    for owner_id in dict.fromkeys(choice.owners):
+                        owner = people.get(owner_id)
+                        if owner is None or not owner.is_active or owner.role == UserRole.viewer:
+                            raise sheets.WorkbookProblem("owner_unknown")
+                        filled.append(await self._new_field(column, field_type, owner.id))
+            if filled:
+                self.filling[column.key] = filled
+            else:
+                self.report.add(
+                    "info", "column_not_imported", column=column.heading, value=", ".join(examples)
                 )
-                found = CustomField(
-                    institution_id=institution_id,
-                    key=await self._free_field_key(label),
-                    label_en=label,
-                    field_type=field_type,
-                    scope="personal",
-                    owner_id=owner.id,
-                    position=position + 1,
-                    due_checkpoint_id=checkpoint,
+            self.report.columns.append(
+                ColumnSummary(
+                    key=column.key,
+                    heading=column.heading,
+                    group=column.group,
+                    examples=examples,
+                    suggested_type=suggested_type(cells),
+                    fills=[(found.label_en, owner_name(found)) for found in filled],
+                    known=bool(known),
                 )
-                self.db.add(found)
-                await self.db.flush()
-                self.report.count("personal_fields_new")
-            self.personal[name] = found
+            )
+
+    async def _new_field(
+        self, column: sheets.OtherColumn, field_type: str, owner_id: uuid.UUID | None
+    ) -> CustomField:
+        position = await self.db.scalar(
+            select(func.coalesce(func.max(CustomField.position), -1)).where(
+                CustomField.institution_id == self.institution.id
+            )
+        )
+        made = CustomField(
+            institution_id=self.institution.id,
+            key=await self._free_field_key(column.heading),
+            label_en=column.heading,
+            field_type=field_type,
+            scope="personal" if owner_id else "institution",
+            owner_id=owner_id,
+            position=position + 1,
+            import_heading=column.key,
+        )
+        self.db.add(made)
+        await self.db.flush()
+        self.report.count("column_fields_new")
+        return made
 
     async def _free_field_key(self, label: str) -> str:
         base = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")[:50] or "field"
@@ -648,7 +745,7 @@ class _Importer:
         await self._researcher(release, row, code, unit, paper.authors if paper else [], changed)
         self._dates_and_links(release, row, code, changed)
         self._notes(release, row, code, changed)
-        self._personal_values(release, row, code, changed)
+        self._column_values(release, row, code, changed)
 
         for column, key in MEASURE_COLUMNS.items():
             self.planned.append(
@@ -918,66 +1015,85 @@ class _Importer:
                 place=place or "—",
             )
 
-    def _personal_values(
+    def _column_values(
         self, release: Release, row: sheets.SourceRow, code: str, changed: list[str]
     ) -> None:
-        for name, (_, field_type, _) in PERSONAL_FIELDS.items():
-            custom = self.personal.get(name)
-            cell = row.cells[name]
-            if custom is None or cell is None:
+        """The other columns' cells, into the fields that take them."""
+        for key, fields in self.filling.items():
+            cell = row.others.get(key)
+            if cell is None:
                 continue
-            column = row.headings[name]
-            if field_type == "date":
-                read: Read[Any] = read_date(cell)
-                self._note_date(read, name, row, code, empty_matters=False)
-                stored = read.value.isoformat() if read.usable else None
-            else:
-                read = read_count(cell)
-                if read.how == "text":
-                    self.report.add(
-                        "info",
-                        "number_from_text",
-                        row=row.number,
-                        code=code,
-                        column=column,
-                        value=cell,
-                        number=read.value,
-                    )
-                elif read.how == "invalid":
-                    self.report.add(
-                        "check",
-                        "not_a_number",
-                        row=row.number,
-                        code=code,
-                        column=column,
-                        value=cell,
-                    )
-                elif read.how == "dash":
-                    self.report.add(
-                        "dash", "dash_na", row=row.number, code=code, column=column, value=cell
-                    )
-                stored = int(read.value) if read.usable else None
-            if read.how == "dash":
-                value: dict[str, Any] | None = {"state": "not_applicable"}
-            elif stored is not None:
-                value = {"state": "value", "value": stored}
-            else:
-                continue
-            key = custom.key
-            current = release.custom_values.get(key)
-            if current != value and self.keeps(release):
-                if current is not None:
-                    self.noted("check", "fill_kept", name, value, current)
+            column = self.other_headings.get(key, key)
+            for custom in fields:
+                value = self._column_value(custom.field_type, cell, row, code, column)
+                if value is None:
                     continue
-                self.noted("info", "fill_filled", name, value, None)
-            if current != value:
-                release.custom_values = {**release.custom_values, key: value}
-                name_key = f"custom_values.{key}"
-                release.field_versions = {
-                    **release.field_versions,
-                    name_key: release.field_versions.get(name_key, 0) + 1,
-                }
-                changed.append(name_key)
+                current = release.custom_values.get(custom.key)
+                if current != value and self.keeps(release):
+                    if current is not None:
+                        self._noted_column("check", "fill_kept", column, custom, value, current)
+                        continue
+                    self._noted_column("info", "fill_filled", column, custom, value, None)
+                if current != value:
+                    release.custom_values = {**release.custom_values, custom.key: value}
+                    name_key = f"custom_values.{custom.key}"
+                    release.field_versions = {
+                        **release.field_versions,
+                        name_key: release.field_versions.get(name_key, 0) + 1,
+                    }
+                    changed.append(name_key)
+
+    def _column_value(
+        self, field_type: str, cell: Any, row: sheets.SourceRow, code: str, column: str
+    ) -> dict[str, Any] | None:
+        """One cell as a field of this type stores it; None leaves the field as it is."""
+        add = self.report.add
+        if is_dash(cell):
+            add("dash", "dash_na", row=row.number, code=code, column=column, value=cell)
+            return {"state": "not_applicable"}
+        if field_type == "date":
+            read: Read[Any] = read_date(cell)
+            if read.how == "text":
+                add("info", "date_from_text", row=row.number, code=code, column=column,
+                    value=cell, date=read.value.isoformat())  # fmt: skip
+            elif read.how == "invalid":
+                add("check", "not_a_date", row=row.number, code=code, column=column, value=cell)
+            return {"state": "value", "value": read.value.isoformat()} if read.usable else None
+        if field_type in ("integer", "number"):
+            read = read_count(cell)
+            if read.how == "text":
+                add("info", "number_from_text", row=row.number, code=code, column=column,
+                    value=cell, number=read.value)  # fmt: skip
+            elif read.how == "invalid":
+                add("check", "not_a_number", row=row.number, code=code, column=column, value=cell)
+            if not read.usable:
+                return None
+            if field_type == "integer":
+                if read.value != read.value.to_integral():
+                    add("check", "not_a_whole_number", row=row.number, code=code, column=column,
+                        value=cell)  # fmt: skip
+                    return None
+                return {"state": "value", "value": int(read.value)}
+            return {"state": "value", "value": float(read.value)}
+        text = read_text(cell)
+        return {"state": "value", "value": text.value} if text.usable else None
+
+    def _noted_column(
+        self, level: Level, kind: str, column: str, custom: CustomField, value: Any, current: Any
+    ) -> None:
+        number, code, _ = self.here
+        shown = lambda stored: str(stored.get("value", "N/A")) if stored else "—"  # noqa: E731
+        self.report.add(
+            level,
+            kind,
+            row=number,
+            code=code,
+            column=column,
+            value=shown(value),
+            field=custom.label_en,
+            current=shown(current),
+        )
+        self.report.count("cells_filled" if kind == "fill_filled" else "cells_kept")
 
     # ------------------------------------------------------------ readings
 
@@ -1115,13 +1231,17 @@ async def run_import(
     institution: Institution,
     user: User,
     files: Files,
-    owners: dict[str, uuid.UUID | None],
+    choices: dict[str, ColumnChoice],
     *,
     fill_empty_only: bool = False,
 ) -> Report:
-    """Does the whole import in the open transaction. The caller commits or rolls back."""
-    rows = sheets.release_rows(files.release_list)
-    intake = sheets.intake(files.intake)
+    """Does the whole import in the open transaction. The caller commits or rolls back.
+
+    Without the intake workbook, writers, units and fields come from Release Radar's lists
+    alone, as they are after a first import."""
+    sheet = sheets.release_sheet(files.release_list)
+    rows = sheet.rows
+    intake = sheets.intake(files.intake) if files.intake is not None else sheets.Intake()
 
     dois = set()
     for row in rows:
@@ -1133,14 +1253,14 @@ async def run_import(
 
     audit.set_actor(db, user.id)
     audit.set_note(db, AUDIT_NOTE)
-    work = _Importer(db, institution, user, intake, papers, owners)
+    work = _Importer(db, institution, user, intake, papers, choices)
     work.fill_empty_only = fill_empty_only
     work.report.counts["releases_in_workbook"] = len(rows)
     if fill_empty_only:
         work.report.add("info", "fill_mode")
     await work.fields_and_units()
     await work.writers_from_staff()
-    await work.personal_fields()
+    await work.column_fields(sheet.others, rows)
     await work.load_researchers()
     for model, label in (
         (Writer, "display_name_en"),

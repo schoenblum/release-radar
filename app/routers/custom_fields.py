@@ -1,7 +1,8 @@
 """Custom fields: institution fields for admins, personal fields for their owners (section 6.6).
 
 Everyone can see every field, labelled with its owner (R6.6.2). Only the owner changes a
-personal field, which an admin can transfer or turn into an institution field. Values are
+personal field, which an admin can transfer, and an admin or the owner can turn into an
+institution field. Values are
 kept by field key, so neither of those touches them (R3.4.3).
 """
 
@@ -248,12 +249,16 @@ async def transfer_custom_field(
 @router.post("/{field_id}/convert")
 async def convert_custom_field(
     field_id: UUID,
-    admin: User = Depends(require_admin),
+    user: User = Depends(require_editor),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    field = await load_for_update(db, CustomField, field_id, admin.institution_id)
+    """A personal field becomes a shared one, for everyone to see and fill. An admin can do it
+    (R6.6.2), and so can the field's owner (Daniel, 2026-11-12); admins look after it then."""
+    field = await load_for_update(db, CustomField, field_id, user.institution_id)
     if field.scope != "personal":
         raise field_error("field_not_editable")
+    if user.role != UserRole.admin and field.owner_id != user.id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="personal_field_read_only")
     field.scope = "institution"
     field.owner_id = None
     await commit_unique(db)

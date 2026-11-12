@@ -255,6 +255,8 @@ export interface CustomField {
   is_active: boolean;
   due_checkpoint_id: string | null;
   score_eligible: boolean;
+  /** The workbook column an import fills it from, if any. */
+  import_heading?: string | null;
   created_at: string;
   field_versions: FieldVersions;
 }
@@ -556,10 +558,28 @@ export interface UploadedFile {
 }
 
 /** Who owns each personal field seeded from the workbook; null: not imported. */
-export interface PersonalFieldOwners {
-  bitly: string | null;
-  pitches: string | null;
-  request_received: string | null;
+/** What to do with a workbook column Release Radar has no field for (Daniel, 2026-11-12). */
+export type ColumnAction = "skip" | "shared" | "personal";
+export type ColumnFieldType = "integer" | "number" | "date" | "text";
+
+export interface ColumnChoice {
+  key: string;
+  action: ColumnAction;
+  field_type: ColumnFieldType;
+  /** For private fields: each chosen person gets a copy. */
+  owners: string[];
+}
+
+/** A workbook column with no place of its own, and the fields it fills. */
+export interface ImportColumn {
+  key: string;
+  heading: string;
+  group: string;
+  examples: string[];
+  suggested_type: ColumnFieldType;
+  fills: { label: string; owner: string | null }[];
+  /** A field remembered it from an earlier import. */
+  known: boolean;
 }
 
 export interface WorkbookImportResult {
@@ -575,6 +595,8 @@ export interface WorkbookImportResult {
   csv: string;
   /** Without extension. */
   filename: string;
+  /** The workbook's other columns (the workbook import only). */
+  columns?: ImportColumn[];
 }
 
 /** One check or import, as the import history lists it. */
