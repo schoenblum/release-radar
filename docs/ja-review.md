@@ -53,8 +53,6 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:nav.manual` | Manual | マニュアル | pending |
 | `frontend:nav.settings` | Settings | 設定 | pending |
 | `frontend:nav.writers` | Writers | ライター | pending |
-| `frontend:placeholder.title` | This page is on its way | このページは準備中です | pending |
-| `frontend:placeholder.writers` | Monthly release counts per writer will appear here. | ライターごとの月別リリース数がここに表示されます。 | pending |
 | `frontend:reset.confirm_password` | Repeat the new password | 新しいパスワード（確認） | pending |
 | `frontend:reset.done` | Your password has been changed. You can sign in with it now. | パスワードを変更しました。新しいパスワードでサインインできます。 | pending |
 | `frontend:reset.missing_token` | This link is incomplete. Please use the full link from the email, or ask for a new one. | このリンクは不完全です。メールに記載されたリンクをすべてご利用いただくか、新しいリンクを申請してください。 | pending |
@@ -975,3 +973,130 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:analysis_export.states.not_applicable` | N/A | 該当なし | pending |
 | `backend:analysis_export.states.not_yet_due` | Not yet due | まだ期日前 | pending |
 | `backend:analysis_export.states.value` | Value | 値あり | pending |
+| `frontend:analysis.card.analysed_n` | Analysed releases with a value | 値のある分析対象のリリース | pending |
+| `frontend:analysis.card.basis` | Altmetric basis | Altmetric の基準 | pending |
+| `frontend:analysis.card.basis_d28` | Day 28 | 28 日目 | pending |
+| `frontend:analysis.card.basis_increase` | Increase | 増加 | pending |
+| `frontend:analysis.card.few` | Only {{count}} with a value so far; the median is {{median}}. | 値があるのはまだ {{count}} 件のみで、中央値は {{median}} です。 | pending |
+| `frontend:analysis.card.half` | Half of the analysed releases land between {{low}} and {{high}} (the box). | 分析対象のリリースの半数が {{low}} から {{high}} の間にあります（箱の部分）。 | pending |
+| `frontend:analysis.card.hide_table` | Hide the table | 表を閉じる | pending |
+| `frontend:analysis.card.highest` | Highest | 最大 | pending |
+| `frontend:analysis.card.log` | Log scale | 対数目盛 | pending |
+| `frontend:analysis.card.log_hint` | Spreads out the many small numbers so a few large ones don't squash them. | 少数の大きな値に押しつぶされないよう、小さな値の差を広げて表示します。 | pending |
+| `frontend:analysis.card.log_label` | Log scale for {{name}} | {{name}} を対数目盛で表示 | pending |
+| `frontend:analysis.card.log_on` | Drawn on a log scale. | 対数目盛で表示しています。 | pending |
+| `frontend:analysis.card.lowest` | Lowest | 最小 | pending |
+| `frontend:analysis.card.median` | Median | 中央値 | pending |
+| `frontend:analysis.card.median_same` | The median is {{median}}. | 中央値は {{median}} です。 | pending |
+| `frontend:analysis.card.no_values` | No analysed release has a value here yet. | この指標に値のある分析対象のリリースはまだありません。 | pending |
+| `frontend:analysis.card.none_shown` | None of the shown releases has a value. | 表示中のリリースには値がありません。 | pending |
+| `frontend:analysis.card.open` | Open | 開く | pending |
+| `frontend:analysis.card.q1` | Lower quartile | 第1四分位数 | pending |
+| `frontend:analysis.card.q3` | Upper quartile | 第3四分位数 | pending |
+| `frontend:analysis.card.show_table` | Show as table | 表で表示 | pending |
+| `frontend:analysis.card.shown_median` | Median of the shown releases: {{median}} ({{count}} with a value). | 表示中のリリースの中央値：{{median}}（値のあるもの {{count}} 件）。 | pending |
+| `frontend:analysis.card.shown_median_label` | Median of the shown releases ({{count}}) | 表示中のリリースの中央値（{{count}} 件） | pending |
+| `frontend:analysis.chart_label` | {{name}}: chart | {{name}}：グラフ | pending |
+| `frontend:analysis.columns.based_on` | Based on | 算出の根拠 | pending |
+| `frontend:analysis.columns.code` | Code | コード | pending |
+| `frontend:analysis.columns.coverage` | Coverage | カバー率 | pending |
+| `frontend:analysis.columns.field` | Field | 分野 | pending |
+| `frontend:analysis.columns.percentile` | Percentile | パーセンタイル | pending |
+| `frontend:analysis.columns.rank` | Rank | 順位 | pending |
+| `frontend:analysis.columns.release_date` | Release date | リリース日 | pending |
+| `frontend:analysis.columns.state` | State | 状態 | pending |
+| `frontend:analysis.columns.title` | Title | タイトル | pending |
+| `frontend:analysis.columns.unit` | Unit | 部局 | pending |
+| `frontend:analysis.columns.value` | Value | 値 | pending |
+| `frontend:analysis.counts.insufficient` | {{count}} with too little data for one | データ不足 {{count}} 件 | pending |
+| `frontend:analysis.counts.missing` | {{count}} missing | 未入力 {{count}} 件 | pending |
+| `frontend:analysis.counts.not_applicable` | {{count}} not applicable | 該当なし {{count}} 件 | pending |
+| `frontend:analysis.counts.not_yet_due` | {{count}} not yet due | まだ期日前 {{count}} 件 | pending |
+| `frontend:analysis.counts.provisional` | {{count}} provisional (under 30 days old) | 暫定 {{count}} 件（リリースから 30 日未満） | pending |
+| `frontend:analysis.counts.scored` | {{count}} with a score | スコアあり {{count}} 件 | pending |
+| `frontend:analysis.counts.shown_points` | {{count}} shown as points | 点で表示 {{count}} 件 | pending |
+| `frontend:analysis.counts.value` | {{count}} with a value | 値あり {{count}} 件 | pending |
+| `frontend:analysis.default_profile` | default | 既定 | pending |
+| `frontend:analysis.describe.altmetric` | Attention from news, blogs and social media, as Altmetric counts it. | Altmetric が数えた、ニュース・ブログ・ソーシャルメディアでの注目度。 | pending |
+| `frontend:analysis.describe.ea_views_d0` | Views on EurekAlert! before the embargo lifted, as journalists read it. | エンバーゴ解除前の EurekAlert! での閲覧数（記者による閲覧）。 | pending |
+| `frontend:analysis.describe.ea_views_d28` | Views of the release on EurekAlert! in its first 28 days. | リリースから 28 日間の EurekAlert! での閲覧数。 | pending |
+| `frontend:analysis.describe.hp_views_d28` | Views of the release on the university's website in its first 28 days. | リリースから 28 日間の大学ウェブサイトでの閲覧数。 | pending |
+| `frontend:analysis.describe.inquiries` | How many kinds of people contacted the researchers about it. | 研究者に問い合わせてきた相手の種類の数。 | pending |
+| `frontend:analysis.describe.inquiries_external` | The same, counting only people from outside the university. | 同じく、学外からの問い合わせのみ数えたもの。 | pending |
+| `frontend:analysis.describe.pickups_all` | Articles about the release in any outlet. | すべての媒体でのリリースに関する記事。 | pending |
+| `frontend:analysis.describe.pickups_major` | Articles about the release in major outlets. | 主要媒体でのリリースに関する記事。 | pending |
+| `frontend:analysis.describe.research_outcomes` | How many kinds of activity the researchers said came from it. | 研究者が挙げた、リリースから生まれた活動の種類の数。 | pending |
+| `frontend:analysis.describe.satisfaction` | How the researchers rated the release, 1 to 5, the mean of the three statements. | 研究者によるリリースの評価（1〜5、三つの設問の平均）。 | pending |
+| `frontend:analysis.describe.score` | Version {{version}}: each release's percentile on every measure, weighted, from 0 to 100. | バージョン {{version}}：各指標でのパーセンタイルを重み付けした 0〜100 の値。 | pending |
+| `frontend:analysis.export_notice` | The file has the rows as listed here. Its Read me names both filters, the score profile and the date. | ここに並んでいる行がファイルに入ります。「はじめにお読みください」に、両方のフィルター、スコアのプロファイル、日付を記載します。 | pending |
+| `frontend:analysis.export_title` | Export {{name}} | {{name}} をエクスポート | pending |
+| `frontend:analysis.export_xlsx` | Excel (with a Read me sheet) | Excel（「はじめにお読みください」シート付き） | pending |
+| `frontend:analysis.filters.all` | All | すべて | pending |
+| `frontend:analysis.filters.analysed` | Analysed | 分析対象 | pending |
+| `frontend:analysis.filters.chosen` | {{count}} chosen | {{count}} 件を選択 | pending |
+| `frontend:analysis.filters.dimensions.ay` | Year | 年度 | pending |
+| `frontend:analysis.filters.dimensions.emb` | Embargo | エンバーゴ | pending |
+| `frontend:analysis.filters.dimensions.field` | Field | 分野 | pending |
+| `frontend:analysis.filters.dimensions.gender` | Gender | 性別 | pending |
+| `frontend:analysis.filters.dimensions.type` | Type | 種類 | pending |
+| `frontend:analysis.filters.dimensions.unit` | Unit | 部局 | pending |
+| `frontend:analysis.filters.emb_no` | Not embargoed | エンバーゴなし | pending |
+| `frontend:analysis.filters.emb_yes` | Embargoed | エンバーゴあり | pending |
+| `frontend:analysis.filters.genders.F` | Female | 女性 | pending |
+| `frontend:analysis.filters.genders.M` | Male | 男性 | pending |
+| `frontend:analysis.filters.genders.not_recorded` | Not recorded | 未記録 | pending |
+| `frontend:analysis.filters.genders.other` | Other | その他 | pending |
+| `frontend:analysis.filters.label` | Analysis filters | 分析のフィルター | pending |
+| `frontend:analysis.filters.none.field` | No field | 分野なし | pending |
+| `frontend:analysis.filters.none.type` | No type | 種類なし | pending |
+| `frontend:analysis.filters.none.unit` | No unit | 部局なし | pending |
+| `frontend:analysis.filters.picker_label` | {{side}}, {{name}}: {{summary}} | {{side}}、{{name}}：{{summary}} | pending |
+| `frontend:analysis.filters.reset` | Reset | リセット | pending |
+| `frontend:analysis.filters.shown` | Shown | 表示 | pending |
+| `frontend:analysis.not_saved` | Couldn't save this choice. It applies until you reload the page. | この選択を保存できませんでした。ページを再読み込みするまでは有効です。 | pending |
+| `frontend:analysis.overview.all_analysed` | All of the analysed releases. | 分析対象のすべてです。 | pending |
+| `frontend:analysis.overview.count_label` | Releases | リリース | pending |
+| `frontend:analysis.overview.dimensions` | Pick a dimension | 指標を選ぶ | pending |
+| `frontend:analysis.overview.intro` | How the releases did in their first 28 days, compared with each other. | 各リリースが最初の 28 日間にどうだったかを、リリース同士で比べます。 | pending |
+| `frontend:analysis.overview.of_analysed` | Out of {{count}} analysed. | 分析対象 {{count}} 件のうち。 | pending |
+| `frontend:analysis.overview.releases` | Releases shown | 表示中のリリース | pending |
+| `frontend:analysis.overview.tab` | Overview | 概要 | pending |
+| `frontend:analysis.overview.title` | Overview | 概要 | pending |
+| `frontend:analysis.pages_label` | Analysis pages | 分析のページ | pending |
+| `frontend:analysis.profile` | Score profile | スコアのプロファイル | pending |
+| `frontend:analysis.provisional` | provisional | 暫定 | pending |
+| `frontend:analysis.provisional_hint` | Less than 30 days old: its numbers may still change. | リリースから 30 日未満のため、数値がまだ変わる可能性があります。 | pending |
+| `frontend:analysis.ranking` | Ranking | ランキング | pending |
+| `frontend:analysis.ranking_caption` | Ranking by {{name}} | {{name}} によるランキング | pending |
+| `frontend:analysis.ranking_hint` | The shown releases, highest first. Rank: among the analysed releases with a value; equal values share a rank. Percentile: as the score uses it, among the finished analysed releases of the {{years}} academic years up to and including the release's own. | 表示中のリリースを高い順に並べています。順位：値のある分析対象のリリースの中での順位で、同じ値は同じ順位です。パーセンタイル：スコアと同じく、そのリリースの年度までの直近 {{years}} 年度の、完了した分析対象のリリースの中で算出します。 | pending |
+| `frontend:analysis.ranking_hint_score` | The shown releases, highest first. Rank: among the final scores of the analysed releases; a provisional release shows where it would stand. Coverage: how much of the profile's weight had a value. | 表示中のリリースを高い順に並べています。順位：分析対象のリリースの確定したスコアの中での順位です。暫定のリリースには、入った場合の順位を示しています。カバー率：プロファイルの重みのうち値のあった割合。 | pending |
+| `frontend:analysis.sentence.analysed` | Analysed releases: {{count}}{{filters}}{{years}}. | 分析対象：{{count}} 件{{filters}}{{years}}。 | pending |
+| `frontend:analysis.sentence.joiner` | ;  | ／ | pending |
+| `frontend:analysis.sentence.separator` | ,  | 、 | pending |
+| `frontend:analysis.sentence.shown` | Shown: {{count}} of them{{filters}}. | 表示：そのうち {{count}} 件{{filters}}。 | pending |
+| `frontend:analysis.sentence.shown_all` | Shown: all of them. | 表示：そのすべて。 | pending |
+| `frontend:analysis.sentence.within` |  ({{text}}) | （{{text}}） | pending |
+| `frontend:analysis.sentence.years` | , {{years}} | 、{{years}} | pending |
+| `frontend:analysis.states.insufficient` | Too little data | データ不足 | pending |
+| `frontend:analysis.states.missing` | Missing | 未入力 | pending |
+| `frontend:analysis.states.not_applicable` | Not applicable | 該当なし | pending |
+| `frontend:analysis.states.not_yet_due` | Not yet due | まだ期日前 | pending |
+| `frontend:analysis.states.value` | Value | 値あり | pending |
+| `frontend:analysis.tabs.altmetric` | Altmetric | Altmetric | pending |
+| `frontend:analysis.tabs.score` | Score | スコア | pending |
+| `frontend:analysis.too_few` | Too few releases to compare with yet. | 比較できるリリースがまだ少なすぎます。 | pending |
+| `frontend:analysis.top.by` | Ranked by | 並べ替えの基準 | pending |
+| `frontend:analysis.top.caption` | Ranked by {{name}}. A release less than 30 days old, or with too little data for a score, is in neither list. | {{name}} で並べています。リリースから 30 日未満のもの、スコアを出すにはデータが不足しているものは、どちらのリストにも入りません。 | pending |
+| `frontend:analysis.top.highest` | Highest 5 | 上位5件 | pending |
+| `frontend:analysis.top.highest_caption` | The five highest by {{name}} | {{name}} の上位5件 | pending |
+| `frontend:analysis.top.intro` | The five highest and five lowest of the shown releases. Only finished releases with a value count. | 表示中のリリースのうち、上位5件と下位5件です。完了して値のあるリリースのみが対象です。 | pending |
+| `frontend:analysis.top.lowest` | Lowest 5 | 下位5件 | pending |
+| `frontend:analysis.top.lowest_caption` | The five lowest by {{name}} | {{name}} の下位5件 | pending |
+| `frontend:analysis.top.lowest_none` | Too few releases for a second list: each one is already above. | リリースが少ないため、二つ目のリストはありません。すべて上に入っています。 | pending |
+| `frontend:analysis.top.none` | No finished release among the shown ones has a value yet. | 表示中のリリースには、値のある完了したものがまだありません。 | pending |
+| `frontend:analysis.top.tab` | Top & bottom 5 | 上位・下位5件 | pending |
+| `frontend:analysis.top.title` | Top & bottom 5 | 上位・下位5件 | pending |
+| `frontend:analysis.unknown_page` | There is no Analysis page with this name. Choose one above. | この名前の分析ページはありません。上から選んでください。 | pending |
+| `frontend:nav.analysis` | Analysis | 分析 | pending |
+| `frontend:settings.institution.landing_analysis` | Analysis | 分析 | pending |
+| `frontend:analysis.sentence.full` | {{analysed}} {{shown}} | {{analysed}}{{shown}} | pending |

@@ -163,6 +163,7 @@ export default function InstitutionSettings() {
               options={[
                 { value: "mine", label: t("settings.institution.landing_mine") },
                 { value: "all", label: t("settings.institution.landing_all") },
+                { value: "analysis", label: t("settings.institution.landing_analysis") },
               ]}
             />
           </div>

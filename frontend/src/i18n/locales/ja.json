@@ -11,7 +11,8 @@
     "settings": "設定",
     "manual": "マニュアル",
     "researchers": "研究者",
-    "data": "データ"
+    "data": "データ",
+    "analysis": "分析"
   },
   "language": {
     "switch_to": "English",
@@ -63,10 +64,6 @@
     "hint": "10 文字以上で入力してください。",
     "submit": "新しいパスワードを保存",
     "back": "戻る"
-  },
-  "placeholder": {
-    "title": "このページは準備中です",
-    "writers": "ライターごとの月別リリース数がここに表示されます。"
   },
   "errors": {
     "generic": "問題が発生しました。もう一度お試しください。",
@@ -219,7 +216,8 @@
       "landing": "サインイン後の表示ページ",
       "landing_hint": "サインイン後に最初に表示するページです。ライターとして登録されていない方には、常に全リリースを表示します。",
       "landing_mine": "担当リリース",
-      "landing_all": "全リリース"
+      "landing_all": "全リリース",
+      "landing_analysis": "分析"
     },
     "users": {
       "email": "メールアドレス",
@@ -795,5 +793,158 @@
   },
   "manual": {
     "contents": "このページの内容"
+  },
+  "analysis": {
+    "not_saved": "この選択を保存できませんでした。ページを再読み込みするまでは有効です。",
+    "pages_label": "分析のページ",
+    "profile": "スコアのプロファイル",
+    "default_profile": "既定",
+    "unknown_page": "この名前の分析ページはありません。上から選んでください。",
+    "tabs": {
+      "score": "スコア",
+      "altmetric": "Altmetric"
+    },
+    "overview": {
+      "tab": "概要",
+      "title": "概要",
+      "intro": "各リリースが最初の 28 日間にどうだったかを、リリース同士で比べます。",
+      "count_label": "リリース",
+      "releases": "表示中のリリース",
+      "all_analysed": "分析対象のすべてです。",
+      "of_analysed": "分析対象 {{count}} 件のうち。",
+      "dimensions": "指標を選ぶ"
+    },
+    "filters": {
+      "label": "分析のフィルター",
+      "analysed": "分析対象",
+      "shown": "表示",
+      "all": "すべて",
+      "chosen": "{{count}} 件を選択",
+      "picker_label": "{{side}}、{{name}}：{{summary}}",
+      "reset": "リセット",
+      "dimensions": {
+        "type": "種類",
+        "ay": "年度",
+        "unit": "部局",
+        "field": "分野",
+        "emb": "エンバーゴ",
+        "gender": "性別"
+      },
+      "emb_yes": "エンバーゴあり",
+      "emb_no": "エンバーゴなし",
+      "genders": {
+        "F": "女性",
+        "M": "男性",
+        "other": "その他",
+        "not_recorded": "未記録"
+      },
+      "none": {
+        "type": "種類なし",
+        "unit": "部局なし",
+        "field": "分野なし"
+      }
+    },
+    "sentence": {
+      "analysed": "分析対象：{{count}} 件{{filters}}{{years}}。",
+      "within": "（{{text}}）",
+      "years": "、{{years}}",
+      "shown": "表示：そのうち {{count}} 件{{filters}}。",
+      "shown_all": "表示：そのすべて。",
+      "separator": "、",
+      "joiner": "／",
+      "full": "{{analysed}}{{shown}}"
+    },
+    "describe": {
+      "score": "バージョン {{version}}：各指標でのパーセンタイルを重み付けした 0〜100 の値。",
+      "altmetric": "Altmetric が数えた、ニュース・ブログ・ソーシャルメディアでの注目度。",
+      "ea_views_d0": "エンバーゴ解除前の EurekAlert! での閲覧数（記者による閲覧）。",
+      "ea_views_d28": "リリースから 28 日間の EurekAlert! での閲覧数。",
+      "hp_views_d28": "リリースから 28 日間の大学ウェブサイトでの閲覧数。",
+      "satisfaction": "研究者によるリリースの評価（1〜5、三つの設問の平均）。",
+      "research_outcomes": "研究者が挙げた、リリースから生まれた活動の種類の数。",
+      "inquiries": "研究者に問い合わせてきた相手の種類の数。",
+      "inquiries_external": "同じく、学外からの問い合わせのみ数えたもの。",
+      "pickups_all": "すべての媒体でのリリースに関する記事。",
+      "pickups_major": "主要媒体でのリリースに関する記事。"
+    },
+    "card": {
+      "basis": "Altmetric の基準",
+      "basis_increase": "増加",
+      "basis_d28": "28 日目",
+      "log": "対数目盛",
+      "log_label": "{{name}} を対数目盛で表示",
+      "log_hint": "少数の大きな値に押しつぶされないよう、小さな値の差を広げて表示します。",
+      "lowest": "最小",
+      "median": "中央値",
+      "highest": "最大",
+      "q1": "第1四分位数",
+      "q3": "第3四分位数",
+      "analysed_n": "値のある分析対象のリリース",
+      "shown_median_label": "表示中のリリースの中央値（{{count}} 件）",
+      "half": "分析対象のリリースの半数が {{low}} から {{high}} の間にあります（箱の部分）。",
+      "median_same": "中央値は {{median}} です。",
+      "few": "値があるのはまだ {{count}} 件のみで、中央値は {{median}} です。",
+      "shown_median": "表示中のリリースの中央値：{{median}}（値のあるもの {{count}} 件）。",
+      "none_shown": "表示中のリリースには値がありません。",
+      "no_values": "この指標に値のある分析対象のリリースはまだありません。",
+      "log_on": "対数目盛で表示しています。",
+      "show_table": "表で表示",
+      "hide_table": "表を閉じる",
+      "open": "開く"
+    },
+    "counts": {
+      "value": "値あり {{count}} 件",
+      "missing": "未入力 {{count}} 件",
+      "not_applicable": "該当なし {{count}} 件",
+      "not_yet_due": "まだ期日前 {{count}} 件",
+      "scored": "スコアあり {{count}} 件",
+      "insufficient": "データ不足 {{count}} 件",
+      "provisional": "暫定 {{count}} 件（リリースから 30 日未満）",
+      "shown_points": "点で表示 {{count}} 件"
+    },
+    "columns": {
+      "rank": "順位",
+      "code": "コード",
+      "title": "タイトル",
+      "release_date": "リリース日",
+      "unit": "部局",
+      "field": "分野",
+      "value": "値",
+      "percentile": "パーセンタイル",
+      "coverage": "カバー率",
+      "based_on": "算出の根拠",
+      "state": "状態"
+    },
+    "states": {
+      "value": "値あり",
+      "missing": "未入力",
+      "not_applicable": "該当なし",
+      "not_yet_due": "まだ期日前",
+      "insufficient": "データ不足"
+    },
+    "provisional": "暫定",
+    "provisional_hint": "リリースから 30 日未満のため、数値がまだ変わる可能性があります。",
+    "too_few": "比較できるリリースがまだ少なすぎます。",
+    "chart_label": "{{name}}：グラフ",
+    "ranking": "ランキング",
+    "ranking_hint": "表示中のリリースを高い順に並べています。順位：値のある分析対象のリリースの中での順位で、同じ値は同じ順位です。パーセンタイル：スコアと同じく、そのリリースの年度までの直近 {{years}} 年度の、完了した分析対象のリリースの中で算出します。",
+    "ranking_hint_score": "表示中のリリースを高い順に並べています。順位：分析対象のリリースの確定したスコアの中での順位です。暫定のリリースには、入った場合の順位を示しています。カバー率：プロファイルの重みのうち値のあった割合。",
+    "ranking_caption": "{{name}} によるランキング",
+    "export_title": "{{name}} をエクスポート",
+    "export_xlsx": "Excel（「はじめにお読みください」シート付き）",
+    "export_notice": "ここに並んでいる行がファイルに入ります。「はじめにお読みください」に、両方のフィルター、スコアのプロファイル、日付を記載します。",
+    "top": {
+      "tab": "上位・下位5件",
+      "title": "上位・下位5件",
+      "intro": "表示中のリリースのうち、上位5件と下位5件です。完了して値のあるリリースのみが対象です。",
+      "by": "並べ替えの基準",
+      "caption": "{{name}} で並べています。リリースから 30 日未満のもの、スコアを出すにはデータが不足しているものは、どちらのリストにも入りません。",
+      "highest": "上位5件",
+      "lowest": "下位5件",
+      "highest_caption": "{{name}} の上位5件",
+      "lowest_caption": "{{name}} の下位5件",
+      "none": "表示中のリリースには、値のある完了したものがまだありません。",
+      "lowest_none": "リリースが少ないため、二つ目のリストはありません。すべて上に入っています。"
+    }
   }
 }

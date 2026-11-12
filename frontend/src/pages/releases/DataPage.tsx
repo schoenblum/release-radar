@@ -46,7 +46,8 @@ export default function DataPage() {
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const requested = params.get("view");
-  const view: DataView = requested === "mine" || requested === "all" ? requested : (user?.landing ?? "all");
+  const landing = user?.landing === "mine" ? "mine" : "all";
+  const view: DataView = requested === "mine" || requested === "all" ? requested : landing;
   const openId = params.get("release");
   const filters = useMemo(() => filtersFrom(params), [params]);
   const sort = useMemo(() => sortFrom(params), [params]);
@@ -102,7 +103,7 @@ export default function DataPage() {
 
   function chooseColumns(next: ColumnChoice): void {
     setChoice(next);
-    const preferences: UserPreferences = { data_columns: next };
+    const preferences: Partial<UserPreferences> = { data_columns: next };
     void api
       .updateMe({ preferences })
       .then((updated) => setUser(updated))

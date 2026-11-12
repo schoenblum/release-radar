@@ -409,6 +409,17 @@ async def test_the_options_list_what_the_filters_can_take(client, headers_for):
     assert [page["key"] for page in body["pages"]][:1] == ["score"]
     assert "ea_views.d28" in [page["key"] for page in body["pages"]]
     assert body["profiles"][0]["is_default"]
+    async with SessionLocal() as db:
+        peer = await db.scalar(select(ReleaseType.id).where(ReleaseType.key == "peer_reviewed"))
+    assert body["defaults"]["analysed"] == {
+        "type": [str(peer)],
+        "ay": None,
+        "unit": None,
+        "field": None,
+        "emb": None,
+        "gender": None,
+    }
+    assert body["defaults"]["shown"]["type"] == [str(peer)]
 
 
 async def test_another_profile_can_be_chosen(client, admin_headers):

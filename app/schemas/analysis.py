@@ -33,19 +33,6 @@ class ProfileRef(BaseModel):
     min_values: int
 
 
-class OptionsOut(BaseModel):
-    """What the two filters offer, every page, and every profile. Values with releases only."""
-
-    release_types: list[OptionOut]
-    academic_years: list[OptionOut]
-    units: list[OptionOut]
-    fields: list[OptionOut]
-    embargoed: list[OptionOut]
-    genders: list[OptionOut]
-    pages: list[PageOut]
-    profiles: list[ProfileRef]
-
-
 class FilterOut(BaseModel):
     """A filter as it applies, after the institution's defaults: None means every value."""
 
@@ -55,6 +42,27 @@ class FilterOut(BaseModel):
     field: list[str] | None = None
     emb: list[str] | None = None
     gender: list[str] | None = None
+
+
+class DefaultsOut(BaseModel):
+    """Where both filters start (R6.4.2): what an address without them means."""
+
+    analysed: FilterOut
+    shown: FilterOut
+
+
+class OptionsOut(BaseModel):
+    """What the two filters offer, every page, and every profile. Values with releases only."""
+
+    defaults: DefaultsOut
+    release_types: list[OptionOut]
+    academic_years: list[OptionOut]
+    units: list[OptionOut]
+    fields: list[OptionOut]
+    embargoed: list[OptionOut]
+    genders: list[OptionOut]
+    pages: list[PageOut]
+    profiles: list[ProfileRef]
 
 
 class ScopeOut(BaseModel):

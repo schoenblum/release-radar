@@ -608,4 +608,135 @@
   .manual li {
     @apply mb-5xs;
   }
+
+  /* ---------------------------------------------------------------- Analysis (step 2.3) */
+
+  .analysis-tabs {
+    @apply mb-3xs flex flex-wrap gap-5xs border-b border-line-disabled pb-4xs;
+  }
+  .analysis-tab {
+    @apply rounded px-4xs py-5xs text-sm text-content-secondary hover:bg-surface-secondary hover:text-content-primary;
+  }
+  .analysis-tab-active {
+    @apply bg-accent-10 font-semibold text-content-accent;
+  }
+  .analysis-filters {
+    @apply mb-s flex flex-col gap-4xs rounded border border-line-disabled bg-surface-secondary p-3xs;
+  }
+  .analysis-filter-row {
+    @apply flex flex-wrap items-center gap-5xs;
+  }
+  .analysis-filter-side {
+    @apply w-24 shrink-0 text-sm font-semibold;
+  }
+  .filter-button {
+    @apply inline-flex items-center gap-5xs rounded-sm border border-line-disabled bg-surface-primary px-4xs py-5xs text-sm hover:border-line-primary;
+  }
+  .filter-button-on {
+    @apply border-line-primary bg-accent-10;
+  }
+  .popover-left {
+    @apply left-0 right-auto;
+  }
+  .choice-chip {
+    @apply inline-flex items-center rounded-full border border-line-disabled bg-surface-primary px-4xs py-5xs text-sm hover:border-line-primary;
+  }
+  .choice-chip[aria-pressed="true"] {
+    @apply border-line-primary bg-surface-accent text-content-on-accent;
+  }
+  .choice-count {
+    @apply ml-5xs text-xs opacity-75;
+  }
+  .analysis-sentence {
+    @apply text-sm;
+  }
+  .analysis-grid {
+    @apply grid gap-xs md:grid-cols-2 2xl:grid-cols-3;
+  }
+  .analysis-card,
+  .analysis-count-card {
+    @apply flex min-w-0 flex-col rounded border border-line-disabled bg-surface-primary p-xs;
+  }
+  .analysis-count-card {
+    @apply max-w-sm;
+  }
+  .analysis-card-rule {
+    @apply mb-4xs h-1 w-12 rounded-full bg-accent-50;
+  }
+  .analysis-big-number {
+    @apply font-heading text-5xl leading-tight;
+  }
+  .analysis-lmh {
+    @apply mt-5xs grid grid-cols-3 text-sm;
+  }
+  .analysis-lmh dt {
+    @apply text-xs text-content-secondary;
+  }
+  .analysis-lmh dd {
+    @apply tabular-nums;
+  }
+  .analysis-median {
+    @apply font-heading text-xl font-semibold;
+  }
+  .analysis-open {
+    @apply mt-2xs self-start text-sm font-semibold text-content-accent underline-offset-2 hover:underline;
+  }
+  .analysis-points-scroll {
+    @apply max-h-72 overflow-auto;
+  }
+  .analysis-title-cell {
+    @apply max-w-[28rem] whitespace-normal text-left;
+  }
+  .analysis-based-on {
+    @apply max-w-[16rem] whitespace-normal text-left text-content-secondary;
+  }
+  .rank-table td,
+  .rank-table th {
+    @apply align-top;
+  }
+  .rank-table tr.is-empty td,
+  .rank-table tr.is-empty th {
+    @apply text-content-secondary;
+  }
+  .sort-button {
+    @apply font-semibold text-content-secondary hover:text-content-primary;
+  }
+  .link-button {
+    @apply text-content-accent underline underline-offset-2;
+  }
+
+  /* Observable Plot's own stylesheet, which the CSP keeps out of the page (BoxStrip.tsx). */
+  .rr-plot {
+    display: block;
+    height: auto;
+    max-width: 100%;
+    overflow: visible;
+  }
+  .rr-plot text,
+  .rr-plot tspan {
+    white-space: pre;
+  }
+  .rr-plot .rr-dots circle {
+    fill: var(--chart-1);
+    fill-opacity: 0.75;
+    stroke: var(--surface-primary);
+    stroke-width: 0.5;
+  }
+  .rr-plot .rr-box rect {
+    fill: var(--accent-30);
+    stroke: var(--chart-1);
+    stroke-width: 1;
+  }
+  .rr-plot .rr-whisker line {
+    stroke: var(--text-secondary);
+    stroke-width: 1.5;
+  }
+  .rr-plot .rr-median line {
+    stroke: var(--text-primary);
+  }
+
+  /* The Data page's positions (phase-2 brief §5.5): small and neutral. */
+  .position-chip {
+    @apply ml-5xs inline-block rounded-full border border-line-disabled bg-surface-secondary px-5xs text-[0.6875rem] font-normal leading-4 text-content-secondary;
+  }
 }

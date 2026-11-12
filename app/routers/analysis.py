@@ -37,6 +37,7 @@ from app.schemas.analysis import (
     BoxOut,
     CardOut,
     CountsOut,
+    DefaultsOut,
     DimensionOut,
     EntryOut,
     FilterOut,
@@ -365,7 +366,12 @@ async def options(
         described = probe.describe(key)
         pages.append(PageOut(key=key, label_en=described.label_en, label_ja=described.label_ja))
 
+    default_analysed, default_shown = default_filters(institution)
     return OptionsOut(
+        defaults=DefaultsOut(
+            analysed=_filter_out(default_analysed),
+            shown=_filter_out(_within(default_shown, default_analysed)),
+        ),
         release_types=listed(Counter(row.release_type_id for row in rows), types, True),
         academic_years=[
             OptionOut(value=str(year), count=count)

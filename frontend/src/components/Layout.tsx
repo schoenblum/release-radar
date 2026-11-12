@@ -22,6 +22,8 @@ export default function Layout() {
   const items = [
     { to: "/data", label: t("nav.data") },
     { to: "/writers", label: t("nav.writers") },
+    // Every signed-in role, office only (D16).
+    { to: "/analysis", label: t("nav.analysis") },
     ...(user?.role === "editor" ? [{ to: "/researchers", label: t("nav.researchers") }] : []),
     ...(user?.role === "admin" ? [{ to: "/settings", label: t("nav.settings") }] : []),
     { to: "/manual", label: t("nav.manual") },

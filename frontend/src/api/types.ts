@@ -2,7 +2,8 @@
 import type { Language } from "../i18n";
 
 export type UserRole = "admin" | "editor" | "viewer";
-export type LandingView = "mine" | "all";
+/** Where someone lands: their releases, all releases, or the Analysis overview. */
+export type LandingView = "mine" | "all" | "analysis";
 export type FieldVersions = Record<string, number>;
 
 export interface User {
@@ -20,6 +21,10 @@ export interface User {
 export interface UserPreferences {
   /** Differences from the default columns, so a column added later still shows up. */
   data_columns: { hidden: string[]; shown: string[] };
+  /** The Data page's percentile chips, on unless switched off. */
+  data_positions: boolean;
+  /** Analysis cards drawn on a log scale, by dimension key. */
+  analysis_log_scale: string[];
 }
 
 /** The signed-in person, with where they land after signing in. */
@@ -661,3 +666,149 @@ export interface ProfilePreview {
   saved_version: number | null;
 }
 
+
+// ---------------------------------------------------------------- Analysis (step 2.3)
+
+/** One value a filter can take: a list entry's ID or "none", a year, "1"/"0", a gender. */
+export interface AnalysisOption {
+  value: string;
+  label_en: string | null;
+  label_ja: string | null;
+  short_en: string | null;
+  count: number;
+}
+
+export interface AnalysisPage {
+  key: string;
+  label_en: string;
+  label_ja: string;
+}
+
+export interface AnalysisProfile {
+  id: string;
+  version: number;
+  name_en: string;
+  name_ja: string | null;
+  is_default: boolean;
+  altmetric_basis: "increase" | "d28";
+  coverage_min: number;
+  comparison_years: number;
+  min_values: number;
+}
+
+export interface AnalysisOptions {
+  /** Where both filters start: what an address without them means. */
+  defaults: { analysed: AnalysisFilterState; shown: AnalysisFilterState };
+  release_types: AnalysisOption[];
+  academic_years: AnalysisOption[];
+  units: AnalysisOption[];
+  fields: AnalysisOption[];
+  embargoed: AnalysisOption[];
+  genders: AnalysisOption[];
+  pages: AnalysisPage[];
+  profiles: AnalysisProfile[];
+}
+
+export type FilterDimension = "type" | "ay" | "unit" | "field" | "emb" | "gender";
+
+/** A filter as it applies: null means every value. */
+export type AnalysisFilterState = Record<FilterDimension, string[] | null>;
+
+export interface AnalysisScope {
+  analysed: AnalysisFilterState;
+  shown: AnalysisFilterState;
+  analysed_count: number;
+  shown_count: number;
+  first_year: number | null;
+  last_year: number | null;
+  profile: AnalysisProfile | null;
+  altmetric_basis: "increase" | "d28";
+  today: string;
+}
+
+export interface AnalysisBox {
+  low: number;
+  q1: number;
+  median: number;
+  q3: number;
+  high: number;
+  n: number;
+}
+
+export interface AnalysisCounts {
+  value: number;
+  missing: number;
+  not_applicable: number;
+  not_yet_due: number;
+  insufficient: number;
+  provisional: number;
+}
+
+export interface AnalysisPoint {
+  id: string;
+  code: string | null;
+  title: string | null;
+  value: number;
+  inferred: boolean;
+}
+
+export interface AnalysisCard {
+  key: string;
+  dimension: string;
+  label_en: string;
+  label_ja: string;
+  unit: string;
+  decimals: number;
+  box: AnalysisBox | null;
+  counts: AnalysisCounts;
+  points: AnalysisPoint[];
+  shown_median: number | null;
+}
+
+export interface AnalysisOverview {
+  scope: AnalysisScope;
+  cards: AnalysisCard[];
+}
+
+export type EntryState = "value" | "missing" | "not_applicable" | "not_yet_due" | "insufficient";
+
+export interface AnalysisEntry {
+  id: string;
+  code: string | null;
+  title: string | null;
+  release_date: string;
+  academic_year: number;
+  unit_id: string | null;
+  field_id: string | null;
+  value: number | null;
+  state: EntryState;
+  inferred: boolean;
+  provisional: boolean;
+  rank: number | null;
+  percentile: number | null;
+  coverage: number | null;
+  components: string[];
+}
+
+export interface AnalysisDimension {
+  scope: AnalysisScope;
+  card: AnalysisCard;
+  rows: AnalysisEntry[];
+}
+
+export interface AnalysisTop {
+  scope: AnalysisScope;
+  key: string;
+  label_en: string;
+  label_ja: string;
+  unit: string;
+  decimals: number;
+  highest: AnalysisEntry[];
+  lowest: AnalysisEntry[];
+}
+
+export interface AnalysisPositions {
+  measures: string[];
+  /** Per release, each measure's percentile. A release that is not here is outside the analysis. */
+  releases: Record<string, Record<string, number>>;
+}

@@ -11,7 +11,8 @@
     "settings": "Settings",
     "manual": "Manual",
     "researchers": "Researchers",
-    "data": "Data"
+    "data": "Data",
+    "analysis": "Analysis"
   },
   "language": {
     "switch_to": "日本語",
@@ -63,10 +64,6 @@
     "hint": "At least 10 characters.",
     "submit": "Save the new password",
     "back": "Back"
-  },
-  "placeholder": {
-    "title": "This page is on its way",
-    "writers": "Monthly release counts per writer will appear here."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -219,7 +216,8 @@
       "landing": "Where people land",
       "landing_hint": "The first page after signing in. Someone with no writer entry always lands on all releases.",
       "landing_mine": "Their own releases",
-      "landing_all": "All releases"
+      "landing_all": "All releases",
+      "landing_analysis": "Analysis"
     },
     "users": {
       "email": "Email",
@@ -795,5 +793,158 @@
   },
   "manual": {
     "contents": "On this page"
+  },
+  "analysis": {
+    "not_saved": "Couldn't save this choice. It applies until you reload the page.",
+    "pages_label": "Analysis pages",
+    "profile": "Score profile",
+    "default_profile": "default",
+    "unknown_page": "There is no Analysis page with this name. Choose one above.",
+    "tabs": {
+      "score": "Score",
+      "altmetric": "Altmetric"
+    },
+    "overview": {
+      "tab": "Overview",
+      "title": "Overview",
+      "intro": "How the releases did in their first 28 days, compared with each other.",
+      "count_label": "Releases",
+      "releases": "Releases shown",
+      "all_analysed": "All of the analysed releases.",
+      "of_analysed": "Out of {{count}} analysed.",
+      "dimensions": "Pick a dimension"
+    },
+    "filters": {
+      "label": "Analysis filters",
+      "analysed": "Analysed",
+      "shown": "Shown",
+      "all": "All",
+      "chosen": "{{count}} chosen",
+      "picker_label": "{{side}}, {{name}}: {{summary}}",
+      "reset": "Reset",
+      "dimensions": {
+        "type": "Type",
+        "ay": "Year",
+        "unit": "Unit",
+        "field": "Field",
+        "emb": "Embargo",
+        "gender": "Gender"
+      },
+      "emb_yes": "Embargoed",
+      "emb_no": "Not embargoed",
+      "genders": {
+        "F": "Female",
+        "M": "Male",
+        "other": "Other",
+        "not_recorded": "Not recorded"
+      },
+      "none": {
+        "type": "No type",
+        "unit": "No unit",
+        "field": "No field"
+      }
+    },
+    "sentence": {
+      "analysed": "Analysed releases: {{count}}{{filters}}{{years}}.",
+      "within": " ({{text}})",
+      "years": ", {{years}}",
+      "shown": "Shown: {{count}} of them{{filters}}.",
+      "shown_all": "Shown: all of them.",
+      "separator": ", ",
+      "joiner": "; ",
+      "full": "{{analysed}} {{shown}}"
+    },
+    "describe": {
+      "score": "Version {{version}}: each release's percentile on every measure, weighted, from 0 to 100.",
+      "altmetric": "Attention from news, blogs and social media, as Altmetric counts it.",
+      "ea_views_d0": "Views on EurekAlert! before the embargo lifted, as journalists read it.",
+      "ea_views_d28": "Views of the release on EurekAlert! in its first 28 days.",
+      "hp_views_d28": "Views of the release on the university's website in its first 28 days.",
+      "satisfaction": "How the researchers rated the release, 1 to 5, the mean of the three statements.",
+      "research_outcomes": "How many kinds of activity the researchers said came from it.",
+      "inquiries": "How many kinds of people contacted the researchers about it.",
+      "inquiries_external": "The same, counting only people from outside the university.",
+      "pickups_all": "Articles about the release in any outlet.",
+      "pickups_major": "Articles about the release in major outlets."
+    },
+    "card": {
+      "basis": "Altmetric basis",
+      "basis_increase": "Increase",
+      "basis_d28": "Day 28",
+      "log": "Log scale",
+      "log_label": "Log scale for {{name}}",
+      "log_hint": "Spreads out the many small numbers so a few large ones don't squash them.",
+      "lowest": "Lowest",
+      "median": "Median",
+      "highest": "Highest",
+      "q1": "Lower quartile",
+      "q3": "Upper quartile",
+      "analysed_n": "Analysed releases with a value",
+      "shown_median_label": "Median of the shown releases ({{count}})",
+      "half": "Half of the analysed releases land between {{low}} and {{high}} (the box).",
+      "median_same": "The median is {{median}}.",
+      "few": "Only {{count}} with a value so far; the median is {{median}}.",
+      "shown_median": "Median of the shown releases: {{median}} ({{count}} with a value).",
+      "none_shown": "None of the shown releases has a value.",
+      "no_values": "No analysed release has a value here yet.",
+      "log_on": "Drawn on a log scale.",
+      "show_table": "Show as table",
+      "hide_table": "Hide the table",
+      "open": "Open"
+    },
+    "counts": {
+      "value": "{{count}} with a value",
+      "missing": "{{count}} missing",
+      "not_applicable": "{{count}} not applicable",
+      "not_yet_due": "{{count}} not yet due",
+      "scored": "{{count}} with a score",
+      "insufficient": "{{count}} with too little data for one",
+      "provisional": "{{count}} provisional (under 30 days old)",
+      "shown_points": "{{count}} shown as points"
+    },
+    "columns": {
+      "rank": "Rank",
+      "code": "Code",
+      "title": "Title",
+      "release_date": "Release date",
+      "unit": "Unit",
+      "field": "Field",
+      "value": "Value",
+      "percentile": "Percentile",
+      "coverage": "Coverage",
+      "based_on": "Based on",
+      "state": "State"
+    },
+    "states": {
+      "value": "Value",
+      "missing": "Missing",
+      "not_applicable": "Not applicable",
+      "not_yet_due": "Not yet due",
+      "insufficient": "Too little data"
+    },
+    "provisional": "provisional",
+    "provisional_hint": "Less than 30 days old: its numbers may still change.",
+    "too_few": "Too few releases to compare with yet.",
+    "chart_label": "{{name}}: chart",
+    "ranking": "Ranking",
+    "ranking_hint": "The shown releases, highest first. Rank: among the analysed releases with a value; equal values share a rank. Percentile: as the score uses it, among the finished analysed releases of the {{years}} academic years up to and including the release's own.",
+    "ranking_hint_score": "The shown releases, highest first. Rank: among the final scores of the analysed releases; a provisional release shows where it would stand. Coverage: how much of the profile's weight had a value.",
+    "ranking_caption": "Ranking by {{name}}",
+    "export_title": "Export {{name}}",
+    "export_xlsx": "Excel (with a Read me sheet)",
+    "export_notice": "The file has the rows as listed here. Its Read me names both filters, the score profile and the date.",
+    "top": {
+      "tab": "Top & bottom 5",
+      "title": "Top & bottom 5",
+      "intro": "The five highest and five lowest of the shown releases. Only finished releases with a value count.",
+      "by": "Ranked by",
+      "caption": "Ranked by {{name}}. A release less than 30 days old, or with too little data for a score, is in neither list.",
+      "highest": "Highest 5",
+      "lowest": "Lowest 5",
+      "highest_caption": "The five highest by {{name}}",
+      "lowest_caption": "The five lowest by {{name}}",
+      "none": "No finished release among the shown ones has a value yet.",
+      "lowest_none": "Too few releases for a second list: each one is already above."
+    }
   }
 }

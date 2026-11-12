@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { lazy, Suspense, type ReactElement } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { AuthProvider, homePath, useAuth } from "./auth";
@@ -23,6 +23,13 @@ import ScoreProfilesSettings from "./pages/settings/ScoreProfiles";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import UsersSettings from "./pages/settings/Users";
 import WritersPage from "./pages/writers/WritersPage";
+
+// The Analysis area loads with its charts (Observable Plot) only when someone opens it, so the
+// Data page, where most visits go (D10), stays as quick as before.
+const AnalysisLayout = lazy(() => import("./pages/analysis/AnalysisLayout"));
+const Overview = lazy(() => import("./pages/analysis/Overview"));
+const DimensionPage = lazy(() => import("./pages/analysis/DimensionPage"));
+const TopBottom = lazy(() => import("./pages/analysis/TopBottom"));
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -78,6 +85,18 @@ export default function App() {
             <Route index element={<Home />} />
             <Route path="data" element={<DataPage />} />
             <Route path="writers" element={<WritersPage />} />
+            <Route
+              path="analysis"
+              element={
+                <Suspense fallback={<PageLoading />}>
+                  <AnalysisLayout />
+                </Suspense>
+              }
+            >
+              <Route index element={<Overview />} />
+              <Route path="top" element={<TopBottom />} />
+              <Route path="d/:key" element={<DimensionPage />} />
+            </Route>
             <Route path="manual" element={<Manual />} />
             <Route
               path="researchers"
