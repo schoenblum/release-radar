@@ -33,7 +33,13 @@ class DataColumns(BaseModel):
 
 
 class UserPreferences(BaseModel):
+    """Each person's own settings. A save sends only what changed, so the others stay."""
+
     data_columns: DataColumns = DataColumns()
+    # The Data page's percentile chips (phase-2 brief §5.5), on unless switched off.
+    data_positions: bool = True
+    # Analysis cards and pages drawn on a log scale, by dimension key (phase-2 brief §5.2).
+    analysis_log_scale: list[str] = Field(default=[], max_length=100)
 
 
 class CurrentUserOut(UserOut):

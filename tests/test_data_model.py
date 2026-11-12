@@ -87,7 +87,8 @@ async def test_institution_defaults():
     assert institution.website_domain == "news.example.org"
     assert institution.release_code_pattern == "AY{yyyy}-{nn}"
     assert institution.major_outlet_threshold == 1_000_000
-    assert institution.landing_pages == {"admin": "mine", "editor": "mine", "viewer": "all"}
+    # A new install lands viewers on Analysis (phase-2 brief §4.3).
+    assert institution.landing_pages == {"admin": "mine", "editor": "mine", "viewer": "analysis"}
     assert "eurekalert" in institution.ea_url_pattern
     assert institution.contact_email is None
 

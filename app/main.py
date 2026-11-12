@@ -16,6 +16,7 @@ from app.config import get_settings
 from app.database import SessionLocal
 from app.middleware import SecurityHeadersMiddleware
 from app.routers import (
+    analysis,
     auth,
     brand,
     custom_fields,
@@ -126,6 +127,7 @@ app.include_router(custom_fields.router, prefix=API_PREFIX)
 app.include_router(data_export.router, prefix=API_PREFIX)
 app.include_router(integrations.router, prefix=API_PREFIX)
 app.include_router(score_profiles.router, prefix=API_PREFIX)
+app.include_router(analysis.router, prefix=API_PREFIX)
 app.include_router(brand.api_router, prefix=API_PREFIX)
 app.include_router(brand.asset_router)
 

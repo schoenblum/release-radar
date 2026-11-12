@@ -44,7 +44,7 @@ router = APIRouter(tags=["settings"])
 
 _DOMAIN = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
 LANDING_ROLES = {"admin", "editor", "viewer"}
-LANDING_VIEWS = {"mine", "all"}
+LANDING_VIEWS = {"mine", "all", "analysis"}
 # The grid and the date logic rely on these, so they stay visible.
 NOT_HIDEABLE = frozenset({"code", "title", "release_date"})
 # The system assigns the code (D35), so nobody can be asked to fill it in.

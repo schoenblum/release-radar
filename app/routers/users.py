@@ -57,8 +57,12 @@ async def update_me(
     user: User = Depends(get_authenticated_user),
     db: AsyncSession = Depends(get_db),
 ) -> CurrentUserOut:
-    """Own name and language. The language toggle also calls this at first sign-in."""
+    """Own name, language and preferences. The language toggle also calls this at first
+    sign-in. Preferences merge: a page saves only its own, and the others stay as they are."""
     changes = payload.model_dump(exclude_unset=True)
+    if "preferences" in changes:
+        sent = payload.preferences.model_dump(exclude_unset=True) if payload.preferences else {}
+        changes["preferences"] = {**(user.preferences or {}), **sent}
     for field, value in changes.items():
         setattr(user, field, value)
     if changes:

@@ -205,14 +205,14 @@ async def test_admins_see_and_change_only_their_own_institution(client, admin_he
 async def test_a_person_keeps_their_column_choice(client, headers_for):
     headers = await headers_for(UserRole.editor)
     me = (await client.get("/api/v1/auth/me", headers=headers)).json()
-    assert me["preferences"] == {"data_columns": {"hidden": [], "shown": []}}
+    assert me["preferences"]["data_columns"] == {"hidden": [], "shown": []}
 
     choice = {"data_columns": {"hidden": ["unit"], "shown": ["journal"]}}
     saved = await client.patch("/api/v1/users/me", headers=headers, json={"preferences": choice})
     assert saved.status_code == 200
-    assert saved.json()["preferences"] == choice
+    assert saved.json()["preferences"]["data_columns"] == choice["data_columns"]
     me = (await client.get("/api/v1/auth/me", headers=headers)).json()
-    assert me["preferences"] == choice
+    assert me["preferences"]["data_columns"] == choice["data_columns"]
 
 
 async def test_preferences_are_checked_and_are_not_a_record_change(client, headers_for):

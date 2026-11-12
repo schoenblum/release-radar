@@ -11,7 +11,9 @@ from app.models.mixins import Audited, FieldVersioned, Timestamped, UuidKeyed
 
 # The view each role lands on: "mine" and "all" are the two views of the Data page
 # (D30). "mine" falls back to "all" for someone with no writer entry (step 1.6).
-DEFAULT_LANDING_PAGES = {"admin": "mine", "editor": "mine", "viewer": "all"}
+# Viewers read rather than enter data, so a new install lands them on Analysis (phase-2 brief
+# §4.3). An existing install keeps what it stores.
+DEFAULT_LANDING_PAGES = {"admin": "mine", "editor": "mine", "viewer": "analysis"}
 DEFAULT_EA_URL_PATTERN = r"^https://www\.eurekalert\.org/news-releases/\d+$"
 DEFAULT_RELEASE_CODE_PATTERN = "AY{yyyy}-{nn}"
 DEFAULT_MAJOR_OUTLET_THRESHOLD = 1_000_000

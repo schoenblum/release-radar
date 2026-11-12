@@ -277,7 +277,65 @@
       "research_outcomes": "研究上の成果",
       "inquiries": "問い合わせ",
       "inquiries_external": "学外からの問い合わせ",
-      "altmetric": "Altmetric（プロファイルの基準による）"
+      "altmetric": "Altmetric（プロファイルの基準による）",
+      "score": "スコア"
+    }
+  },
+  "analysis_export": {
+    "sheets": {
+      "ranking": "ランキング",
+      "highest": "上位5件",
+      "lowest": "下位5件"
+    },
+    "columns": {
+      "rank": "順位",
+      "percentile": "パーセンタイル",
+      "coverage": "カバー率（%）",
+      "based_on": "算出の根拠",
+      "state": "状態",
+      "provisional": "暫定",
+      "list": "リスト"
+    },
+    "states": {
+      "value": "値あり",
+      "missing": "未入力",
+      "not_applicable": "該当なし",
+      "not_yet_due": "まだ期日前",
+      "insufficient": "スコアを出すにはデータが不足"
+    },
+    "dimensions": {
+      "type": "リリースの種類",
+      "ay": "年度",
+      "unit": "部局",
+      "field": "分野",
+      "emb": "エンバーゴ",
+      "gender": "研究者の性別"
+    },
+    "none": {
+      "type": "種類なし",
+      "unit": "部局なし",
+      "field": "分野なし"
+    },
+    "embargoed_yes": "エンバーゴあり",
+    "embargoed_no": "エンバーゴなし",
+    "restriction": "{dimension}：{values}",
+    "joiner": "／",
+    "everything": "すべてのリリース",
+    "readme": {
+      "title": "Release Radar 分析：{name}",
+      "title_top": "Release Radar 分析：{name} の上位・下位5件",
+      "analysed": "分析対象：{count} 件のリリース（{filters}）。中央値、ばらつき、順位、各スコアの比較対象はこの中から算出しています。",
+      "shown": "表示：そのうち {count} 件（{filters}）。行はこのリリースです。数値は変わりません。",
+      "profile": "スコアのプロファイル：{name}（バージョン {version}）。比較対象：そのリリースの年度までの直近 {years} 年度の、完了したリリースのみ。各要素にはそこに {minimum} 件以上の値が、スコアには {coverage} % 以上のカバー率が必要です。",
+      "altmetric_increase": "Altmetric：0 日目から 28 日目までの増加。",
+      "altmetric_d28": "Altmetric：28 日目のスコア。",
+      "rows": "行：表示中のすべてのリリースを高い順に並べています。値のないものは最後です。",
+      "top": "行：表示中のリリースのうち、完了して値のあるものの上位5件と下位5件。両方のリストに入るリリースはありません。",
+      "rank": "順位：値のある分析対象のリリースの中での順位（スコアは完了したリリースのみ）。同じ値は同じ順位です。暫定のリリースには、入った場合の順位を示しています。",
+      "percentile": "パーセンタイル：スコアに使うもので、（下回る件数 ＋ 同じ件数の半分）÷ 比較件数 × 100。そのリリースの比較対象の中で算出します。値が少なすぎる場合は空欄です。",
+      "score": "スコア：0〜100、各要素のパーセンタイルの加重平均。カバー率：該当する重みのうち値のある割合。",
+      "provisional": "暫定（1）：リリースから 30 日未満のため、数値がまだ変わる可能性があります。",
+      "quartiles": "分析ページの中央値と四分位数は、Excel の QUARTILE.INC と同じ方法で算出しています。"
     }
   }
 }

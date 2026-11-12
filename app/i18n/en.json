@@ -277,7 +277,65 @@
       "research_outcomes": "Research outcomes",
       "inquiries": "Inquiries",
       "inquiries_external": "Inquiries from outside the university",
-      "altmetric": "Altmetric (by the profile's basis)"
+      "altmetric": "Altmetric (by the profile's basis)",
+      "score": "Score"
+    }
+  },
+  "analysis_export": {
+    "sheets": {
+      "ranking": "Ranking",
+      "highest": "Highest 5",
+      "lowest": "Lowest 5"
+    },
+    "columns": {
+      "rank": "Rank",
+      "percentile": "Percentile",
+      "coverage": "Coverage (%)",
+      "based_on": "Based on",
+      "state": "State",
+      "provisional": "Provisional",
+      "list": "List"
+    },
+    "states": {
+      "value": "Value",
+      "missing": "Missing",
+      "not_applicable": "N/A",
+      "not_yet_due": "Not yet due",
+      "insufficient": "Too little data for a score"
+    },
+    "dimensions": {
+      "type": "Release type",
+      "ay": "Academic year",
+      "unit": "Unit",
+      "field": "Field",
+      "emb": "Embargoed",
+      "gender": "Researcher gender"
+    },
+    "none": {
+      "type": "No release type",
+      "unit": "No unit",
+      "field": "No field"
+    },
+    "embargoed_yes": "Embargoed",
+    "embargoed_no": "Not embargoed",
+    "restriction": "{dimension}: {values}",
+    "joiner": "; ",
+    "everything": "every release",
+    "readme": {
+      "title": "Release Radar analysis: {name}",
+      "title_top": "Release Radar analysis: top and bottom 5 by {name}",
+      "analysed": "Analysed: {count} releases ({filters}). Medians, spreads, ranks and every score's comparison set come from these.",
+      "shown": "Shown: {count} of them ({filters}). The rows are these; they change no number.",
+      "profile": "Score profile: {name}, version {version}. Comparison set: the finished releases of the {years} academic years up to and including the release's own; a component needs at least {minimum} values there, and a score at least {coverage} % coverage.",
+      "altmetric_increase": "Altmetric: the increase from day 0 to day 28.",
+      "altmetric_d28": "Altmetric: the score on day 28.",
+      "rows": "Rows: every shown release, highest first; those without a value come last.",
+      "top": "Rows: the five highest and the five lowest shown releases that are finished and have a value. No release is in both lists.",
+      "rank": "Rank: among the analysed releases with a value (for the score: finished releases only). Equal values share a rank. A provisional release shows the rank it would have.",
+      "percentile": "Percentile: the one the score uses, (number below + half the number equal) ÷ number compared × 100, within the release's comparison set. Empty when that set has too few values.",
+      "score": "Score: 0–100, the weighted mean of the component percentiles. Coverage: the share of the applicable weight with a value.",
+      "provisional": "Provisional (1): the release is less than 30 days old, so its numbers may still change.",
+      "quartiles": "Medians and quartiles on the Analysis pages are computed as Excel's QUARTILE.INC."
     }
   }
 }

@@ -931,3 +931,47 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:analysis.dimensions.satisfaction` | Researcher satisfaction | 研究者の満足度 | pending |
 | `backend:seed.profile.name` | News performance | ニュースでの反響 | pending |
 | `backend:seed.profile.purpose` | How far a release travelled: news pickups, Altmetric, EurekAlert and the university's website, each compared with releases of the same and the two previous academic years. | リリースの広がり：ニュースでの掲載、Altmetric、EurekAlert、大学ウェブサイトの閲覧数を、同じ年度と前の 2 年度のリリースと比べます。 | pending |
+| `backend:analysis.dimensions.score` | Score | スコア | pending |
+| `backend:analysis_export.columns.based_on` | Based on | 算出の根拠 | pending |
+| `backend:analysis_export.columns.coverage` | Coverage (%) | カバー率（%） | pending |
+| `backend:analysis_export.columns.list` | List | リスト | pending |
+| `backend:analysis_export.columns.percentile` | Percentile | パーセンタイル | pending |
+| `backend:analysis_export.columns.provisional` | Provisional | 暫定 | pending |
+| `backend:analysis_export.columns.rank` | Rank | 順位 | pending |
+| `backend:analysis_export.columns.state` | State | 状態 | pending |
+| `backend:analysis_export.dimensions.ay` | Academic year | 年度 | pending |
+| `backend:analysis_export.dimensions.emb` | Embargoed | エンバーゴ | pending |
+| `backend:analysis_export.dimensions.field` | Field | 分野 | pending |
+| `backend:analysis_export.dimensions.gender` | Researcher gender | 研究者の性別 | pending |
+| `backend:analysis_export.dimensions.type` | Release type | リリースの種類 | pending |
+| `backend:analysis_export.dimensions.unit` | Unit | 部局 | pending |
+| `backend:analysis_export.embargoed_no` | Not embargoed | エンバーゴなし | pending |
+| `backend:analysis_export.embargoed_yes` | Embargoed | エンバーゴあり | pending |
+| `backend:analysis_export.everything` | every release | すべてのリリース | pending |
+| `backend:analysis_export.joiner` | ;  | ／ | pending |
+| `backend:analysis_export.none.field` | No field | 分野なし | pending |
+| `backend:analysis_export.none.type` | No release type | 種類なし | pending |
+| `backend:analysis_export.none.unit` | No unit | 部局なし | pending |
+| `backend:analysis_export.readme.altmetric_d28` | Altmetric: the score on day 28. | Altmetric：28 日目のスコア。 | pending |
+| `backend:analysis_export.readme.altmetric_increase` | Altmetric: the increase from day 0 to day 28. | Altmetric：0 日目から 28 日目までの増加。 | pending |
+| `backend:analysis_export.readme.analysed` | Analysed: {count} releases ({filters}). Medians, spreads, ranks and every score's comparison set come from these. | 分析対象：{count} 件のリリース（{filters}）。中央値、ばらつき、順位、各スコアの比較対象はこの中から算出しています。 | pending |
+| `backend:analysis_export.readme.percentile` | Percentile: the one the score uses, (number below + half the number equal) ÷ number compared × 100, within the release's comparison set. Empty when that set has too few values. | パーセンタイル：スコアに使うもので、（下回る件数 ＋ 同じ件数の半分）÷ 比較件数 × 100。そのリリースの比較対象の中で算出します。値が少なすぎる場合は空欄です。 | pending |
+| `backend:analysis_export.readme.profile` | Score profile: {name}, version {version}. Comparison set: the finished releases of the {years} academic years up to and including the release's own; a component needs at least {minimum} values there, and a score at least {coverage} % coverage. | スコアのプロファイル：{name}（バージョン {version}）。比較対象：そのリリースの年度までの直近 {years} 年度の、完了したリリースのみ。各要素にはそこに {minimum} 件以上の値が、スコアには {coverage} % 以上のカバー率が必要です。 | pending |
+| `backend:analysis_export.readme.provisional` | Provisional (1): the release is less than 30 days old, so its numbers may still change. | 暫定（1）：リリースから 30 日未満のため、数値がまだ変わる可能性があります。 | pending |
+| `backend:analysis_export.readme.quartiles` | Medians and quartiles on the Analysis pages are computed as Excel's QUARTILE.INC. | 分析ページの中央値と四分位数は、Excel の QUARTILE.INC と同じ方法で算出しています。 | pending |
+| `backend:analysis_export.readme.rank` | Rank: among the analysed releases with a value (for the score: finished releases only). Equal values share a rank. A provisional release shows the rank it would have. | 順位：値のある分析対象のリリースの中での順位（スコアは完了したリリースのみ）。同じ値は同じ順位です。暫定のリリースには、入った場合の順位を示しています。 | pending |
+| `backend:analysis_export.readme.rows` | Rows: every shown release, highest first; those without a value come last. | 行：表示中のすべてのリリースを高い順に並べています。値のないものは最後です。 | pending |
+| `backend:analysis_export.readme.score` | Score: 0–100, the weighted mean of the component percentiles. Coverage: the share of the applicable weight with a value. | スコア：0〜100、各要素のパーセンタイルの加重平均。カバー率：該当する重みのうち値のある割合。 | pending |
+| `backend:analysis_export.readme.shown` | Shown: {count} of them ({filters}). The rows are these; they change no number. | 表示：そのうち {count} 件（{filters}）。行はこのリリースです。数値は変わりません。 | pending |
+| `backend:analysis_export.readme.title` | Release Radar analysis: {name} | Release Radar 分析：{name} | pending |
+| `backend:analysis_export.readme.title_top` | Release Radar analysis: top and bottom 5 by {name} | Release Radar 分析：{name} の上位・下位5件 | pending |
+| `backend:analysis_export.readme.top` | Rows: the five highest and the five lowest shown releases that are finished and have a value. No release is in both lists. | 行：表示中のリリースのうち、完了して値のあるものの上位5件と下位5件。両方のリストに入るリリースはありません。 | pending |
+| `backend:analysis_export.restriction` | {dimension}: {values} | {dimension}：{values} | pending |
+| `backend:analysis_export.sheets.highest` | Highest 5 | 上位5件 | pending |
+| `backend:analysis_export.sheets.lowest` | Lowest 5 | 下位5件 | pending |
+| `backend:analysis_export.sheets.ranking` | Ranking | ランキング | pending |
+| `backend:analysis_export.states.insufficient` | Too little data for a score | スコアを出すにはデータが不足 | pending |
+| `backend:analysis_export.states.missing` | Missing | 未入力 | pending |
+| `backend:analysis_export.states.not_applicable` | N/A | 該当なし | pending |
+| `backend:analysis_export.states.not_yet_due` | Not yet due | まだ期日前 | pending |
+| `backend:analysis_export.states.value` | Value | 値あり | pending |

@@ -353,7 +353,7 @@ async def test_landing_follows_the_role_and_needs_releases_of_ones_own_for_mine(
         )
         await db.commit()
     assert viewer
-    assert await _landing(client, "viewer@example.org") == "all"
+    assert await _landing(client, "viewer@example.org") == "analysis"
     assert await _landing(client, "writes@example.org") == "mine"
     # A writer entry with nothing written yet would land on an empty page.
     assert await _landing(client, "starter@example.org") == "all"
