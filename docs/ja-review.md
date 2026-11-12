@@ -1107,3 +1107,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:data.positions.sr` | percentile | パーセンタイル | pending |
 | `frontend:data.positions.toggle_hint` | Show next to each number its percentile among comparable releases, as the default score profile compares them. | 各数値の横に、既定のスコアのプロファイルで比べた同種のリリースの中でのパーセンタイルを表示します。 | pending |
 | `frontend:analysis.filters.name_label` | {{name}}: | {{name}}： | pending |
+| `frontend:page_error.failed` | Something went wrong while showing it. Reloading usually fixes it; the rest of Release Radar works as before. If it happens again, tell whoever looks after Release Radar which page it was. | 表示中に問題が起きました。多くの場合、再読み込みで解決します。Release Radar のほかのページはこれまでどおり使えます。再び起きる場合は、どのページだったかを Release Radar の担当者に伝えてください。 | pending |
+| `frontend:page_error.load_failed` | Part of it didn't load. Release Radar may have been updated since this tab was opened, or the connection dropped. Reloading usually fixes it; the rest of Release Radar works as before. | ページの一部を読み込めませんでした。このタブを開いた後に Release Radar が更新されたか、接続が切れた可能性があります。多くの場合、再読み込みで解決します。Release Radar のほかのページはこれまでどおり使えます。 | pending |
+| `frontend:page_error.reload` | Reload the page | ページを再読み込み | pending |
+| `frontend:page_error.title` | This page couldn't be shown | このページを表示できませんでした | pending |

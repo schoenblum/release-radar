@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useAuth } from "../auth";
 import { useBrand } from "../brand";
 import LanguageToggle from "./LanguageToggle";
+import PageErrorBoundary from "./PageErrorBoundary";
 import UserMenu from "./UserMenu";
 import Wordmark from "./Wordmark";
 
@@ -13,6 +14,7 @@ export default function Layout() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { institutionName } = useBrand();
+  const location = useLocation();
   const { data: health } = useQuery({
     queryKey: ["health"],
     queryFn: api.health,
@@ -63,7 +65,10 @@ export default function Layout() {
         <div className="accent-rule" />
       </header>
       <main id="main" className="flex-1 px-xs py-s">
-        <Outlet />
+        {/* Keyed by the page, so going to another one (Back included) starts afresh. */}
+        <PageErrorBoundary key={location.pathname}>
+          <Outlet />
+        </PageErrorBoundary>
       </main>
       <footer className="px-xs py-2xs text-sm text-content-secondary">
         {institutionName}

@@ -23,6 +23,11 @@ const brandLinks: Plugin = {
 
 export default defineConfig({
   plugins: [react(), brandLinks],
+  // Where the dev server keeps the libraries it pre-bundles. In Compose this is outside
+  // node_modules: that folder is a volume other containers share, and their `npm ci` (check.sh
+  // runs one) empties it, which left the running dev server answering 504 for a library the
+  // browser had not fetched yet (step 2.3, Observable Plot).
+  cacheDir: process.env.VITE_CACHE_DIR ?? "node_modules/.vite",
   server: {
     host: true,
     port: 5173,

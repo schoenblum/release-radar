@@ -81,6 +81,8 @@ services:
     environment:
       VITE_PROXY_TARGET: http://app-dev:8000
       VITE_USE_POLLING: "true"
+      # Out of the shared node_modules volume, so another container's `npm ci` can't empty it.
+      VITE_CACHE_DIR: /tmp/vite-cache
     volumes:
       - ./frontend:/srv/frontend
       - frontend-node-modules:/srv/frontend/node_modules

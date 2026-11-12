@@ -955,5 +955,11 @@
       "none": "No finished release among the shown ones has a value yet.",
       "lowest_none": "Too few releases for a second list: each one is already above."
     }
+  },
+  "page_error": {
+    "title": "This page couldn't be shown",
+    "load_failed": "Part of it didn't load. Release Radar may have been updated since this tab was opened, or the connection dropped. Reloading usually fixes it; the rest of Release Radar works as before.",
+    "failed": "Something went wrong while showing it. Reloading usually fixes it; the rest of Release Radar works as before. If it happens again, tell whoever looks after Release Radar which page it was.",
+    "reload": "Reload the page"
   }
 }
