@@ -172,6 +172,9 @@ const GridRow = memo(function GridRow({
   onPickResearcher,
   onCancel,
 }: RowProps) {
+  const { t } = useTranslation();
+  // Read before the chip's number by a screen reader, which sees no colour or shape.
+  const positionWord = t("data.positions.sr");
   return (
     <tr role="row" aria-rowindex={index + 2} data-row={index}>
       {columns.map((column, position) => {
@@ -254,10 +257,16 @@ const GridRow = memo(function GridRow({
               </a>
             ) : column.id === "title" ? (
               <span className="grid-text grid-title">{text}</span>
-            ) : view.badge && !shown ? (
+            ) : (view.badge || view.position !== undefined) && !shown ? (
               <span className="grid-text">
                 {text}
-                <span className="grid-badge">{view.badge}</span>
+                {view.badge && <span className="grid-badge">{view.badge}</span>}
+                {view.position !== undefined && (
+                  <span className="position-chip">
+                    <span className="sr-only">{positionWord}</span>
+                    {view.position}
+                  </span>
+                )}
               </span>
             ) : (
               <span className="grid-text">{text}</span>

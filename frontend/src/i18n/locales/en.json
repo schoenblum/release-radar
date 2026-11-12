@@ -775,6 +775,14 @@
       "activities": "Activities",
       "inquiries": "Inquiries",
       "comments": "Comments"
+    },
+    "positions": {
+      "label": "Positions",
+      "toggle_hint": "Show next to each number its percentile among comparable releases, as the default score profile compares them.",
+      "hint": "Percentile {{percentile}}: higher than about {{percentile}} % of comparable releases.",
+      "outside": "Not in the analysis: the analysis defaults leave this release out.",
+      "sr": "percentile",
+      "not_saved": "Couldn't save this choice. It applies until you leave this page."
     }
   },
   "writers": {

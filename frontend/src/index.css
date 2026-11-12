@@ -735,6 +735,9 @@
     stroke: var(--text-primary);
   }
 
+  .btn-small[aria-pressed="true"] {
+    @apply border-line-primary bg-accent-10;
+  }
   /* The Data page's positions (phase-2 brief §5.5): small and neutral. */
   .position-chip {
     @apply ml-5xs inline-block rounded-full border border-line-disabled bg-surface-secondary px-5xs text-[0.6875rem] font-normal leading-4 text-content-secondary;

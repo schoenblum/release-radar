@@ -1100,3 +1100,9 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:nav.analysis` | Analysis | 分析 | pending |
 | `frontend:settings.institution.landing_analysis` | Analysis | 分析 | pending |
 | `frontend:analysis.sentence.full` | {{analysed}} {{shown}} | {{analysed}}{{shown}} | pending |
+| `frontend:data.positions.hint` | Percentile {{percentile}}: higher than about {{percentile}} % of comparable releases. | パーセンタイル {{percentile}}：同種のリリースの約 {{percentile}} % を上回っています。 | pending |
+| `frontend:data.positions.label` | Positions | 位置 | pending |
+| `frontend:data.positions.not_saved` | Couldn't save this choice. It applies until you leave this page. | この選択を保存できませんでした。このページを離れるまでは有効です。 | pending |
+| `frontend:data.positions.outside` | Not in the analysis: the analysis defaults leave this release out. | 分析対象外：分析の既定の設定ではこのリリースを含めていません。 | pending |
+| `frontend:data.positions.sr` | percentile | パーセンタイル | pending |
+| `frontend:data.positions.toggle_hint` | Show next to each number its percentile among comparable releases, as the default score profile compares them. | 各数値の横に、既定のスコアのプロファイルで比べた同種のリリースの中でのパーセンタイルを表示します。 | pending |

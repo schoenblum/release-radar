@@ -252,6 +252,27 @@ describe("what a number cell shows", () => {
     expect(day0.snapshot(row)).toMatchObject({ body: { state: "missing" } });
   });
 
+  it("shows a value's position among comparable releases as a chip, when positions are on", () => {
+    const positions = { "1": { "ea_views.d0": 72.6 }, "2": {} };
+    const views = find(buildColumns(context({ measures: MEASURES, positions })), "measure:ea_views.d0");
+    const valued = (id: string) =>
+      release(id, {
+        readings: [reading("ea_views.d0", { value: 1234, state: "value", display_state: "value" })],
+      });
+    const cell = views.view(valued("1"));
+    expect(cell).toMatchObject({ text: "1,234", position: 73 });
+    expect(cell.hint).toBe("Percentile 73: higher than about 73 % of comparable releases.");
+    // Analysed, but too few values to compare with: no chip.
+    expect(views.view(valued("2")).position).toBeUndefined();
+    // Outside the analysis: no chip, and the hover says why.
+    const outside = views.view(valued("3"));
+    expect(outside.position).toBeUndefined();
+    expect(outside.hint).toBe("Not in the analysis: the analysis defaults leave this release out.");
+    // Positions off: nothing at all.
+    const off = find(buildColumns(context({ measures: MEASURES, positions: null })), "measure:ea_views.d0");
+    expect(off.view(valued("1"))).toEqual({ text: "1,234", tone: "plain" });
+  });
+
   it("does not ask anyone for an automatic number, or let it be typed here", () => {
     const auto = find(buildColumns(context({ measures: MEASURES })), "measure:hp_views.d28");
     const row = release("1", { readings: [reading("hp_views.d28")] });

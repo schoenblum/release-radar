@@ -58,6 +58,8 @@ export interface CellView {
   href?: string;
   /** A small word after the value, such as "inferred". */
   badge?: string;
+  /** The value's percentile among comparable releases, as a small chip (BRIEF §8.4). */
+  position?: number;
 }
 
 export type Parsed = { ok: true; commit: Commit } | { ok: false; code: string };
@@ -110,6 +112,11 @@ export interface GridContext {
   writers: Writer[];
   releaseTypes: ReleaseType[];
   vocabularyItems: Record<string, VocabularyItem[]>;
+  /**
+   * Each release's percentile per measure from the default analysis (phase-2 brief §5.5), or
+   * null when positions are off. A release that is not a key is outside the analysis.
+   */
+  positions?: Record<string, Record<string, number>> | null;
 }
 
 // R7.5.2, the paper's date (it decides how soon a release is needed), and whatever analysis
@@ -485,6 +492,24 @@ export function readingSnapshot(reading: Reading): ReadingBody {
   return { state: "missing" };
 }
 
+/** A value's chip: its percentile when the release is analysed, a hint when it is not. */
+function withPosition(view: CellView, context: GridContext, releaseId: string, key: string): CellView {
+  if (!context.positions) return view;
+  const { t } = context;
+  const found = context.positions[releaseId];
+  if (found === undefined) {
+    return { ...view, hint: [view.hint, t("data.positions.outside")].filter(Boolean).join(" · ") };
+  }
+  const percentile = found[key];
+  if (percentile === undefined) return view;
+  const position = Math.round(percentile);
+  return {
+    ...view,
+    position,
+    hint: [view.hint, t("data.positions.hint", { percentile: position })].filter(Boolean).join(" · "),
+  };
+}
+
 function measureColumn(context: GridContext, measure: Measure): GridColumn {
   const { t } = context;
   // Entered by hand here. An automatic value can be overridden in the drawer (P4).
@@ -507,9 +532,16 @@ function measureColumn(context: GridContext, measure: Measure): GridColumn {
       if (!reading) return { text: "", tone: "muted" };
       if (reading.inferred) {
         // R8.1.3: a 0 no one typed, because it cannot be anything else.
-        return { text: "0", tone: "plain", badge: t("data.inferred"), hint: t("data.inferred_why") };
+        return withPosition(
+          { text: "0", tone: "plain", badge: t("data.inferred"), hint: t("data.inferred_why") },
+          context,
+          release.id,
+          measure.key,
+        );
       }
-      if (reading.display_state === "value") return plain(formatNumber(reading.value ?? 0));
+      if (reading.display_state === "value") {
+        return withPosition(plain(formatNumber(reading.value ?? 0)), context, release.id, measure.key);
+      }
       if (reading.display_state === "not_applicable") {
         return { text: t("data.not_applicable"), tone: "na" };
       }
