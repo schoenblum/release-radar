@@ -869,3 +869,65 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:import.report.fill_kept` | Release Radar has “{current}” ({field}): kept, as only empty cells are filled. | Release Radar の値は「{current}」（{field}）：空欄のみ入力するため、そのままにしました。 | pending |
 | `backend:import.report.fill_mode` | Only what is empty in Release Radar is filled: nothing already there changes. New codes are added in full. | Release Radar で空欄の項目だけを入力します。入力済みの内容は変更しません。新しいコードのリリースはすべて取り込みます。 | pending |
 | `backend:import.report.fill_removed_left` | Removed in the app: left as it is, as only empty cells are filled. | アプリで削除されたリリースです。空欄のみ入力するため、そのままにしました。 | pending |
+| `frontend:errors.profile_component_not_in_default` | Satisfaction and research outcomes never go into the default profile. Duplicate it to make one that includes them. | 満足度と研究上の成果は、既定のプロファイルには入れられません。複製して、それらを含むプロファイルを作成してください。 | pending |
+| `frontend:errors.profile_component_unknown` | One of the components does not exist (any more). Reload the page. | 存在しない要素が含まれています。ページを再読み込みしてください。 | pending |
+| `frontend:errors.profile_weights_total` | The weights must add up to 100. | 重みの合計を 100 にしてください。 | pending |
+| `frontend:errors.shown_outside_analysed` | A shown type must also be analysed. | 表示する種類は、分析対象にも含める必要があります。 | pending |
+| `frontend:settings.help.score_profiles` | How a release's score is made: its percentile in each component, weighted. Every save is a new version, and the old ones stay readable. | リリースのスコアの算出方法です。各要素のパーセンタイルに重みを付けて合計します。保存するたびに新しいバージョンとなり、以前のバージョンも確認できます。 | pending |
+| `frontend:settings.profiles.at_version` | Version {{version}} | バージョン {{version}} | pending |
+| `frontend:settings.profiles.basis` | Altmetric counts as | Altmetric の扱い | pending |
+| `frontend:settings.profiles.basis_d28` | the score on day 28 | 28 日目のスコア | pending |
+| `frontend:settings.profiles.basis_increase` | the increase from day 0 to day 28 | 0 日目から 28 日目までの増加 | pending |
+| `frontend:settings.profiles.comparison_years` | Comparison set (academic years) | 比較対象（年度数） | pending |
+| `frontend:settings.profiles.comparison_years_hint` | A release is compared with its own academic year and the ones before it. | リリースは、同じ年度とその前の年度のリリースと比較されます。 | pending |
+| `frontend:settings.profiles.copy_of` | {{name}} (copy) | {{name}}（コピー） | pending |
+| `frontend:settings.profiles.coverage_min` | Coverage needed (%) | 必要なカバー率（%） | pending |
+| `frontend:settings.profiles.coverage_min_hint` | Below this share of its weight with values, a release gets no score: “insufficient data”. | 値のある要素の重みがこの割合を下回ると、スコアは算出されず「データ不足」となります。 | pending |
+| `frontend:settings.profiles.create` | Create the profile | プロファイルを作成 | pending |
+| `frontend:settings.profiles.default` | default | 既定 | pending |
+| `frontend:settings.profiles.defaults_analysed_release_type_ids` | Analysed | 分析対象 | pending |
+| `frontend:settings.profiles.defaults_help` | The release types the two Analysis filters start with. Analysed: what medians, ranks and every score are computed from. Shown: which of those appear. Nothing ticked means every type. Anyone can change both on the Analysis pages; this is only the starting point. | 分析ページの 2 つの絞り込みの初期値となるリリースの種類です。「分析対象」は中央値、順位、すべてのスコアの計算に使うリリース、「表示」はそのうち表示するリリースです。何も選ばないと、すべての種類が対象になります。分析ページでは誰でも変更でき、ここは初期値だけを決めます。 | pending |
+| `frontend:settings.profiles.defaults_shown_release_type_ids` | Shown | 表示 | pending |
+| `frontend:settings.profiles.defaults_title` | Where Analysis starts | 分析の初期設定 | pending |
+| `frontend:settings.profiles.discard` | Discard changes | 変更を破棄 | pending |
+| `frontend:settings.profiles.duplicate` | Duplicate | 複製 | pending |
+| `frontend:settings.profiles.history` | Earlier versions ({{count}}) | 以前のバージョン（{{count}}） | pending |
+| `frontend:settings.profiles.list` | Score profiles | スコアプロファイル | pending |
+| `frontend:settings.profiles.make_default` | Make default | 既定にする | pending |
+| `frontend:settings.profiles.manual` | How scores and profiles work | スコアとプロファイルの仕組み | pending |
+| `frontend:settings.profiles.manual_heading` | Change a score profile | スコアプロファイルを変更する | pending |
+| `frontend:settings.profiles.min_values` | Values needed per component | 要素ごとに必要な値の数 | pending |
+| `frontend:settings.profiles.min_values_hint` | With fewer releases than this to compare with, a component does not count. | 比較できるリリースがこの数より少ない要素は、スコアに含めません。 | pending |
+| `frontend:settings.profiles.name_en` | Name (English) | 名称（英語） | pending |
+| `frontend:settings.profiles.name_ja` | Name (Japanese) | 名称（日本語） | pending |
+| `frontend:settings.profiles.new` | New profile | 新しいプロファイル | pending |
+| `frontend:settings.profiles.not_in_default` | Not in the default profile; other profiles can use it. | 既定のプロファイルには入れられません。他のプロファイルでは使えます。 | pending |
+| `frontend:settings.profiles.now_default` | This is now the default profile. | このプロファイルを既定にしました。 | pending |
+| `frontend:settings.profiles.preview` | Top 5 now | 現在の上位 5 件 | pending |
+| `frontend:settings.profiles.preview_edited` | As edited | 編集中 | pending |
+| `frontend:settings.profiles.preview_help` | The five finished releases with the highest score, with the default analysis filters below. | 下の分析の既定の絞り込みで、スコアが最も高い完了済みのリリース 5 件です。 | pending |
+| `frontend:settings.profiles.preview_none` | No release has a score with these settings yet. | この設定では、まだスコアのあるリリースがありません。 | pending |
+| `frontend:settings.profiles.preview_saved` | Saved (version {{version}}) | 保存済み（バージョン {{version}}） | pending |
+| `frontend:settings.profiles.preview_score` | {{score}} · coverage {{coverage}} % | {{score}} ・ カバー率 {{coverage}} % | pending |
+| `frontend:settings.profiles.purpose` | What it is for | 目的 | pending |
+| `frontend:settings.profiles.rules` | Rules | ルール | pending |
+| `frontend:settings.profiles.rules_summary` | Altmetric: {{basis}} · coverage {{coverage}} % · {{years}} academic years · {{values}} values | Altmetric：{{basis}} ・ カバー率 {{coverage}} % ・ {{years}} 年度 ・ {{values}} 件 | pending |
+| `frontend:settings.profiles.save` | Save as a new version | 新しいバージョンとして保存 | pending |
+| `frontend:settings.profiles.saved` | Saved as version {{version}}. | バージョン {{version}} として保存しました。 | pending |
+| `frontend:settings.profiles.saved_by` | By | 保存者 | pending |
+| `frontend:settings.profiles.saved_when` | Saved | 保存日時 | pending |
+| `frontend:settings.profiles.system` | Release Radar | Release Radar | pending |
+| `frontend:settings.profiles.total` | Total: {{total}} of 100 | 合計：{{total}} / 100 | pending |
+| `frontend:settings.profiles.total_needed` | The weights must add up to 100 before you can save. | 保存するには、重みの合計を 100 にしてください。 | pending |
+| `frontend:settings.profiles.unsaved` | Changed since version {{version}}, not saved yet. The draft is kept in this browser. | バージョン {{version}} から変更されていますが、まだ保存していません。下書きはこのブラウザに保存されます。 | pending |
+| `frontend:settings.profiles.version` | Version | バージョン | pending |
+| `frontend:settings.profiles.weights` | Weights | 重み | pending |
+| `frontend:settings.profiles.weights_help` | How much each component counts. A component a release cannot have (no embargo, no pickups collected yet) leaves the sum, and the rest count for more. | 各要素をどれだけ重視するかです。リリースに存在しない要素（エンバーゴなし、まだ収集していない報道掲載など）は合計から外れ、残りの要素の比重が大きくなります。 | pending |
+| `backend:analysis.dimensions.altmetric` | Altmetric (by the profile's basis) | Altmetric（プロファイルの基準による） | pending |
+| `backend:analysis.dimensions.altmetric_increase` | Altmetric increase (day 28 − day 0) | Altmetric の増加（28 日目 − 0 日目） | pending |
+| `backend:analysis.dimensions.inquiries` | Inquiries | 問い合わせ | pending |
+| `backend:analysis.dimensions.inquiries_external` | Inquiries from outside the university | 学外からの問い合わせ | pending |
+| `backend:analysis.dimensions.research_outcomes` | Research outcomes | 研究上の成果 | pending |
+| `backend:analysis.dimensions.satisfaction` | Researcher satisfaction | 研究者の満足度 | pending |
+| `backend:seed.profile.name` | News performance | ニュースでの反響 | pending |
+| `backend:seed.profile.purpose` | How far a release travelled: news pickups, Altmetric, EurekAlert and the university's website, each compared with releases of the same and the two previous academic years. | リリースの広がり：ニュースでの掲載、Altmetric、EurekAlert、大学ウェブサイトの閲覧数を、同じ年度と前の 2 年度のリリースと比べます。 | pending |

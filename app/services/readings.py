@@ -70,6 +70,10 @@ def on_domain(release: Release, domain: str | None) -> bool:
 
 def measure_applies(measure: Measure, release: Release, website_domain: str | None) -> bool:
     """Whether this measure can exist for this release (R6.5.1, R6.7.1)."""
+    # A calculated count (pickups) is collected from a date on; without that date it is not
+    # applicable to anything, or the default profile would score nothing (R8.1.4, R10.10).
+    if measure.source == "derived" and measure.collected_from is None:
+        return False
     if (
         measure.collected_from is not None
         and release.release_date is not None

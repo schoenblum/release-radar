@@ -44,6 +44,10 @@
       "feature": "特集記事",
       "article_highlight": "論文ハイライト",
       "press_summary": "プレスサマリー"
+    },
+    "profile": {
+      "name": "ニュースでの反響",
+      "purpose": "リリースの広がり：ニュースでの掲載、Altmetric、EurekAlert、大学ウェブサイトの閲覧数を、同じ年度と前の 2 年度のリリースと比べます。"
     }
   },
   "export": {
@@ -264,6 +268,16 @@
       "none": "ありません。",
       "feedback_title_dry_run": "研究者アンケートのインポート：確認（変更なし）",
       "feedback_title_commit": "研究者アンケートのインポート"
+    }
+  },
+  "analysis": {
+    "dimensions": {
+      "altmetric_increase": "Altmetric の増加（28 日目 − 0 日目）",
+      "satisfaction": "研究者の満足度",
+      "research_outcomes": "研究上の成果",
+      "inquiries": "問い合わせ",
+      "inquiries_external": "学外からの問い合わせ",
+      "altmetric": "Altmetric（プロファイルの基準による）"
     }
   }
 }

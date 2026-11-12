@@ -16,6 +16,7 @@ from app.models.lists import (
 )
 from app.models.release import Checkpoint, Measure, Reading, Release
 from app.models.researcher import Researcher
+from app.models.score_profile import ScoreProfile, ScoreProfileVersion
 from app.models.survey import SurveyItem, SurveyResponse, SurveyTemplate
 from app.models.system import ImportRun, JobRun, RateLimitHit
 from app.models.user import PasswordResetToken, RefreshToken, User, UserRole
@@ -38,6 +39,8 @@ __all__ = [
     "ReleaseType",
     "ResearchField",
     "Researcher",
+    "ScoreProfile",
+    "ScoreProfileVersion",
     "SurveyItem",
     "SurveyResponse",
     "SurveyTemplate",

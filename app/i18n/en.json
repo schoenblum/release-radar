@@ -44,6 +44,10 @@
       "feature": "Feature story",
       "article_highlight": "Article highlight",
       "press_summary": "Press summary"
+    },
+    "profile": {
+      "name": "News performance",
+      "purpose": "How far a release travelled: news pickups, Altmetric, EurekAlert and the university's website, each compared with releases of the same and the two previous academic years."
     }
   },
   "export": {
@@ -264,6 +268,16 @@
       "none": "Nothing.",
       "feedback_title_dry_run": "Researcher feedback import: dry run (nothing changed)",
       "feedback_title_commit": "Researcher feedback import"
+    }
+  },
+  "analysis": {
+    "dimensions": {
+      "altmetric_increase": "Altmetric increase (day 28 − day 0)",
+      "satisfaction": "Researcher satisfaction",
+      "research_outcomes": "Research outcomes",
+      "inquiries": "Inquiries",
+      "inquiries_external": "Inquiries from outside the university",
+      "altmetric": "Altmetric (by the profile's basis)"
     }
   }
 }

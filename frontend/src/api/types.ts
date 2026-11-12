@@ -81,6 +81,9 @@ export interface Institution {
   contact_email: string | null;
   /** What new releases start as (R6.4.1); null: they start without a type. */
   default_release_type_id: string | null;
+  /** Where the two Analysis filters start (R6.4.2): release type IDs; empty means every type. */
+  analysed_release_type_ids: string[] | null;
+  shown_release_type_ids: string[] | null;
   field_versions: FieldVersions;
 }
 
@@ -604,3 +607,57 @@ export interface FeedbackResponse {
   other_texts: Record<string, string>;
   items: FeedbackItem[];
 }
+
+/** One saved version of a score profile (R8.2.1). Versions never change once saved. */
+export interface ScoreProfileVersion {
+  id: string;
+  version: number;
+  name_en: string;
+  name_ja: string | null;
+  purpose: string | null;
+  /** Component key → weight; the weights total 100. "altmetric" follows the basis. */
+  weights: Record<string, number>;
+  altmetric_basis: "increase" | "d28";
+  coverage_min: number;
+  comparison_years: number;
+  min_values: number;
+  created_at: string;
+  created_by: string | null;
+}
+
+export interface ScoreProfile {
+  id: string;
+  key: string | null;
+  is_default: boolean;
+  /** The seeded "News performance": never satisfaction or research outcomes (R8.2.3). */
+  seeded: boolean;
+  current: ScoreProfileVersion;
+  /** Newest first; only when one profile is asked for. */
+  versions: ScoreProfileVersion[];
+}
+
+export interface ScoreComponent {
+  key: string;
+  label_en: string;
+  label_ja: string;
+  allowed_in_default: boolean;
+}
+
+/** What a save sends: a version without its number, date or author. */
+export type ScoreProfileDraft = Omit<ScoreProfileVersion, "id" | "version" | "created_at" | "created_by">;
+
+export interface PreviewRow {
+  release_id: string;
+  code: string | null;
+  title: string | null;
+  score: number;
+  coverage: number;
+  components: string[];
+}
+
+export interface ProfilePreview {
+  edited: PreviewRow[];
+  saved: PreviewRow[] | null;
+  saved_version: number | null;
+}
+

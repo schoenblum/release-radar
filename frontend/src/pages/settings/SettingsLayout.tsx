@@ -9,7 +9,7 @@ const SECTIONS = [
   { id: "researchers" },
   { id: "form" },
   { id: "checkpoints" },
-  { id: "score_profiles", later: true },
+  { id: "score_profiles" },
   { id: "survey", later: true },
   { id: "outlets", later: true },
   { id: "integrations" },

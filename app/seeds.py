@@ -12,7 +12,16 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.i18n import t
-from app.models import Checkpoint, CoreFieldConfig, Institution, Measure, ReleaseType
+from app.models import (
+    Checkpoint,
+    CoreFieldConfig,
+    Institution,
+    Measure,
+    ReleaseType,
+    ScoreProfile,
+    ScoreProfileVersion,
+)
+from app.models.score_profile import SEEDED_KEY
 
 
 class MeasureSeed(NamedTuple):
@@ -56,6 +65,17 @@ RELEASE_TYPES = (
 )
 # New and imported releases start as this, until an admin chooses another or none (R6.4.1).
 DEFAULT_RELEASE_TYPE = "peer_reviewed"
+
+# The default score profile, "News performance" (BRIEF §8.2, Daniel's ordering in the intake's
+# Score weights). Pickups carry 45 % and are not applicable until Phase 4 collects them (R8.2.4).
+DEFAULT_PROFILE_WEIGHTS = {
+    "pickups_major": 35,
+    "altmetric": 25,
+    "ea_views.d28": 15,
+    "ea_views.d0": 10,
+    "pickups_all": 10,
+    "hp_views.d28": 5,
+}
 
 # In their default order on forms.
 CORE_FIELDS = (
@@ -160,6 +180,24 @@ async def seed_defaults(db: AsyncSession, institution: Institution) -> None:
             await db.flush()
             institution.default_release_type_id = release_type.id
 
+    # Where the Analysis filters start: peer-reviewed publications (R6.4.2, R8.4.1). Only while
+    # unset, so an admin's later choice stays.
+    if institution.analysed_release_type_ids is None or institution.shown_release_type_ids is None:
+        await db.flush()
+        peer = await db.scalar(
+            select(ReleaseType.id).where(
+                ReleaseType.institution_id == institution_id,
+                ReleaseType.key == DEFAULT_RELEASE_TYPE,
+            )
+        )
+        start = [str(peer)] if peer else []
+        if institution.analysed_release_type_ids is None:
+            institution.analysed_release_type_ids = start
+        if institution.shown_release_type_ids is None:
+            institution.shown_release_type_ids = start
+
+    await _seed_profile(db, institution_id)
+
     core_keys = set(
         await db.scalars(
             select(CoreFieldConfig.key).where(CoreFieldConfig.institution_id == institution_id)
@@ -176,3 +214,43 @@ async def seed_defaults(db: AsyncSession, institution: Institution) -> None:
                 )
             )
     await db.flush()
+
+
+async def _seed_profile(db: AsyncSession, institution_id) -> None:
+    """The default score profile, once. Defaults are filled in, so a fresh install needs no
+    configuration (R8.2.5)."""
+    exists = await db.scalar(
+        select(ScoreProfile.id).where(
+            ScoreProfile.institution_id == institution_id, ScoreProfile.key == SEEDED_KEY
+        )
+    )
+    if exists is not None:
+        return
+    has_default = await db.scalar(
+        select(ScoreProfile.id).where(
+            ScoreProfile.institution_id == institution_id, ScoreProfile.is_default.is_(True)
+        )
+    )
+    profile = ScoreProfile(
+        institution_id=institution_id,
+        key=SEEDED_KEY,
+        is_default=has_default is None,
+        seeded=True,
+    )
+    db.add(profile)
+    await db.flush()
+    db.add(
+        ScoreProfileVersion(
+            institution_id=institution_id,
+            profile_id=profile.id,
+            version=1,
+            name_en=t("en", "seed.profile.name"),
+            name_ja=t("ja", "seed.profile.name"),
+            purpose=t("en", "seed.profile.purpose"),
+            weights=dict(DEFAULT_PROFILE_WEIGHTS),
+            altmetric_basis="increase",
+            coverage_min=60,
+            comparison_years=3,
+            min_values=10,
+        )
+    )

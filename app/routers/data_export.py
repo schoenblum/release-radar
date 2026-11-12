@@ -31,6 +31,8 @@ from app.models import (
     ReleaseType,
     Researcher,
     ResearchField,
+    ScoreProfile,
+    ScoreProfileVersion,
     Unit,
     User,
     Vocabulary,
@@ -59,6 +61,8 @@ _TABLES: tuple[tuple[type, set[str]], ...] = (
     (CustomField, set()),
     (Release, set()),
     (Reading, set()),
+    (ScoreProfile, set()),
+    (ScoreProfileVersion, set()),
     (AuditLog, set()),
 )
 

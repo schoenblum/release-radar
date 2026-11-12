@@ -52,13 +52,15 @@ describe("the Manual", () => {
     expect(headingId("28 日目の数値を入力する")).toBe("28-日目の数値を入力する");
   });
 
-  it("has the section Settings → Integrations links to, in both languages", () => {
+  it("has the sections Settings links to, in both languages", () => {
     for (const [language, text] of [
       ["en", english],
       ["ja", japanese],
     ] as const) {
-      const heading = i18n.getFixedT(language)("settings.integrations.ga4.manual_heading");
-      expect(sections(text).map((section) => section.title)).toContain(heading);
+      const fixed = i18n.getFixedT(language);
+      const titles = sections(text).map((section) => section.title);
+      expect(titles).toContain(fixed("settings.integrations.ga4.manual_heading"));
+      expect(titles).toContain(fixed("settings.profiles.manual_heading"));
     }
   });
 });

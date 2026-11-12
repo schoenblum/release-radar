@@ -36,6 +36,7 @@ from app.services.field_patch import (
     load_for_update,
     patch_field,
     patch_result,
+    set_versioned,
 )
 from app.services.readings import resync_institution
 
@@ -90,6 +91,24 @@ def _parse_landing_pages(value: Any) -> dict[str, str]:
     return value
 
 
+def _parse_type_ids(value: Any) -> list[str]:
+    """A list of release type IDs, each once, as text. Empty means every type."""
+    if not isinstance(value, list):
+        raise field_error("field_invalid")
+    found: list[str] = []
+    for item in value:
+        try:
+            text = str(UUID(str(item)))
+        except ValueError as exc:
+            raise field_error("field_invalid") from exc
+        if text not in found:
+            found.append(text)
+    return found
+
+
+# Where the two Analysis filters start (R6.4.2, R8.4.1).
+_ANALYSIS_DEFAULTS = ("analysed_release_type_ids", "shown_release_type_ids")
+
 INSTITUTION_SPECS: dict[str, FieldSpec] = {
     "name_en": field_patch.text(required=True),
     "name_ja": field_patch.text(),
@@ -101,6 +120,8 @@ INSTITUTION_SPECS: dict[str, FieldSpec] = {
     "contact_email": field_patch.email(),
     # R6.4.1: what new releases start as; empty means they start with no type.
     "default_release_type_id": field_patch.reference(ReleaseType),
+    "analysed_release_type_ids": FieldSpec(_parse_type_ids),
+    "shown_release_type_ids": FieldSpec(_parse_type_ids),
 }
 CHECKPOINT_SPECS: dict[str, FieldSpec] = {
     "label_en": field_patch.text(required=True),
@@ -155,8 +176,31 @@ async def patch_institution(
     version = await patch_field(db, institution, INSTITUTION_SPECS, patch, institution.id)
     if institution.website_domain != before:
         await _resync(db, institution.id)
+    if patch.field in _ANALYSIS_DEFAULTS:
+        await _check_analysis_defaults(db, institution, patch.field)
     await commit_unique(db)
     return patch_result(patch.field, getattr(institution, patch.field), version)
+
+
+async def _check_analysis_defaults(db: AsyncSession, institution: Institution, field: str) -> None:
+    """Every ID must be one of this institution's types. *Shown* offers only what *analysed*
+    includes (R8.4.1): a type taken out of *analysed* leaves *shown* too."""
+    ids = getattr(institution, field) or []
+    known = {
+        str(row)
+        for row in await db.scalars(
+            select(ReleaseType.id).where(ReleaseType.institution_id == institution.id)
+        )
+    }
+    if not set(ids) <= known:
+        raise field_error("unknown_reference")
+    analysed = institution.analysed_release_type_ids or []
+    shown = institution.shown_release_type_ids or []
+    if field == "shown_release_type_ids" and analysed and not set(shown) <= set(analysed):
+        raise field_error("shown_outside_analysed")
+    if field == "analysed_release_type_ids" and analysed and not set(shown) <= set(analysed):
+        kept = [item for item in shown if item in analysed]
+        set_versioned(institution, "shown_release_type_ids", kept or list(analysed))
 
 
 # ---------------------------------------------------------------- checkpoints

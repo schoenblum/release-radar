@@ -241,6 +241,14 @@ async def test_a_measure_turned_on_later_gets_its_reading_at_the_next_rule_input
         measure.is_active = True
         await db.commit()
     await _change(release, release_date=date(2026, 4, 2))
+    # A calculated count without the date it is collected from applies to nothing (R6.7.1),
+    # so the default profile can score before pickups exist (R8.1.4).
+    assert (await _states(release))["pickups_all"] == "not_applicable"
+    async with SessionLocal() as db:
+        measure = await db.scalar(select(Measure).where(Measure.key == "pickups_all"))
+        measure.collected_from = date(2026, 4, 1)
+        await db.commit()
+    await _change(release, release_date=date(2026, 4, 3))
     assert (await _states(release))["pickups_all"] == "missing"
 
 

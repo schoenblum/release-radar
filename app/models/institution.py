@@ -63,4 +63,8 @@ class Institution(UuidKeyed, Timestamped, Audited, FieldVersioned, Base):
         ForeignKey("release_types.id", ondelete="RESTRICT", use_alter=True),
         nullable=True,
     )
+    # The release types the two Analysis filters start with (R6.4.2, R8.4.1): IDs as text. None
+    # until first seeded (peer-reviewed publications); an empty list means every type.
+    analysed_release_type_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    shown_release_type_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

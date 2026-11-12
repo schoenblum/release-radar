@@ -25,6 +25,7 @@ from app.routers import (
     release_export,
     releases,
     researchers,
+    score_profiles,
     system,
     users,
     workbook_import,
@@ -124,6 +125,7 @@ app.include_router(workbook_import.router, prefix=API_PREFIX)
 app.include_router(custom_fields.router, prefix=API_PREFIX)
 app.include_router(data_export.router, prefix=API_PREFIX)
 app.include_router(integrations.router, prefix=API_PREFIX)
+app.include_router(score_profiles.router, prefix=API_PREFIX)
 app.include_router(brand.api_router, prefix=API_PREFIX)
 app.include_router(brand.asset_router)
 

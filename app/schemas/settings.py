@@ -22,6 +22,9 @@ class InstitutionOut(_Out):
     landing_pages: dict[str, str]
     contact_email: str | None
     default_release_type_id: UUID | None
+    # Where the Analysis filters start (R6.4.2): release type IDs; empty means every type.
+    analysed_release_type_ids: list[UUID] | None
+    shown_release_type_ids: list[UUID] | None
     field_versions: dict[str, int]
 
 

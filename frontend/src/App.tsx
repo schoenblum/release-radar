@@ -19,6 +19,7 @@ import FormSettings from "./pages/settings/Form";
 import InstitutionSettings from "./pages/settings/Institution";
 import IntegrationsSettings from "./pages/settings/Integrations";
 import ListsSettings from "./pages/settings/Lists";
+import ScoreProfilesSettings from "./pages/settings/ScoreProfiles";
 import SettingsLayout from "./pages/settings/SettingsLayout";
 import UsersSettings from "./pages/settings/Users";
 import WritersPage from "./pages/writers/WritersPage";
@@ -110,6 +111,7 @@ export default function App() {
               <Route path="researchers" element={<Researchers />} />
               <Route path="form" element={<FormSettings />} />
               <Route path="checkpoints" element={<CheckpointsSettings />} />
+              <Route path="score_profiles" element={<ScoreProfilesSettings />} />
               <Route path="integrations" element={<IntegrationsSettings />} />
               <Route path="data" element={<DataSettings />} />
             </Route>
