@@ -109,17 +109,16 @@ def _parse_type_ids(value: Any) -> list[str]:
 
 
 def _parse_time_zones(value: Any) -> list[str | None]:
-    """Up to three further zones to show release times in, in the order they show: any IANA
-    zone, or None for a place left empty (Daniel, 2026-11-12). A zone named twice keeps its
-    first place; empty places at the end are dropped."""
+    """Up to three further zones to show release times in, in the order they show: one of the
+    listed zones, or None for a place left empty (Daniel, 2026-11-12 and -13). A zone named
+    twice keeps its first place; empty places at the end are dropped."""
     if not isinstance(value, list):
         raise field_error("invalid_timezone")
     if len(value) > time_zones.MAX_SHOWN:
         raise field_error("too_many_time_zones")
-    known = available_timezones()
     chosen: list[str | None] = []
     for item in value:
-        if item is not None and (not isinstance(item, str) or item not in known):
+        if item is not None and item not in time_zones.BY_KEY:
             raise field_error("invalid_timezone")
         chosen.append(None if item in chosen else item)
     while chosen and chosen[-1] is None:

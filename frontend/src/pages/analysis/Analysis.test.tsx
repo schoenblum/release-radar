@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
+  AnalysisAnswers,
   AnalysisCard,
   AnalysisDimension,
   AnalysisEntry,
@@ -19,6 +20,7 @@ import { applyLanguage } from "../../i18n";
 import i18n from "../../i18n";
 import AllReleases from "./AllReleases";
 import AnalysisLayout from "./AnalysisLayout";
+import AnswersPage from "./AnswersPage";
 import { toggled } from "./AnalysisFilterBar";
 import DimensionPage from "./DimensionPage";
 import { scopeSentence } from "./labels";
@@ -85,6 +87,7 @@ const OPTIONS: AnalysisOptions = {
       min_values: 10,
     },
   ],
+  answers: ["inquiries", "activities"],
 };
 
 function scope(params: URLSearchParams): AnalysisScope {
@@ -173,39 +176,19 @@ function respond(url: string): unknown {
         { year: 2026, median: 55, n: 15, first: "2026-04-02", last: "2026-10-01" },
       ],
       answers: [
-        params.get("group_inquiries") === "ay"
-          ? {
-              question: "inquiries",
-              by: "ay",
-              series: [
-                { key: "2025", respondents: 40 },
-                { key: "2026", respondents: 6 },
-              ],
-              bars: [
-                {
-                  key: "inq_media",
-                  label_en: "Journalists/media",
-                  label_ja: "報道機関（記者・放送局など）",
-                  shares: [
-                    { series: "2025", count: 18, share: 45 },
-                    { series: "2026", count: 2, share: 100 / 3 },
-                  ],
-                },
-              ],
-            }
-          : {
-              question: "inquiries",
-              by: null,
-              series: [{ key: "shown", respondents: 46 }],
-              bars: [
-                {
-                  key: "inq_media",
-                  label_en: "Journalists/media",
-                  label_ja: "報道機関（記者・放送局など）",
-                  shares: [{ series: "shown", count: 20, share: (100 * 20) / 46 }],
-                },
-              ],
+        {
+          question: "inquiries",
+          by: null,
+          series: [{ key: "shown", respondents: 46 }],
+          bars: [
+            {
+              key: "inq_media",
+              label_en: "Journalists/media",
+              label_ja: "報道機関（記者・放送局など）",
+              shares: [{ series: "shown", count: 20, share: (100 * 20) / 46 }],
             },
+          ],
+        },
         {
           question: "activities",
           by: null,
@@ -227,6 +210,58 @@ function respond(url: string): unknown {
         },
       ],
     } satisfies AnalysisOverview;
+  }
+  if (parsed.pathname.includes("/answers/")) {
+    const byYear = params.get("group") === "ay";
+    const release = (code: string, date: string, answered: boolean, ticked: string[]) => ({
+      id: `id-${code}`,
+      code,
+      title: `Title ${code}`,
+      release_date: date,
+      academic_year: 2025,
+      unit_id: SCIENCE,
+      field_id: null,
+      answered,
+      ticked,
+    });
+    return {
+      scope: scope(params),
+      question: "inquiries",
+      group_by: byYear ? "ay" : null,
+      chart: {
+        question: "inquiries",
+        by: byYear ? "ay" : null,
+        series: byYear
+          ? [
+              { key: "2025", respondents: 40 },
+              { key: "2026", respondents: 6 },
+            ]
+          : [{ key: "shown", respondents: 46 }],
+        bars: [
+          {
+            key: "inq_media",
+            label_en: "Journalists/media",
+            label_ja: "報道機関（記者・放送局など）",
+            shares: byYear
+              ? [
+                  { series: "2025", count: 18, share: 45 },
+                  { series: "2026", count: 2, share: 100 / 3 },
+                ]
+              : [{ series: "shown", count: 20, share: (100 * 20) / 46 }],
+          },
+        ],
+      },
+      choices: [
+        { key: "inq_media", label_en: "Journalists/media", label_ja: "報道機関（記者・放送局など）" },
+        { key: "inq_public", label_en: "General public", label_ja: "一般の方" },
+      ],
+      rows: [
+        release("AY2025-09", "2025-12-01", false, []),
+        release("AY2025-08", "2025-11-01", true, ["inq_public"]),
+        release("AY2025-07", "2025-10-01", true, ["inq_media", "inq_public"]),
+        release("AY2025-06", "2025-09-01", true, []),
+      ],
+    } satisfies AnalysisAnswers;
   }
   if (parsed.pathname.includes("/dimensions/")) {
     return {
@@ -351,6 +386,7 @@ function setup(address: string) {
               <Route path="releases" element={<AllReleases />} />
               <Route path="top" element={<TopBottom />} />
               <Route path="d/:key" element={<DimensionPage />} />
+              <Route path="answers/:question" element={<AnswersPage />} />
             </Route>
           </Routes>
           <Where />
@@ -549,34 +585,67 @@ describe("the Analysis pages", () => {
     await waitFor(() => expect(urls()).toContain("/api/v1/analysis/top?dimension=ea_views.d28"));
   });
 
-  it("shows researcher feedback as bars for the shown releases, split on request", async () => {
-    const { actor, urls } = setup("/analysis");
+  it("shows researcher feedback as bars for what the filters select, opening a page each", async () => {
+    setup("/analysis");
     const card = await screen.findByRole("region", { name: "Who got in touch" });
     expect(within(card).getByText("Journalists/media")).toBeInTheDocument();
-    // Not split: one bar, no legend, and no year written in anywhere (Daniel, 2026-11-12).
+    // One bar, no legend, no split of its own, and no year written in (Daniel, 2026-11-13).
     expect(within(card).getByText("Shown releases: 43% (20 of 46)")).toBeInTheDocument();
     expect(card.querySelector(".answer-legend")).toBeNull();
     expect(card.querySelectorAll(".answer-fill")).toHaveLength(1);
+    expect(within(card).queryByRole("combobox")).toBeNull();
     expect(
       within(card).getByText(
         "Per cent of the 46 shown releases whose researchers answered the question.",
       ),
     ).toBeInTheDocument();
+    expect(within(card).getByRole("link", { name: /^Open\s*Who got in touch$/ })).toHaveAttribute(
+      "href",
+      "/analysis/answers/inquiries",
+    );
     // Fewer shown than analysed: a second bar to compare with, and a legend.
     const outcomes = screen.getByRole("region", { name: "What came of it" });
     expect(outcomes.querySelectorAll(".answer-fill")).toHaveLength(2);
     expect(within(outcomes).getByText("All analysed releases: 50% (23 of 46)")).toBeInTheDocument();
-    // Split by academic year: a bar per year. Units are not offered: 23 bars per box.
-    const choice = within(card).getByRole("combobox", { name: "Compare “Who got in touch” by" });
+    // Each has a tab, as the measures do.
+    expect(screen.getByRole("link", { name: "What came of it" })).toHaveAttribute(
+      "href",
+      "/analysis/answers/activities",
+    );
+  });
+
+  it("splits a survey question on its page, and lists the releases without ranking them", async () => {
+    const { actor, urls } = setup("/analysis/answers/inquiries");
+    expect(await screen.findByRole("heading", { level: 1, name: "Who got in touch" })).toBeInTheDocument();
+    const choice = screen.getByRole("combobox", { name: "Compare by" });
+    // Two units are analysed, but 23 units would make 23 bars per box: not offered here.
     expect(within(choice).queryByRole("option", { name: "Unit" })).toBeNull();
     await actor.selectOptions(choice, "ay");
-    expect(address()).toBe("/analysis?group_inquiries=ay");
-    await waitFor(() => expect(urls()).toContain("/api/v1/analysis/overview?group_inquiries=ay"));
-    const split = await screen.findByRole("region", { name: "Who got in touch" });
-    expect(await within(split).findByText("AY2025: 45% (18 of 40)")).toBeInTheDocument();
-    expect(within(split).getByText("AY2026: 33% (2 of 6)")).toBeInTheDocument();
-    expect(split.querySelector<HTMLElement>(".answer-fill")?.style.width).toBe("45%");
-    expect(within(split).getByText(/Releases that answered: AY2025: 40, AY2026: 6\./)).toBeInTheDocument();
+    expect(address()).toBe("/analysis/answers/inquiries?group=ay");
+    await waitFor(() => expect(urls()).toContain("/api/v1/analysis/answers/inquiries?group=ay"));
+    expect(await screen.findByText("AY2025: 45% (18 of 40)")).toBeInTheDocument();
+    expect(screen.getByText("AY2026: 33% (2 of 6)")).toBeInTheDocument();
+
+    const table = screen.getByRole("table", {
+      name: "The shown releases and what their researchers answered: Who got in touch",
+    });
+    const codes = () =>
+      within(table)
+        .getAllByRole("rowheader")
+        .map((cell) => cell.textContent);
+    // Newest first, the release without an answer last however it is sorted.
+    expect(codes()).toEqual(["AY2025-08", "AY2025-07", "AY2025-06", "AY2025-09"]);
+    expect(screen.getByText(/3 of the 4 shown releases have an answer/)).toBeInTheDocument();
+    const lastRow = within(table).getByRole("rowheader", { name: "AY2025-09" }).closest("tr");
+    expect(within(lastRow as HTMLElement).getByText("No answer")).toBeInTheDocument();
+    // A box's heading puts the releases that ticked it first.
+    await actor.click(within(table).getByRole("button", { name: "Journalists/media" }));
+    expect(codes()).toEqual(["AY2025-07", "AY2025-08", "AY2025-06", "AY2025-09"]);
+    const ticked = within(table).getByRole("rowheader", { name: "AY2025-07" }).closest("tr");
+    expect(within(ticked as HTMLElement).getAllByText("Ticked")).toHaveLength(2);
+    // A unit carried over from a measure's page splits nothing here.
+    await actor.selectOptions(screen.getByRole("combobox", { name: "Compare by" }), "");
+    expect(address()).toBe("/analysis/answers/inquiries");
   });
 
   it("splits a measure's chart into a box per group, on one scale", async () => {

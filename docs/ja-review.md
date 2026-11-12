@@ -1105,7 +1105,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:errors.too_many_time_zones` | Choose up to three time zones. | 時間帯は3つまで選べます。 | pending |
 | `frontend:release_fields.release_time` | Release time | リリース時刻 | pending |
 | `frontend:settings.institution.display_zones` | Also show release times in | リリース時刻を併せて表示する時間帯 | pending |
-| `frontend:settings.institution.display_zones_hint` | Up to {{count}}, in the order they show. They show when you point at a release time in the grid (add the Release time column with Columns above the grid, or for everyone in Settings → Form) and under the time in a release's record. In the record, a date and time can also be typed in one of these zones. | {{count}}つまで、表示する順に選べます。データページの表でリリース時刻にポインタを合わせたときと、リリースの詳細画面の時刻の下に表示されます（表にリリース時刻の列がない場合は、表の上の「表示項目」で追加するか、設定 → 入力フォームで全員分を表示にしてください）。詳細画面では、これらの時間帯で日時を入力することもできます。 | pending |
+| `frontend:settings.institution.display_zones_hint` | Up to {{count}}, in the order they show; each list runs west to east by standard time, and daylight saving is applied on each date by itself. They show when you point at a release time in the grid (add the Release time column with Columns above the grid, or for everyone in Settings → Form) and under the time in a release's record. In the record, a date and time can also be typed in one of these zones. | {{count}}つまで、表示する順に選べます。一覧は標準時の西から東の順で、夏時間は日付ごとに自動で反映されます。データページの表でリリース時刻にポインタを合わせたときと、リリースの詳細画面の時刻の下に表示されます（表にリリース時刻の列がない場合は、表の上の「表示項目」で追加するか、設定 → 入力フォームで全員分を表示にしてください）。詳細画面では、これらの時間帯で日時を入力することもできます。 | pending |
 | `backend:export.fields.release_time` | Release time | リリース時刻 | pending |
 | `frontend:analysis.answers.activities.describe` | Activities the researchers said came from the release. | リリースをきっかけに生まれたと研究者が答えた活動です。 | pending |
 | `frontend:analysis.answers.activities.title` | What came of it | その後の展開 | pending |
@@ -1114,7 +1114,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:analysis.answers.heading` | What researchers told us | 研究者からのフィードバック | pending |
 | `frontend:analysis.answers.inquiries.describe` | Who contacted the researchers about the release. | リリースについて研究者に連絡してきた相手です。 | pending |
 | `frontend:analysis.answers.inquiries.title` | Who got in touch | 問い合わせの相手 | pending |
-| `frontend:analysis.answers.intro` | From the researcher feedback on the shown releases, so both filters above apply. Each release counts once, however many of its researchers answered. | 表示中のリリースについての研究者アンケートから集計しています。上の二つの絞り込みが反映されます。1 件のリリースに複数の研究者が回答しても、1 件として数えます。 | pending |
+| `frontend:analysis.answers.intro` | From the researcher feedback on the shown releases, so both filters above apply. Each release counts once, however many of its researchers answered. Open a chart to compare years, fields and more, and to see the releases. | 表示中のリリースについての研究者アンケートから集計しています。上の二つの絞り込みが反映されます。1 件のリリースに複数の研究者が回答しても、1 件として数えます。グラフを開くと、年度や分野などで比較し、リリースの一覧を見られます。 | pending |
 | `frontend:analysis.answers.respondents` | {{name}}: {{count}} | {{name}} {{count}} 件 | pending |
 | `frontend:analysis.answers.separator` | ,  | 、 | pending |
 | `frontend:analysis.columns.academic_year` | Academic year | 年度 | pending |
@@ -1192,6 +1192,22 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.form.in_record_label` | Show {{name}} in a release's record | {{name}} をリリースの詳細画面に表示 | pending |
 | `frontend:settings.institution.display_zone_none` | None | なし | pending |
 | `frontend:settings.institution.display_zone_place` | Zone {{place}} | 時間帯 {{place}} | pending |
-| `frontend:settings.institution.display_zones_all` | All time zones | すべての時間帯 | pending |
-| `frontend:settings.institution.display_zones_common` | Often used | よく使う時間帯 | pending |
 | `frontend:analysis.answers.caption_one` | Per cent of the {{count}} shown releases whose researchers answered the question. | その質問に研究者が回答した表示中のリリース {{count}} 件に占める割合です。 | pending |
+| `frontend:analysis.answers.activities.intro` | What the researchers said came of the shown releases, from the researcher feedback. Compare by splits the bars; below, each release with the boxes its researchers ticked. | 研究者アンケートから、表示中のリリースをきっかけに生まれたと研究者が答えた活動を示します。「比較の観点」でバーを分けられます。下には、各リリースで研究者が選んだ項目を示します。 | pending |
+| `frontend:analysis.answers.columns.ticked` | Boxes ticked | 選ばれた項目の数 | pending |
+| `frontend:analysis.answers.inquiries.intro` | Who contacted the researchers about the shown releases, from the researcher feedback. Compare by splits the bars; below, each release with the boxes its researchers ticked. | 研究者アンケートから、表示中のリリースについて研究者に連絡してきた相手を示します。「比較の観点」でバーを分けられます。下には、各リリースで研究者が選んだ項目を示します。 | pending |
+| `frontend:analysis.answers.list_caption` | The shown releases and what their researchers answered: {{name}} | 表示中のリリースと研究者の回答：{{name}} | pending |
+| `frontend:analysis.answers.list_heading` | The releases | リリース一覧 | pending |
+| `frontend:analysis.answers.list_hint` | {{answered}} of the {{shown}} shown releases have an answer to this question. This is a list, not a ranking: a release is not better for more boxes ticked. Newest first; click a heading to sort by it, a box's heading to put the releases that ticked it first. Releases without an answer come last. | 表示中のリリース {{shown}} 件のうち、この質問に回答があるのは {{answered}} 件です。これは一覧でありランキングではありません。選ばれた項目が多いほど良いリリースというわけではないためです。新しい順に並び、見出しをクリックするとその列で並べ替えます。項目の見出しをクリックすると、その項目が選ばれたリリースが先頭に来ます。回答のないリリースは最後に並びます。 | pending |
+| `frontend:analysis.answers.no_answer` | No answer | 回答なし | pending |
+| `frontend:analysis.answers.none_answered` | None of the shown releases has an answer to this question yet. | 表示中のリリースには、この質問への回答はまだありません。 | pending |
+| `frontend:analysis.answers.ticked` | Ticked | 選択 | pending |
+| `frontend:errors.time_skipped` | That time doesn't happen there on that day: the clocks jump forward an hour when daylight saving starts. Please check the time. | その日のその時刻は、その時間帯には存在しません（夏時間の開始で時計が 1 時間進むため）。時刻をご確認ください。 | pending |
+| `backend:analysis_export.answers.activities` | what came of it | その後の展開 | pending |
+| `backend:analysis_export.answers.inquiries` | who got in touch | 問い合わせの相手 | pending |
+| `backend:analysis_export.columns.answered` | Answered | 回答あり | pending |
+| `backend:analysis_export.columns.ticked` | Boxes ticked | 選ばれた項目の数 | pending |
+| `backend:analysis_export.readme.analysed_answers` | Analysed: {count} releases ({filters}). | 分析対象：{count} 件のリリース（{filters}）。 | pending |
+| `backend:analysis_export.readme.answer_boxes` | Answered: 1 if its researchers answered this question, 0 if not. A box: 1 ticked, 0 not ticked, empty when the question was not answered. Boxes ticked: how many of them; 0 when the answer was “none”. | 回答あり：この質問に研究者の回答があれば 1、なければ 0。各項目：選ばれていれば 1、選ばれていなければ 0、回答がなければ空欄。選ばれた項目の数：その合計で、「特になし」の回答は 0 です。 | pending |
+| `backend:analysis_export.readme.answer_rows` | Rows: every shown release, newest first, with what its researchers answered in the feedback survey. A release counts once: a box is ticked if any of its researchers ticked it. | 行：表示中のすべてのリリースを新しい順に並べ、研究者アンケートの回答を示します。1 件のリリースは 1 件として数え、いずれかの研究者が選んだ項目を選ばれたものとします。 | pending |
+| `backend:analysis_export.sheets.releases` | Releases | リリース | pending |

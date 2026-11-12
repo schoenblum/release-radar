@@ -1,15 +1,10 @@
 import { useTranslation } from "react-i18next";
+import { Link, useSearchParams } from "react-router-dom";
 
-import type {
-  AnalysisAnswerChart,
-  AnalysisOptions,
-  AnalysisScope,
-  FilterDimension,
-} from "../../api/types";
+import type { AnalysisAnswerChart, AnalysisOptions, FilterDimension } from "../../api/types";
 import { useOptions } from "./AnalysisLayout";
-import GroupChoice, { GROUPINGS } from "./GroupChoice";
 import { named, optionsOf, valueLabel, type Language } from "./labels";
-import { answerGroupParam } from "./state";
+import { answersPath } from "./state";
 
 // Written out whole: Tailwind keeps only the classes it finds in the source, so a name built
 // at run time would lose its colour (Daniel saw empty bars, 2026-11-12).
@@ -22,31 +17,20 @@ const COLOURS = [
   "answer-colour-5",
 ];
 
-/** A survey chart can be split by any grouping but the unit: 23 units would make 23 bars per
- * box, which nobody can read (a measure's page splits by unit as rows instead). */
-const ANSWER_GROUPINGS = GROUPINGS.filter((grouping) => grouping !== "unit");
-
 /**
  * A survey question as bars (Daniel, 2026-11-12): for each box, the share of the shown
  * releases whose researchers ticked it, among those who answered the question. Both filters
  * decide which releases count. When fewer are shown than analysed, a second bar gives the
- * analysed releases to compare with; split by a grouping (year, field …), one bar per group.
+ * analysed releases to compare with; split by a grouping (year, field …) on the question's own
+ * page, one bar per group.
  *
  * Plain HTML rather than a Plot chart: the labels are long sentences, in Japanese too, and wrap
  * here as text does; the bars are their widths.
  */
-export default function AnswerChart({
-  chart,
-  scope,
-}: {
-  chart: AnalysisAnswerChart;
-  scope: AnalysisScope;
-}) {
+export function AnswerBars({ chart }: { chart: AnalysisAnswerChart }) {
   const { t, i18n } = useTranslation();
   const language: Language = i18n.language === "ja" ? "ja" : "en";
   const options = useOptions();
-  const headingId = `answers-${chart.question}`;
-  const title = t(`analysis.answers.${chart.question}.title`);
   const seriesName = (key: string): string =>
     chart.by
       ? valueLabel(t, language, options, chart.by, key)
@@ -61,22 +45,7 @@ export default function AnswerChart({
     .join(t("analysis.answers.separator"));
 
   return (
-    <section className="analysis-card" aria-labelledby={headingId}>
-      <div className="analysis-card-rule" />
-      <h3 id={headingId} className="text-xl">
-        {title}
-      </h3>
-      <p className="mb-4xs text-sm text-content-secondary">
-        {t(`analysis.answers.${chart.question}.describe`)}
-      </p>
-      <div className="mb-4xs">
-        <GroupChoice
-          param={answerGroupParam(chart.question)}
-          scope={scope}
-          offered={ANSWER_GROUPINGS}
-          label={t("analysis.group.label_for", { name: title })}
-        />
-      </div>
+    <>
       {several && (
         <ul className="answer-legend" aria-hidden="true">
           {series.map((item, index) => (
@@ -125,6 +94,30 @@ export default function AnswerChart({
           ? t("analysis.answers.caption", { respondents })
           : t("analysis.answers.caption_one", { count: series[0]?.respondents ?? 0 })}
       </p>
+    </>
+  );
+}
+
+/** The Overview's card: the bars for everything the filters select, and Open → its page. */
+export default function AnswerChart({ chart }: { chart: AnalysisAnswerChart }) {
+  const { t } = useTranslation();
+  const [params] = useSearchParams();
+  const headingId = `answers-${chart.question}`;
+  return (
+    <section className="analysis-card" aria-labelledby={headingId}>
+      <div className="analysis-card-rule" />
+      <h3 id={headingId} className="text-xl">
+        {t(`analysis.answers.${chart.question}.title`)}
+      </h3>
+      <p className="mb-4xs text-sm text-content-secondary">
+        {t(`analysis.answers.${chart.question}.describe`)}
+      </p>
+      <AnswerBars chart={chart} />
+      <Link className="analysis-open mt-auto" to={answersPath(chart.question, params)}>
+        {t("analysis.card.open")}
+        <span className="sr-only"> {t(`analysis.answers.${chart.question}.title`)}</span>
+        <span aria-hidden="true"> →</span>
+      </Link>
     </section>
   );
 }

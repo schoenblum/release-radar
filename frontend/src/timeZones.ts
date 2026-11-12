@@ -1,8 +1,11 @@
 /**
  * Release times: kept in the institution's time zone (Japan time for NU), entered and shown in
- * up to three others, any IANA zone, in the order an admin chooses (Daniel, 2026-11-12). The
- * zones listed here have a short label and names in both languages and mirror
- * `app/services/time_zones.py`; any other zone goes by its city.
+ * up to three others, in the order an admin chooses, from a list of time zones (Daniel,
+ * 2026-11-12 and -13). Mirrors `app/services/time_zones.py`; a test checks the keys.
+ *
+ * Conversions go through the browser's copy of the IANA time-zone database (`Intl`), which
+ * holds each zone's daylight-saving rules: every date is converted with the offset in force on
+ * that date.
  */
 
 export interface Zone {
@@ -17,20 +20,48 @@ export interface Zone {
 export const EASTERN = "America/New_York";
 export const MAX_SHOWN = 3;
 
+// West to east, as on the server.
 export const ZONES: Zone[] = [
-  { key: "Asia/Tokyo", short: "JST", nameEn: "Japan", nameJa: "日本時間", words: ["jst", "japan", "日本時間", "日本"] },
-  { key: EASTERN, short: "ET", nameEn: "US Eastern", nameJa: "米国東部時間", words: ["et", "est", "edt", "eastern", "東部時間", "米国東部時間"] },
-  { key: "America/Los_Angeles", short: "PT", nameEn: "US Pacific", nameJa: "米国太平洋時間", words: ["pt", "pst", "pdt", "pacific"] },
-  { key: "Europe/London", short: "UK", nameEn: "UK", nameJa: "英国時間", words: ["uk", "gmt", "bst", "london"] },
-  { key: "Europe/Paris", short: "CET", nameEn: "Central Europe", nameJa: "中央ヨーロッパ時間", words: ["cet", "cest"] },
-  { key: "Australia/Sydney", short: "AET", nameEn: "Australia Eastern", nameJa: "オーストラリア東部時間", words: ["aet", "aest", "aedt"] },
-  { key: "UTC", short: "UTC", nameEn: "UTC", nameJa: "協定世界時", words: ["utc"] },
+  { key: "Pacific/Honolulu", short: "HT", nameEn: "Hawaii", nameJa: "ハワイ時間", words: ["hst", "hawaii"] },
+  { key: "America/Anchorage", short: "AKT", nameEn: "Alaska", nameJa: "アラスカ時間", words: ["akst", "akdt", "alaska"] },
+  { key: "America/Los_Angeles", short: "PT", nameEn: "US Pacific", nameJa: "米国太平洋時間", words: ["pst", "pdt", "pacific"] },
+  { key: "America/Denver", short: "MT", nameEn: "US Mountain", nameJa: "米国山岳部時間", words: ["mst", "mdt", "mountain"] },
+  { key: "America/Chicago", short: "CT", nameEn: "US Central", nameJa: "米国中部時間", words: ["cst", "cdt", "central"] },
+  { key: "America/Mexico_City", short: "MEX", nameEn: "Mexico City", nameJa: "メキシコシティ時間", words: ["mexico"] },
+  { key: EASTERN, short: "ET", nameEn: "US Eastern", nameJa: "米国東部時間", words: ["est", "edt", "eastern", "東部時間"] },
+  { key: "America/Halifax", short: "AT", nameEn: "Atlantic (Canada)", nameJa: "大西洋時間（カナダ）", words: ["ast", "adt", "atlantic"] },
+  { key: "America/Sao_Paulo", short: "BRT", nameEn: "Brazil (São Paulo)", nameJa: "ブラジル時間（サンパウロ）", words: ["brazil"] },
+  { key: "America/Argentina/Buenos_Aires", short: "ART", nameEn: "Argentina", nameJa: "アルゼンチン時間", words: ["argentina"] },
+  { key: "UTC", short: "UTC", nameEn: "UTC", nameJa: "協定世界時", words: ["gmt+0", "z"] },
+  { key: "Europe/London", short: "UK", nameEn: "UK", nameJa: "英国時間", words: ["gmt", "bst", "london"] },
+  { key: "Africa/Lagos", short: "WAT", nameEn: "West Africa", nameJa: "西アフリカ時間", words: [] },
+  { key: "Europe/Paris", short: "CET", nameEn: "Central Europe", nameJa: "中央ヨーロッパ時間", words: ["cest"] },
+  { key: "Europe/Helsinki", short: "EET", nameEn: "Eastern Europe", nameJa: "東ヨーロッパ時間", words: ["eest"] },
+  { key: "Africa/Johannesburg", short: "SAST", nameEn: "South Africa", nameJa: "南アフリカ時間", words: [] },
+  { key: "Europe/Istanbul", short: "TRT", nameEn: "Turkey", nameJa: "トルコ時間", words: [] },
+  { key: "Europe/Moscow", short: "MSK", nameEn: "Moscow", nameJa: "モスクワ時間", words: [] },
+  { key: "Africa/Nairobi", short: "EAT", nameEn: "East Africa", nameJa: "東アフリカ時間", words: [] },
+  { key: "Asia/Dubai", short: "GST", nameEn: "Gulf (Dubai)", nameJa: "湾岸時間（ドバイ）", words: ["dubai"] },
+  { key: "Asia/Karachi", short: "PKT", nameEn: "Pakistan", nameJa: "パキスタン時間", words: [] },
+  { key: "Asia/Kolkata", short: "IST", nameEn: "India", nameJa: "インド時間", words: ["india"] },
+  { key: "Asia/Bangkok", short: "ICT", nameEn: "Indochina (Bangkok, Hanoi)", nameJa: "インドシナ時間（バンコク・ハノイ）", words: [] },
+  { key: "Asia/Jakarta", short: "WIB", nameEn: "Western Indonesia (Jakarta)", nameJa: "インドネシア西部時間（ジャカルタ）", words: [] },
+  { key: "Asia/Shanghai", short: "CN", nameEn: "China", nameJa: "中国時間", words: ["china", "beijing", "中国"] },
+  { key: "Asia/Hong_Kong", short: "HKT", nameEn: "Hong Kong", nameJa: "香港時間", words: [] },
+  { key: "Asia/Taipei", short: "TW", nameEn: "Taiwan", nameJa: "台湾時間", words: ["taiwan", "台湾"] },
+  { key: "Asia/Singapore", short: "SGT", nameEn: "Singapore", nameJa: "シンガポール時間", words: [] },
+  { key: "Australia/Perth", short: "AWST", nameEn: "Australia Western", nameJa: "オーストラリア西部時間", words: [] },
+  { key: "Asia/Seoul", short: "KST", nameEn: "Korea", nameJa: "韓国時間", words: ["korea", "韓国"] },
+  { key: "Asia/Tokyo", short: "JST", nameEn: "Japan", nameJa: "日本時間", words: ["japan", "日本"] },
+  { key: "Australia/Adelaide", short: "ACT", nameEn: "Australia Central", nameJa: "オーストラリア中部時間", words: ["acst", "acdt"] },
+  { key: "Australia/Sydney", short: "AET", nameEn: "Australia Eastern", nameJa: "オーストラリア東部時間", words: ["aest", "aedt"] },
+  { key: "Pacific/Auckland", short: "NZT", nameEn: "New Zealand", nameJa: "ニュージーランド時間", words: ["nzst", "nzdt"] },
 ];
 
 const BY_KEY = new Map(ZONES.map((zone) => [zone.key, zone]));
 
-/** "Berlin" for Europe/Berlin, "Ho Chi Minh" for Asia/Ho_Chi_Minh. */
-export function cityOf(key: string): string {
+/** "Berlin" for Europe/Berlin: a zone off the list, kept from before, still has a label. */
+function cityOf(key: string): string {
   return (key.split("/").pop() ?? key).replaceAll("_", " ");
 }
 
@@ -39,57 +70,63 @@ export function shortLabel(key: string): string {
   return BY_KEY.get(key)?.short ?? cityOf(key);
 }
 
-/** The browser's own name for a zone, such as "Central European Time": "" if it has none. */
-function generic(key: string, language: string): string {
-  try {
-    const parts = new Intl.DateTimeFormat(language === "ja" ? "ja" : "en", {
-      timeZone: key,
-      timeZoneName: "longGeneric",
-    }).formatToParts(new Date());
-    const name = parts.find((part) => part.type === "timeZoneName")?.value ?? "";
-    // Without a name of its own, a zone gets its offset ("GMT+05:45"): that says nothing new.
-    return /^(GMT|UTC)[+−-]/.test(name) || name === cityOf(key) ? "" : name;
-  } catch {
-    return "";
-  }
-}
-
-/** "US Eastern (ET)", "米国東部時間（ET）"; any other zone "Europe/Berlin (Central European Time)". */
+/** "US Eastern (ET)", "米国東部時間（ET）"; a zone off the list by its IANA name. */
 export function zoneName(key: string, language: string): string {
   const zone = BY_KEY.get(key);
-  if (zone) {
-    return language === "ja" ? `${zone.nameJa}（${zone.short}）` : `${zone.nameEn} (${zone.short})`;
-  }
-  const name = generic(key, language);
-  const plain = key.replaceAll("_", " ");
-  if (!name) return plain;
-  return language === "ja" ? `${plain}（${name}）` : `${plain} (${name})`;
+  if (!zone) return key.replaceAll("_", " ");
+  if (language === "ja") return `${zone.nameJa}（${zone.short}）`;
+  // "UTC", "UK": the short label says nothing more.
+  return zone.short === zone.nameEn ? zone.nameEn : `${zone.nameEn} (${zone.short})`;
 }
 
-/** Every zone the browser knows, UTC included. */
-export function allZones(): string[] {
-  const known = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : [];
-  return known.includes("UTC") ? known : [...known, "UTC"];
+/** A zone's offset from UTC at an instant, in minutes east. */
+function offsetAt(key: string, instant: Date): number {
+  const name =
+    new Intl.DateTimeFormat("en-US", { timeZone: key, timeZoneName: "longOffset" })
+      .formatToParts(instant)
+      .find((part) => part.type === "timeZoneName")?.value ?? "GMT";
+  const match = /GMT([+-])(\d{2}):?(\d{2})?/.exec(name);
+  if (!match) return 0;
+  const minutes = Number(match[2]) * 60 + Number(match[3] ?? 0);
+  return match[1] === "-" ? -minutes : minutes;
 }
 
-let cities: Map<string, string> | null = null;
+/** A zone's standard offset: the smaller of winter's and summer's, as daylight saving adds. */
+export function standardOffset(key: string, year = new Date().getFullYear()): number {
+  return Math.min(
+    offsetAt(key, new Date(Date.UTC(year, 0, 15))),
+    offsetAt(key, new Date(Date.UTC(year, 6, 15))),
+  );
+}
 
-/**
- * The zone a typed word means, if any: the listed zones' words (ET, JST …), and any zone's
- * IANA name or city, so "10:00 Berlin" works once Berlin is among the zones shown.
- */
+/** "UTC−05:00", "UTC+09:30", "UTC±00:00". */
+export function offsetLabel(minutes: number): string {
+  const sign = minutes > 0 ? "+" : minutes < 0 ? "−" : "±";
+  const size = Math.abs(minutes);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `UTC${sign}${pad(Math.floor(size / 60))}:${pad(size % 60)}`;
+}
+
+/** The listed zones, west to east by standard offset, without the one left out. */
+export function zoneChoices(leaveOut?: string): Zone[] {
+  return ZONES.filter((zone) => zone.key !== leaveOut)
+    .map((zone, place) => ({ zone, place, offset: standardOffset(zone.key) }))
+    .sort((a, b) => a.offset - b.offset || a.place - b.place)
+    .map(({ zone }) => zone);
+}
+
+/** The listed zone a typed word means, if any: ET, JST, "eastern", "london" … */
 export function zoneFromWord(word: string): string | null {
   const clean = word.normalize("NFKC").trim().toLowerCase();
-  const listed = ZONES.find((zone) => zone.words.includes(clean))?.key;
-  if (listed) return listed;
-  if (cities === null) {
-    cities = new Map();
-    for (const key of allZones()) {
-      cities.set(key.toLowerCase(), key);
-      if (!cities.has(cityOf(key).toLowerCase())) cities.set(cityOf(key).toLowerCase(), key);
-    }
-  }
-  return cities.get(clean) ?? cities.get(clean.replaceAll("_", " ")) ?? null;
+  return (
+    ZONES.find(
+      (zone) =>
+        zone.short.toLowerCase() === clean ||
+        zone.nameEn.toLowerCase() === clean ||
+        zone.nameJa === clean ||
+        zone.words.includes(clean),
+    )?.key ?? null
+  );
 }
 
 /** The wall-clock date and time of an instant in a zone, as numbers. */

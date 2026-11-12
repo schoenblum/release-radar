@@ -86,6 +86,19 @@ GROUPINGS = ("ay", "type", "field", "unit", "emb", "gender")
 # Fewer values than this give a group its dots and median, but no box: a box of three says
 # nothing a reader should trust.
 MIN_BOX = 5
+# A survey chart is split by any grouping but the unit: some twenty units would make twenty
+# bars per box. A measure's page splits by unit as rows instead.
+ANSWER_GROUPINGS = tuple(grouping for grouping in GROUPINGS if grouping != "unit")
+
+
+def answered_questions(dataset: Dataset, questions: tuple[str, ...]) -> list[str]:
+    """The survey questions some release has an answer to: each gets an Overview chart and a
+    page of its own (Daniel, 2026-11-13)."""
+    return [
+        question
+        for question in questions
+        if any(row.answers.get(question) is not None for row in dataset.rows)
+    ]
 
 
 def group_of(row: Row, by: str) -> object:
@@ -441,6 +454,15 @@ class Analysis:
                 shares.append(Share(key, count, 100 * count / len(rows)))
             bars.append(Bar(choice, shares))
         return AnswerChart(question, by, [(key, len(rows)) for key, rows in series], bars)
+
+    def answer_rows(self, question: str) -> list[tuple[Row, frozenset[str] | None]]:
+        """Each shown release with the boxes its researchers ticked (None: no answer to this
+        question), newest first. A list, not a ranking: a release is not better for more
+        boxes ticked (Daniel, 2026-11-12)."""
+        return sorted(
+            ((row, row.answers.get(question)) for row in self.shown_rows),
+            key=lambda item: (-item[0].release_date.toordinal(), item[0].code or ""),
+        )
 
     def standings(
         self, keys: list[str]

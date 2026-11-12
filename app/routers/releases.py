@@ -240,6 +240,9 @@ async def _patch_zoned(
     if patch.field == "release_time" and at is not None and day is None:
         raise field_error("release_date_first")
     if day is not None and at is not None:
+        # The hour the clocks skip has no conversion that would be true (Daniel, 2026-11-13).
+        if not time_zones.exists(day, at, zone):
+            raise field_error("time_skipped")
         day, at = time_zones.convert(day, at, zone, local)
     date_moved = day != release.release_date
     if date_moved:

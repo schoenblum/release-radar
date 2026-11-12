@@ -377,6 +377,28 @@ async def test_a_zoned_time_needs_its_date(client, admin_headers):
     assert (bad.status_code, bad.json()) == (422, {"detail": "invalid_timezone"})
 
 
+async def test_a_time_the_clocks_skip_is_refused_and_a_repeated_one_is_the_first(
+    client, admin_headers
+):
+    """Daniel, 2026-11-13: a conversion must be true for its date. US daylight saving starts on
+    8 March 2026, when 02:00 becomes 03:00: 02:30 never happens. It ends on 1 November, when
+    01:30 happens twice: the first, still in daylight saving (UTC−4), is 14:30 in Japan."""
+    made = await _create(client, admin_headers)
+    skipped = {"date": "2026-03-08", "time": "02:30", "zone": EASTERN}
+    bad = await _patch(client, made, admin_headers, "release_date", skipped)
+    assert (bad.status_code, bad.json()) == (422, {"detail": "time_skipped"})
+    twice = {"date": "2026-11-01", "time": "01:30", "zone": EASTERN}
+    saved = await _set(client, made, admin_headers, "release_date", twice)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-11-01", "14:30:00")
+    # The days either side of the switch, each with its own offset.
+    value = {"date": "2026-03-06", "time": "10:00", "zone": EASTERN}
+    saved = await _set(client, saved, admin_headers, "release_date", value)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-03-07", "00:00:00")
+    value = {"date": "2026-03-09", "time": "10:00", "zone": EASTERN}
+    saved = await _set(client, saved, admin_headers, "release_date", value)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-03-09", "23:00:00")
+
+
 async def test_a_date_and_time_in_japan_time_stay_as_they_are(client, admin_headers):
     made = await _create(client, admin_headers)
     value = {"date": "2026-11-10", "time": "14:10", "zone": "Asia/Tokyo"}

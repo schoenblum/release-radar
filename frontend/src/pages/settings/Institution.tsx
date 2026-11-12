@@ -7,7 +7,7 @@ import { errorMessage } from "../../api/errors";
 import type { Institution, LandingView, UserRole } from "../../api/types";
 import { SelectField, TextField } from "../../components/fields/Autosave";
 import { useFieldSaver } from "../../components/fields/useFieldSaver";
-import { allZones, MAX_SHOWN, ZONES, zoneName } from "../../timeZones";
+import { MAX_SHOWN, offsetLabel, standardOffset, zoneChoices, zoneName } from "../../timeZones";
 import { SectionHeader, SubHeading } from "./SettingsLayout";
 
 const ROLES: UserRole[] = ["admin", "editor", "viewer"];
@@ -23,8 +23,9 @@ function monthNames(language: string): { value: string; label: string }[] {
 
 /**
  * Up to three further zones a release time shows in, besides the institution's own: a choice
- * per place, any zone, in the order they show; each place can stay empty (Daniel, 2026-11-12).
- * The zones people use most come first in each list.
+ * per place, in the order they show; each place can stay empty (Daniel, 2026-11-12). The
+ * choices are a list of time zones, west to east by their standard offset (Daniel, 2026-11-13);
+ * daylight saving is applied on each date by itself.
  */
 export function DisplayZones({
   institution,
@@ -39,12 +40,11 @@ export function DisplayZones({
     { length: MAX_SHOWN },
     (_, place) => institution.display_time_zones[place] ?? null,
   );
-  const local = institution.timezone;
-  const common = ZONES.map((zone) => zone.key).filter((key) => key !== local);
-  const others = allZones().filter((key) => key !== local && !common.includes(key));
-  const named = (key: string) => ({ key, label: zoneName(key, i18n.language) });
-  const commonOptions = common.map(named);
-  const otherOptions = others.map(named).sort((a, b) => a.label.localeCompare(b.label));
+  const offered = zoneChoices(institution.timezone).map((zone) => ({
+    key: zone.key,
+    label: `${offsetLabel(standardOffset(zone.key))} ${zoneName(zone.key, i18n.language)}`,
+  }));
+  const listed = new Set(offered.map((option) => option.key));
 
   function choose(place: number, value: string | null): void {
     setError(null);
@@ -75,23 +75,14 @@ export function DisplayZones({
               onChange={(event) => choose(place, event.target.value || null)}
             >
               <option value="">{t("settings.institution.display_zone_none")}</option>
-              {zone && !common.includes(zone) && !others.includes(zone) && (
+              {zone && !listed.has(zone) && (
                 <option value={zone}>{zoneName(zone, i18n.language)}</option>
               )}
-              <optgroup label={t("settings.institution.display_zones_common")}>
-                {commonOptions.map((option) => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label={t("settings.institution.display_zones_all")}>
-                {otherOptions.map((option) => (
-                  <option key={option.key} value={option.key}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
+              {offered.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
         ))}

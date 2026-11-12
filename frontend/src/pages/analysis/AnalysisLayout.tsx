@@ -7,7 +7,7 @@ import ErrorNotice from "../../components/ErrorNotice";
 import { PageLoading } from "../../components/Spinner";
 import AnalysisFilterBar from "./AnalysisFilterBar";
 import { named, profileName, textKey, type Language } from "./labels";
-import { PROFILE_PARAM, pagePath, queryOf } from "./state";
+import { answersPath, PROFILE_PARAM, pagePath, queryOf } from "./state";
 import { useAnalysisOptions } from "./useAnalysis";
 
 export function useOptions(): AnalysisOptions {
@@ -76,7 +76,7 @@ export function AnalysisHeader({
 
 /**
  * The Analysis area (D30, phase-2 brief §5), for every signed-in role: the overview, all
- * releases, a page per dimension and top & bottom 5, with both filters carried over between them
+ * releases, a page per dimension, a page per survey question and top & bottom 5, with both filters carried over between them
  * in the address.
  */
 export default function AnalysisLayout() {
@@ -104,6 +104,11 @@ export default function AnalysisLayout() {
             {t(`analysis.tabs.${textKey(page.key)}`, {
               defaultValue: named(language, page.label_en, page.label_ja),
             })}
+          </NavLink>
+        ))}
+        {options.answers.map((question) => (
+          <NavLink key={question} to={answersPath(question, params)} className={link}>
+            {t(`analysis.answers.${question}.title`)}
           </NavLink>
         ))}
         <NavLink to={`/analysis/top${query}`} className={link}>

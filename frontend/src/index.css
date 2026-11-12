@@ -702,6 +702,21 @@
   .analysis-points-scroll {
     @apply max-h-72 overflow-auto;
   }
+  /* A survey question's releases (AnswersPage.tsx): a narrow column per box, its long heading
+     wrapping; a tick in the middle. Two classes, to outweigh the table's own rule. */
+  .count-table .answer-head {
+    @apply w-28 min-w-[7rem] max-w-[7rem] whitespace-normal text-center align-bottom;
+  }
+  /* On a question's own page the card is wide: bars as long as on the Overview read better. */
+  .analysis-card-wide .answer-bars {
+    @apply max-w-3xl;
+  }
+  .count-table .answer-head .sort-button {
+    @apply whitespace-normal text-center;
+  }
+  .count-table .answer-cell {
+    @apply text-center;
+  }
   /* A measure split by a grouping (GroupedChart.tsx): a label, then its strip, on one scale.
      On a phone the label sits above its strip. */
   .group-rows {

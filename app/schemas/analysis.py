@@ -63,6 +63,8 @@ class OptionsOut(BaseModel):
     genders: list[OptionOut]
     pages: list[PageOut]
     profiles: list[ProfileRef]
+    # The survey questions with answers, each with a page of its own.
+    answers: list[str] = []
 
 
 class ScopeOut(BaseModel):
@@ -153,6 +155,38 @@ class AnswerChartOut(BaseModel):
     by: str | None
     series: list[AnswerSeriesOut]
     bars: list[BarOut]
+
+
+class AnswerChoiceOut(BaseModel):
+    key: str
+    label_en: str
+    label_ja: str
+
+
+class AnswerRowOut(BaseModel):
+    """A shown release on a survey question's page: the boxes its researchers ticked."""
+
+    id: uuid.UUID
+    code: str | None
+    title: str | None
+    release_date: date
+    academic_year: int
+    unit_id: uuid.UUID | None
+    field_id: uuid.UUID | None
+    answered: bool
+    ticked: list[str]
+
+
+class AnswersOut(BaseModel):
+    """A survey question's own page (Daniel, 2026-11-13): its bars, split by ``group_by`` if
+    asked, and every shown release with what its researchers ticked."""
+
+    scope: ScopeOut
+    question: str
+    group_by: str | None
+    chart: AnswerChartOut | None
+    choices: list[AnswerChoiceOut]
+    rows: list[AnswerRowOut]
 
 
 class OverviewOut(BaseModel):

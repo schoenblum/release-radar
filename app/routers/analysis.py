@@ -12,7 +12,7 @@ still opens. *Shown* always lies within *analysed*.
 import asyncio
 import uuid
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
@@ -35,7 +35,10 @@ from app.models import (
 )
 from app.schemas.analysis import (
     AnswerChartOut,
+    AnswerChoiceOut,
+    AnswerRowOut,
     AnswerSeriesOut,
+    AnswersOut,
     BarOut,
     BoxOut,
     CardOut,
@@ -64,6 +67,7 @@ from app.services import release_export
 from app.services.analysis import dataset as analysis
 from app.services.analysis.filters import GENDERS, AnalysisFilter
 from app.services.analysis.pages import (
+    ANSWER_GROUPINGS,
     GROUPINGS,
     RELEASE_TABLE_KEYS,
     SCORE,
@@ -73,6 +77,7 @@ from app.services.analysis.pages import (
     Card,
     Entry,
     Group,
+    answered_questions,
     basis_or_default,
     group_token,
     page_keys,
@@ -431,6 +436,7 @@ async def options(
         ],
         pages=pages,
         profiles=list(current.values()),
+        answers=answered_questions(dataset, ANSWER_QUESTIONS),
     )
 
 
@@ -454,14 +460,8 @@ def _answer_out(chart: AnswerChart) -> AnswerChartOut:
     )
 
 
-# The survey questions the Overview shows as bars, each split by its own ``group_<question>``.
+# The survey questions shown as bars, on the Overview and each on a page of its own.
 ANSWER_QUESTIONS = (INQUIRIES, ACTIVITIES)
-
-
-def _grouping(request: Request, name: str) -> str | None:
-    """A grouping from the address; anything else counts as none, so an old link still opens."""
-    value = request.query_params.get(name)
-    return value if value in GROUPINGS else None
 
 
 @router.get("/overview", response_model=OverviewOut)
@@ -473,15 +473,12 @@ async def overview(
     db: AsyncSession = Depends(get_db),
 ) -> OverviewOut:
     """One card per dimension with data, the score first (phase-2 brief §5.2); researcher
-    feedback as two bar charts instead of cards, each following both filters and split by
-    ``group_<question>`` when asked (Daniel, 2026-11-12)."""
+    feedback as two bar charts, following both filters like every card; their split is on
+    their own pages (Daniel, 2026-11-13)."""
     context = await _context(request, user, db, profile, altmetric)
     found = context.analysis
     keys = [key for key in page_keys(found.dataset) if key != SCORE or context.profile is not None]
-    answers = [
-        found.answer_chart(question, _grouping(request, f"group_{question}"))
-        for question in ANSWER_QUESTIONS
-    ]
+    answers = [found.answer_chart(question) for question in ANSWER_QUESTIONS]
     return OverviewOut(
         scope=context.scope(),
         cards=[_card_out(found.card(key)) for key in keys],
@@ -515,6 +512,56 @@ async def dimension_page(
         rows=[_entry_out(entry) for entry in context.analysis.rows(key)],
         group_by=by,
         groups=[_group_out(item) for item in context.analysis.groups(key, by)] if by else None,
+    )
+
+
+def _answer_question(question: str) -> str:
+    if question not in ANSWER_QUESTIONS:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="not_found")
+    return question
+
+
+@router.get("/answers/{question}", response_model=AnswersOut)
+async def answers_page(
+    question: str,
+    request: Request,
+    profile: uuid.UUID | None = None,
+    altmetric: Literal["increase", "d28"] | None = None,
+    group: str | None = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AnswersOut:
+    """A survey question's page (Daniel, 2026-11-13): its bars, split by ``group`` (any
+    grouping but the unit), and every shown release with the boxes its researchers ticked."""
+    question = _answer_question(question)
+    context = await _context(request, user, db, profile, altmetric)
+    found = context.analysis
+    by = group if group in ANSWER_GROUPINGS else None
+    chart = found.answer_chart(question, by)
+    return AnswersOut(
+        scope=context.scope(),
+        question=question,
+        group_by=by,
+        chart=_answer_out(chart) if chart else None,
+        choices=[
+            AnswerChoiceOut(key=choice.key, label_en=choice.label_en, label_ja=choice.label_ja)
+            for choice in found.dataset.choices
+            if choice.question == question
+        ],
+        rows=[
+            AnswerRowOut(
+                id=row.id,
+                code=row.code,
+                title=row.title,
+                release_date=row.release_date,
+                academic_year=row.academic_year,
+                unit_id=row.unit_id,
+                field_id=row.field_id,
+                answered=ticked is not None,
+                ticked=sorted(ticked or ()),
+            )
+            for row, ticked in found.answer_rows(question)
+        ],
     )
 
 
@@ -821,7 +868,10 @@ async def _file(
     language: str,
     *,
     top: bool,
+    readme: Callable[[str, datetime], Awaitable[list[str]]] | None = None,
+    kind: str | None = None,
 ) -> Response:
+    """The file of a page's list: CSV, or XLSX with a Read me (the ranking's, unless given)."""
     now = datetime.now(ZoneInfo(context.institution.timezone))
     if file_format == "csv":
         if len(sheets) == 1:
@@ -834,16 +884,19 @@ async def _file(
                 table.rows += [[name, *row] for row in part.rows]
         content = release_export.to_csv(table)
     else:
-        readme = await _read_me(
-            db, context, key, language, user.full_name or user.email, now, top=top
+        who = user.full_name or user.email
+        lines = (
+            await readme(who, now)
+            if readme is not None
+            else await _read_me(db, context, key, language, who, now, top=top)
         )
         content = await asyncio.to_thread(
             release_export.to_xlsx,
             sheets[0],
             dict(sheets[1:]),
-            (t(language, "export.sheets.readme"), readme),
+            (t(language, "export.sheets.readme"), lines),
         )
-    kind = "top" if top else "analysis"
+    kind = kind or ("top" if top else "analysis")
     safe = key.replace(".", "_")
     filename = f"release_radar_{kind}_{safe}_{now.strftime('%Y%m%d')}.{file_format}"
     return Response(
@@ -897,3 +950,98 @@ async def export_top(
         ),
     ]
     return await _file(db, context, user, key, sheets, file_format, language, top=True)
+
+
+@router.get("/answers/{question}/export")
+async def export_answers(
+    question: str,
+    request: Request,
+    profile: uuid.UUID | None = None,
+    altmetric: Literal["increase", "d28"] | None = None,
+    file_format: Literal["xlsx", "csv"] = Query("xlsx", alias="format"),
+    language: Literal["en", "ja"] = Query("en"),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """The page's list of shown releases, a column per box: 1 ticked, 0 not, empty when the
+    researchers did not answer the question."""
+    question = _answer_question(question)
+    context = await _context(request, user, db, profile, altmetric)
+    found = context.analysis
+    choices = [choice for choice in found.dataset.choices if choice.question == question]
+    units = await _named(db, Unit, context.institution.id)
+    research_fields = await _named(db, ResearchField, context.institution.id)
+
+    def name(items: dict, value: uuid.UUID | None) -> str | None:
+        item = items.get(value)
+        return None if item is None else (language == "ja" and item.name_ja) or item.name_en
+
+    table = Table(
+        headers=[
+            t(language, "export.fields.code"),
+            t(language, "export.fields.title"),
+            t(language, "export.fields.release_date"),
+            t(language, "export.fields.academic_year"),
+            t(language, "export.fields.unit"),
+            t(language, "export.fields.field"),
+            t(language, "analysis_export.columns.answered"),
+            *[choice.label_ja if language == "ja" else choice.label_en for choice in choices],
+            t(language, "analysis_export.columns.ticked"),
+        ]
+    )
+    for row, ticked in found.answer_rows(question):
+        boxes = [None if ticked is None else int(choice.key in ticked) for choice in choices]
+        table.rows.append(
+            [
+                row.code,
+                row.title,
+                row.release_date,
+                row.academic_year,
+                name(units, row.unit_id),
+                name(research_fields, row.field_id),
+                0 if ticked is None else 1,
+                *boxes,
+                None if ticked is None else len(ticked),
+            ]
+        )
+    title = t(language, f"analysis_export.answers.{question}")
+
+    async def readme(who: str, when: datetime) -> list[str]:
+        label = await _labels(db, context.institution.id, language)
+        scope = context.scope()
+        return [
+            t(language, "analysis_export.readme.title", name=title),
+            t(language, "export.readme.exported", when=when.strftime("%Y-%m-%d %H:%M"), who=who),
+            "",
+            t(
+                language,
+                "analysis_export.readme.analysed_answers",
+                count=scope.analysed_count,
+                filters=_describe(found.analysed, label, language),
+            ),
+            t(
+                language,
+                "analysis_export.readme.shown",
+                count=scope.shown_count,
+                filters=_describe(found.shown, label, language),
+            ),
+            "",
+            t(language, "analysis_export.readme.answer_rows"),
+            t(language, "analysis_export.readme.answer_boxes"),
+            "",
+            t(language, "export.readme.personal"),
+        ]
+
+    sheet = t(language, "analysis_export.sheets.releases")
+    return await _file(
+        db,
+        context,
+        user,
+        question,
+        [(sheet, table)],
+        file_format,
+        language,
+        top=False,
+        readme=readme,
+        kind="answers",
+    )

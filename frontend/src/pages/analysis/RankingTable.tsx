@@ -44,7 +44,7 @@ export function componentNames(
     .join(", ");
 }
 
-function listName(
+export function listName(
   options: AnalysisOptions["units"],
   id: string | null,
   language: Language,

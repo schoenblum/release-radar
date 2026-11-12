@@ -118,6 +118,8 @@ async def test_saving_the_same_value_does_not_raise_the_version(client, admin_he
         ("landing_pages", {"admin": "x", "editor": "all", "viewer": "all"}, "field_invalid"),
         ("major_outlet_threshold", 5, "field_not_editable"),
         ("display_time_zones", ["Mars/Olympus"], "invalid_timezone"),
+        # A real zone, but a city rather than one of the listed zones (Daniel, 2026-11-13).
+        ("display_time_zones", ["Europe/Berlin"], "invalid_timezone"),
         ("display_time_zones", "America/New_York", "invalid_timezone"),
         (
             "display_time_zones",
@@ -145,14 +147,15 @@ async def test_release_times_show_in_up_to_three_further_zones(client, admin_hea
     assert saved.json()["value"] == ["Europe/London", "America/New_York"]
     brand = (await client.get("/api/v1/brand")).json()
     assert brand["display_time_zones"] == ["Europe/London", "America/New_York"]
-    # Not on the old list of seven, an empty first place, nothing at the end.
-    chosen = [None, "Europe/Berlin", None]
+    # From the list (Daniel, 2026-11-13), an empty first place, nothing at the end.
+    chosen = [None, "Europe/Helsinki", None]
     saved = await _patch(client, INSTITUTION, admin_headers, "display_time_zones", chosen, 1)
-    assert saved.json()["value"] == [None, "Europe/Berlin"]
+    assert saved.json()["value"] == [None, "Europe/Helsinki"]
     settings = (await client.get(INSTITUTION, headers=admin_headers)).json()
-    assert settings["display_time_zones"] == [None, "Europe/Berlin"]
+    assert settings["display_time_zones"] == [None, "Europe/Helsinki"]
     # The brand lists the zones to show, in order, without the empty place.
-    assert (await client.get("/api/v1/brand")).json()["display_time_zones"] == ["Europe/Berlin"]
+    brand = (await client.get("/api/v1/brand")).json()
+    assert brand["display_time_zones"] == ["Europe/Helsinki"]
     saved = await _patch(client, INSTITUTION, admin_headers, "display_time_zones", [None], 2)
     assert saved.json()["value"] == []
 

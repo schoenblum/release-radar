@@ -8,6 +8,9 @@ import { groupIn, withGroup } from "./state";
 
 /** Every grouping, in the order the choice lists them. Never the writer (D9). */
 export const GROUPINGS: FilterDimension[] = ["ay", "type", "field", "unit", "emb", "gender"];
+/** A survey chart is split by any but the unit: some twenty units would make twenty bars per
+ * box (the server's ANSWER_GROUPINGS). A measure's page splits by unit as rows instead. */
+export const ANSWER_GROUPINGS = GROUPINGS.filter((grouping) => grouping !== "unit");
 
 /**
  * The groupings worth offering: those with two values or more among the analysed releases.
@@ -44,7 +47,9 @@ export default function GroupChoice({
   const { t } = useTranslation();
   const options = useOptions();
   const [params, setParams] = useSearchParams();
-  const current = groupIn(params, param);
+  // A split this chart does not offer (the unit, carried over from a measure) is none here.
+  const asked = groupIn(params, param);
+  const current = asked && offered.includes(asked) ? asked : null;
   const useful = usefulGroupings(offered, options, scope);
   // A choice from a bookmark stays visible, even if it splits nothing now.
   const choices = current && !useful.includes(current) ? [...useful, current] : useful;

@@ -28,15 +28,18 @@ describe("the further zones a release time shows in", () => {
       "",
       "",
     ]);
-    // The institution's own zone is never offered; the common ones come first.
-    const first = within(places[1]).getAllByRole("option");
-    expect(first[0]).toHaveTextContent("None");
-    expect(within(places[1]).queryByRole("option", { name: /^Japan/ })).toBeNull();
-    expect(within(places[1]).getByRole("option", { name: "Europe/Berlin (Central European Time)" }))
-      .toBeInTheDocument();
+    // A list of time zones by standard offset, not every city; never the institution's own.
+    const options = within(places[1]).getAllByRole("option");
+    expect(options[0]).toHaveTextContent("None");
+    expect(options[1]).toHaveTextContent("UTC−10:00 Hawaii (HT)");
+    expect(options.length).toBeLessThan(40);
+    expect(within(places[1]).queryByRole("option", { name: /Japan/ })).toBeNull();
+    expect(
+      within(places[1]).getByRole("option", { name: "UTC+02:00 Eastern Europe (EET)" }),
+    ).toBeInTheDocument();
 
-    await userEvent.selectOptions(places[1], "Europe/Berlin");
-    expect(save).toHaveBeenLastCalledWith(["America/New_York", "Europe/Berlin", null], 4);
+    await userEvent.selectOptions(places[1], "Europe/Helsinki");
+    expect(save).toHaveBeenLastCalledWith(["America/New_York", "Europe/Helsinki", null], 4);
     await userEvent.selectOptions(places[0], "");
     expect(save).toHaveBeenLastCalledWith([null, null, null], 4);
   });

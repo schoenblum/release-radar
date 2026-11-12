@@ -286,7 +286,8 @@
     "sheets": {
       "ranking": "Ranking",
       "highest": "Highest 5",
-      "lowest": "Lowest 5"
+      "lowest": "Lowest 5",
+      "releases": "Releases"
     },
     "columns": {
       "rank": "Rank",
@@ -295,7 +296,9 @@
       "based_on": "Based on",
       "state": "State",
       "provisional": "Provisional",
-      "list": "List"
+      "list": "List",
+      "answered": "Answered",
+      "ticked": "Boxes ticked"
     },
     "states": {
       "value": "Value",
@@ -336,7 +339,14 @@
       "percentile": "Percentile: the one the score uses, (number below + half the number equal) ÷ number compared × 100, within the release's comparison set. Empty when that set has too few values.",
       "score": "Score: 0–100, the weighted mean of the component percentiles. Coverage: the share of the applicable weight with a value.",
       "provisional": "Provisional (1): the release is less than 30 days old, so its numbers may still change.",
-      "quartiles": "Medians and quartiles on the Analysis pages are computed as Excel's QUARTILE.INC."
+      "quartiles": "Medians and quartiles on the Analysis pages are computed as Excel's QUARTILE.INC.",
+      "analysed_answers": "Analysed: {count} releases ({filters}).",
+      "answer_rows": "Rows: every shown release, newest first, with what its researchers answered in the feedback survey. A release counts once: a box is ticked if any of its researchers ticked it.",
+      "answer_boxes": "Answered: 1 if its researchers answered this question, 0 if not. A box: 1 ticked, 0 not ticked, empty when the question was not answered. Boxes ticked: how many of them; 0 when the answer was “none”."
+    },
+    "answers": {
+      "inquiries": "who got in touch",
+      "activities": "what came of it"
     }
   }
 }

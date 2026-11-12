@@ -522,11 +522,106 @@ def test_the_survey_bars_count_only_releases_whose_researchers_answered():
     assert narrowed.answer_chart("activities", "emb").series == [("0", 1)]
 
 
+async def _answers(made: dict[str, Release], ticked: dict[str, list[str]]) -> None:
+    """Synthetic survey responses: for each release code, the inquiry boxes ticked."""
+    from app.models import SurveyResponse
+    from app.services.feedback.template import ensure_template
+
+    async with SessionLocal() as db:
+        institution = await db.scalar(select(Institution))
+        template = await ensure_template(db, institution.id)
+        for number, (code, boxes) in enumerate(ticked.items()):
+            answers = {key: key in boxes for key in ("inq_media", "inq_public", "inq_companies")}
+            answers["inq_none"] = not boxes
+            db.add(
+                SurveyResponse(
+                    institution_id=institution.id,
+                    template_id=template.id,
+                    release_id=made[code].id,
+                    source="legacy_import",
+                    external_id=f"synthetic-{number}",
+                    answers=answers,
+                )
+            )
+        await db.commit()
+
+
+async def test_a_survey_question_has_a_page_with_its_releases(client, headers_for):
+    """Daniel, 2026-11-13: the feedback cards get pages of their own, where they can be split;
+    the Overview's charts just follow the filters. The list is not a ranking."""
+    made = await _releases(SPECS)
+    await _answers(
+        made,
+        {"AY2026-01": ["inq_media"], "AY2026-02": ["inq_media", "inq_public"], "AY2026-03": []},
+    )
+    viewer = await headers_for(UserRole.viewer)
+    assert (await client.get(f"{URL}/options", headers=viewer)).json()["answers"] == ["inquiries"]
+    overview = (await client.get(f"{URL}/overview?group_inquiries=ay", headers=viewer)).json()
+    (chart,) = overview["answers"]
+    assert (chart["by"], chart["series"]) == (None, [{"key": "shown", "respondents": 3}])
+
+    response = await client.get(f"{URL}/answers/inquiries", headers=viewer)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["group_by"] is None
+    media = next(bar for bar in body["chart"]["bars"] if bar["key"] == "inq_media")
+    assert [(share["series"], share["count"]) for share in media["shares"]] == [("shown", 2)]
+    assert [choice["key"] for choice in body["choices"]][:2] == ["inq_media", "inq_researchers_nu"]
+    rows = {row["code"]: row for row in body["rows"]}
+    # Every shown release, newest first; one without an answer stays in the list.
+    assert len(body["rows"]) == 5 and body["rows"][0]["code"] == "AY2026-06"
+    assert (rows["AY2026-02"]["answered"], rows["AY2026-02"]["ticked"]) == (
+        True,
+        ["inq_media", "inq_public"],
+    )
+    assert (rows["AY2026-03"]["answered"], rows["AY2026-03"]["ticked"]) == (True, [])
+    assert (rows["AY2026-04"]["answered"], rows["AY2026-04"]["ticked"]) == (False, [])
+
+    # Split by embargo; the unit is no split here.
+    split = (await client.get(f"{URL}/answers/inquiries?group=emb", headers=viewer)).json()
+    assert split["group_by"] == "emb" and split["chart"]["series"] == [
+        {"key": "0", "respondents": 3}
+    ]
+    by_unit = (await client.get(f"{URL}/answers/inquiries?group=unit", headers=viewer)).json()
+    assert by_unit["group_by"] is None
+    assert (await client.get(f"{URL}/answers/satisfaction", headers=viewer)).status_code == 404
+
+    exported = await client.get(
+        f"{URL}/answers/inquiries/export?format=csv&language=en", headers=viewer
+    )
+    assert exported.status_code == 200
+    assert "release_radar_answers_inquiries_" in exported.headers["content-disposition"]
+    lines = list(csv.reader(io.StringIO(exported.content.decode("utf-8-sig"))))
+    header = lines[0]
+    assert header[:7] == [
+        "Code",
+        "Title",
+        "Release date",
+        "Academic year",
+        "Unit",
+        "Field",
+        "Answered",
+    ]
+    assert header[-1] == "Boxes ticked"
+    media_column = header.index("Journalists/media")
+    by_code = {line[0]: line for line in lines[1:]}
+    assert by_code["AY2026-02"][media_column] == "1" and by_code["AY2026-02"][-1] == "2"
+    assert by_code["AY2026-03"][media_column] == "0" and by_code["AY2026-03"][-1] == "0"
+    assert by_code["AY2026-04"][media_column] == "" and by_code["AY2026-04"][6] == "0"
+    workbook = await client.get(
+        f"{URL}/answers/inquiries/export?format=xlsx&language=ja", headers=viewer
+    )
+    sheets = load_workbook(io.BytesIO(workbook.content)).sheetnames
+    assert sheets[0] == "リリース" and len(sheets) == 2
+
+
 ENDPOINTS = [
     "/options",
     "/overview",
     "/dimensions/score",
     "/dimensions/score/export",
+    "/answers/inquiries",
+    "/answers/inquiries/export",
     "/top",
     "/top/export",
     "/releases",

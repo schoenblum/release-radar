@@ -736,6 +736,8 @@ export interface AnalysisOptions {
   genders: AnalysisOption[];
   pages: AnalysisPage[];
   profiles: AnalysisProfile[];
+  /** The survey questions with answers, each with a page of its own. */
+  answers: AnalysisAnswerChart["question"][];
 }
 
 export type FilterDimension = "type" | "ay" | "unit" | "field" | "emb" | "gender";
@@ -818,6 +820,27 @@ export interface AnalysisAnswerChart {
     label_en: string;
     label_ja: string;
     shares: { series: string; count: number; share: number }[];
+  }[];
+}
+
+/** A survey question's page: its bars, perhaps split, and every shown release's answer. */
+export interface AnalysisAnswers {
+  scope: AnalysisScope;
+  question: AnalysisAnswerChart["question"];
+  group_by: FilterDimension | null;
+  chart: AnalysisAnswerChart | null;
+  choices: { key: string; label_en: string; label_ja: string }[];
+  rows: {
+    id: string;
+    code: string | null;
+    title: string | null;
+    release_date: string;
+    academic_year: number;
+    unit_id: string | null;
+    field_id: string | null;
+    /** Whether its researchers answered this question; `ticked` is empty for "none". */
+    answered: boolean;
+    ticked: string[];
   }[];
 }
 

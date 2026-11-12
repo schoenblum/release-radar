@@ -26,9 +26,9 @@ const CARRIED = new Set([
   GROUP_PARAM,
 ]);
 
-/** Each survey chart on the Overview has a split of its own. */
-export function answerGroupParam(question: string): string {
-  return `group_${question}`;
+/** A survey question's own page. */
+export function answersPath(question: string, params: URLSearchParams): string {
+  return `/analysis/answers/${encodeURIComponent(question)}${queryOf(params)}`;
 }
 
 /** A grouping from the address, if it names one. */

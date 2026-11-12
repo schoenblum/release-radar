@@ -10,8 +10,8 @@ import { useLogScale, useOverview } from "./useAnalysis";
 /**
  * How the releases did, one card per dimension with data, the score first (phase-2 brief §5.2).
  * The box always describes the analysed releases; the points are the shown ones. The score shows
- * over time, and researcher feedback as two bar charts that follow both filters and can be split
- * by year, field … (Daniel, 2026-11-12).
+ * over time, and researcher feedback as two bar charts that follow both filters like every card;
+ * each opens a page of its own, where it can be split (Daniel, 2026-11-13).
  */
 export default function Overview() {
   const { t } = useTranslation();
@@ -60,7 +60,7 @@ export default function Overview() {
           </p>
           <div className="analysis-grid">
             {answers.map((chart) => (
-              <AnswerChart key={chart.question} chart={chart} scope={scope} />
+              <AnswerChart key={chart.question} chart={chart} />
             ))}
           </div>
         </>

@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { api, http } from "../../api/client";
 import type {
+  AnalysisAnswers,
   AnalysisDimension,
   AnalysisOptions,
   AnalysisOverview,
@@ -13,7 +14,7 @@ import type {
 } from "../../api/types";
 import { useAuth } from "../../auth";
 import { useToast } from "../../components/Toast";
-import { answerGroupParam, queryOf } from "./state";
+import { queryOf } from "./state";
 
 /** The filter choices, pages and profiles. They change rarely, so one fetch serves a visit. */
 export function useAnalysisOptions() {
@@ -30,15 +31,7 @@ function useAddress(): URLSearchParams {
 }
 
 export function useOverview() {
-  const address = useAddress();
-  // Each survey chart's own split travels with the Overview's request.
-  const extra: Record<string, string> = {};
-  for (const question of ["inquiries", "activities"]) {
-    const name = answerGroupParam(question);
-    const value = address.get(name);
-    if (value) extra[name] = value;
-  }
-  const query = queryOf(address, extra);
+  const query = queryOf(useAddress());
   return useQuery({
     queryKey: ["analysis", "overview", query],
     queryFn: () => http.get<AnalysisOverview>(`/analysis/overview${query}`),
@@ -52,6 +45,16 @@ export function useDimension(key: string) {
     queryKey: ["analysis", "dimension", key, query],
     queryFn: () =>
       http.get<AnalysisDimension>(`/analysis/dimensions/${encodeURIComponent(key)}${query}`),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useAnswers(question: string) {
+  const query = queryOf(useAddress());
+  return useQuery({
+    queryKey: ["analysis", "answers", question, query],
+    queryFn: () =>
+      http.get<AnalysisAnswers>(`/analysis/answers/${encodeURIComponent(question)}${query}`),
     placeholderData: keepPreviousData,
   });
 }
