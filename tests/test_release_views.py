@@ -438,7 +438,16 @@ async def test_gender_leaves_the_export_when_settings_hide_it(client, admin_head
     response = await client.patch(
         f"/api/v1/core-fields/{gender['id']}",
         headers=admin_headers,
-        json={"field": "hidden", "value": True, "version": 0},
+        json={"field": "in_record", "value": False, "version": 0},
+    )
+    assert response.status_code == 200, response.text
+    # Still in the grid by default: still in use, so still exported.
+    workbook = openpyxl.load_workbook(io.BytesIO((await _export(client, admin_headers)).content))
+    assert "Researcher gender" in _sheet_rows(workbook["Releases"])[0]
+    response = await client.patch(
+        f"/api/v1/core-fields/{gender['id']}",
+        headers=admin_headers,
+        json={"field": "in_grid", "value": False, "version": 0},
     )
     assert response.status_code == 200, response.text
     workbook = openpyxl.load_workbook(io.BytesIO((await _export(client, admin_headers)).content))

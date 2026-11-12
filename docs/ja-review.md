@@ -271,20 +271,18 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.data.status.running` | Running | 実行中 | pending |
 | `frontend:settings.data.status.skipped` | Skipped | スキップ | pending |
 | `frontend:settings.data.status.succeeded` | Done | 完了 | pending |
-| `frontend:settings.form.cannot_hide` | Release Radar relies on this field, so it stays visible. | Release Radar の動作に必要なため、非表示にできません。 | pending |
 | `frontend:settings.form.cannot_require` | Release Radar assigns this itself. | Release Radar が自動で付与する項目です。 | pending |
-| `frontend:settings.form.core_help` | Leave a label empty to keep the standard one. Hidden fields keep their data. | 名称を空欄にすると標準の名称を使います。非表示にした項目のデータは保持されます。 | pending |
+| `frontend:settings.form.core_help` | Leave a label empty to keep the standard one. Show in grid sets the Data page's columns for everyone; each person can still add or remove columns for themselves with Columns. Show in record sets what a release's record shows. A field shown in neither is not in use: it leaves the column list and the export, and keeps its data. | 名称を空欄にすると標準の名称を使います。「一覧に表示」はデータページの列を全員分まとめて決めます。各自は「表示項目」から自分の列を追加・削除できます。「詳細に表示」はリリースの詳細画面に出す項目を決めます。どちらにも表示しない項目は使われていないものとして列の一覧とエクスポートから外れますが、データは保持されます。 | pending |
 | `frontend:settings.form.core_title` | Built-in fields | 標準項目 | pending |
 | `frontend:settings.form.custom_help` | Extra fields for everyone in your institution. Personal ones are under My fields in the account menu. | 機関の全員が使う追加項目です。個人用の項目はアカウントメニューの「マイフィールド」で管理します。 | pending |
 | `frontend:settings.form.custom_title` | Your own fields | 独自項目 | pending |
 | `frontend:settings.form.field` | Field | 項目 | pending |
-| `frontend:settings.form.hidden` | Hidden | 非表示 | pending |
 | `frontend:settings.form.label_en` | Label (EN) | 名称（英語） | pending |
 | `frontend:settings.form.label_ja` | Label (JA) | 名称（日本語） | pending |
 | `frontend:settings.form.required` | Required | 必須 | pending |
 | `frontend:settings.help.checkpoints` | The moments around a release when numbers are collected, and which numbers those are. | リリースの前後で数値を収集する時点と、収集する数値を設定します。 | pending |
 | `frontend:settings.help.data` | Your backups, a full copy of your data, and what the automatic jobs have been doing. | バックアップ、全データのエクスポート、自動処理の実行状況を確認できます。 | pending |
-| `frontend:settings.help.form` | Adapt the fields on a release: rename, hide, require or reorder them, or add your own. | リリースの項目を調整します。名称変更、非表示、必須、並べ替え、独自項目の追加ができます。 | pending |
+| `frontend:settings.help.form` | Adapt the fields on a release: rename them, choose where they show, require or reorder them, or add your own. | リリースの項目を調整します。名称変更、表示する場所、必須、並べ替え、独自項目の追加ができます。 | pending |
 | `frontend:settings.help.institution` | Who you are and how the tool counts years. The defaults work, so change only what differs. | 機関の情報と年度の数え方を設定します。初期設定のままでも使えるので、異なる点だけ変更してください。 | pending |
 | `frontend:settings.help.lists` | The values people choose from. To retire an entry, switch off Active: releases that use it keep it. | 選択肢となる値です。使わなくなった項目は「有効」をオフにしてください。その項目を使っているリリースはそのまま残ります。 | pending |
 | `frontend:settings.help.researchers` | Everyone named on a release. Tidy up names, add identifiers, merge duplicates and split records that cover two people. Nothing here changes any statistics, because releases refer to the record and not the name. | リリースに記載された研究者の一覧です。氏名の整理、識別子の追加、重複の統合、2 人分をまとめてしまったレコードの分割ができます。リリースは氏名ではなくレコードを参照しているため、統計には影響しません。 | pending |
@@ -1107,17 +1105,17 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:errors.too_many_time_zones` | Choose up to three time zones. | 時間帯は3つまで選べます。 | pending |
 | `frontend:release_fields.release_time` | Release time | リリース時刻 | pending |
 | `frontend:settings.institution.display_zones` | Also show release times in | リリース時刻を併せて表示する時間帯 | pending |
-| `frontend:settings.institution.display_zones_hint` | Up to {{count}}. They show when you point at a release time in the grid, and under it in a release's record. In the record, a date and time can also be typed in one of these zones. | {{count}}つまで選べます。表のリリース時刻にポインタを合わせたときと、レコードの時刻の下に表示されます。レコードでは、これらの時間帯で日時を入力することもできます。 | pending |
+| `frontend:settings.institution.display_zones_hint` | Up to {{count}}, in the order they show. They show when you point at a release time in the grid (add the Release time column with Columns above the grid, or for everyone in Settings → Form) and under the time in a release's record. In the record, a date and time can also be typed in one of these zones. | {{count}}つまで、表示する順に選べます。データページの表でリリース時刻にポインタを合わせたときと、リリースの詳細画面の時刻の下に表示されます（表にリリース時刻の列がない場合は、表の上の「表示項目」で追加するか、設定 → 入力フォームで全員分を表示にしてください）。詳細画面では、これらの時間帯で日時を入力することもできます。 | pending |
 | `backend:export.fields.release_time` | Release time | リリース時刻 | pending |
 | `frontend:analysis.answers.activities.describe` | Activities the researchers said came from the release. | リリースをきっかけに生まれたと研究者が答えた活動です。 | pending |
 | `frontend:analysis.answers.activities.title` | What came of it | その後の展開 | pending |
-| `frontend:analysis.answers.bar` | {{year}}: {{share}}% ({{count}} of {{total}}) | {{year}}：{{share}}%（{{total}} 件中 {{count}} 件） | pending |
-| `frontend:analysis.answers.caption` | Per cent of the releases whose researchers answered the question. Releases that answered, by academic year: {{respondents}}. | その質問に回答があったリリースに占める割合です。回答があったリリース（年度別）：{{respondents}}。 | pending |
+| `frontend:analysis.answers.bar` | {{name}}: {{share}}% ({{count}} of {{total}}) | {{name}}：{{share}}%（{{total}} 件中 {{count}} 件） | pending |
+| `frontend:analysis.answers.caption` | Per cent of the releases whose researchers answered the question. Releases that answered: {{respondents}}. | その質問に回答があったリリースに占める割合です。回答があったリリース：{{respondents}}。 | pending |
 | `frontend:analysis.answers.heading` | What researchers told us | 研究者からのフィードバック | pending |
 | `frontend:analysis.answers.inquiries.describe` | Who contacted the researchers about the release. | リリースについて研究者に連絡してきた相手です。 | pending |
 | `frontend:analysis.answers.inquiries.title` | Who got in touch | 問い合わせの相手 | pending |
-| `frontend:analysis.answers.intro` | From the researcher feedback on the analysed releases. Each release counts once, however many of its researchers answered. | 分析対象のリリースについての研究者アンケートから集計しています。1 件のリリースに複数の研究者が回答しても、1 件として数えます。 | pending |
-| `frontend:analysis.answers.respondents` | {{year}}: {{count}} | {{year}} {{count}} 件 | pending |
+| `frontend:analysis.answers.intro` | From the researcher feedback on the shown releases, so both filters above apply. Each release counts once, however many of its researchers answered. | 表示中のリリースについての研究者アンケートから集計しています。上の二つの絞り込みが反映されます。1 件のリリースに複数の研究者が回答しても、1 件として数えます。 | pending |
+| `frontend:analysis.answers.respondents` | {{name}}: {{count}} | {{name}} {{count}} 件 | pending |
 | `frontend:analysis.answers.separator` | ,  | 、 | pending |
 | `frontend:analysis.columns.academic_year` | Academic year | 年度 | pending |
 | `frontend:analysis.pick.open_hint` | Click the title to open the release. | タイトルをクリックするとリリースが開きます。 | pending |
@@ -1162,3 +1160,38 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:import.counts.column_fields_new` | New fields for workbook columns | ワークブックの列のための新しい項目 | pending |
 | `backend:import.report.column_not_imported` | A column Release Radar has no field for: not imported. To import it, choose a shared or private field for it under Other columns in the workbook, and check again. | Release Radar に対応する項目がない列です。インポートしていません。インポートする場合は、確認結果の上で共有または個人の項目を選んでください。 | pending |
 | `backend:import.report.not_a_whole_number` | Not a whole number, which this field takes: left as it is. | この項目は整数のみ受け付けます。整数でないため、変更していません。 | pending |
+| `frontend:analysis.answers.series.analysed` | All analysed releases | 分析対象のすべてのリリース | pending |
+| `frontend:analysis.answers.series.shown` | Shown releases | 表示中のリリース | pending |
+| `frontend:analysis.group.all` | All analysed | 分析対象すべて | pending |
+| `frontend:analysis.group.caption` | One row per {{group}}. A row's box is where the middle half of its analysed releases land, the thick line is its median and the dots are its shown releases. In brackets, how many analysed releases have a value; with fewer than {{min}}, a row shows its median only. | {{group}}ごとに 1 行で表示しています。各行の箱はその行の分析対象のリリースの半数が入る範囲、太線は中央値、点は表示中のリリースです。括弧内は値のある分析対象のリリースの件数で、{{min}} 件未満の行は中央値のみを示します。 | pending |
+| `frontend:analysis.group.label` | Compare by | 比較の観点 | pending |
+| `frontend:analysis.group.label_for` | Compare “{{name}}” by | 「{{name}}」の比較の観点 | pending |
+| `frontend:analysis.group.median_of` | {{name}} {{median}} | {{name}} {{median}} | pending |
+| `frontend:analysis.group.medians` | Medians: {{medians}}. | 中央値：{{medians}}。 | pending |
+| `frontend:analysis.group.none` | Nothing | なし | pending |
+| `frontend:analysis.group.nouns.ay` | academic year | 年度 | pending |
+| `frontend:analysis.group.nouns.emb` | embargo | エンバーゴ | pending |
+| `frontend:analysis.group.nouns.field` | field | 分野 | pending |
+| `frontend:analysis.group.nouns.gender` | researcher gender | 研究者の性別 | pending |
+| `frontend:analysis.group.nouns.type` | release type | リリースの種類 | pending |
+| `frontend:analysis.group.nouns.unit` | unit | 部局 | pending |
+| `frontend:analysis.group.options.ay` | Academic year | 年度 | pending |
+| `frontend:analysis.group.options.emb` | Embargo | エンバーゴ | pending |
+| `frontend:analysis.group.options.field` | Field | 分野 | pending |
+| `frontend:analysis.group.options.gender` | Researcher gender | 研究者の性別 | pending |
+| `frontend:analysis.group.options.type` | Release type | リリースの種類 | pending |
+| `frontend:analysis.group.options.unit` | Unit | 部局 | pending |
+| `frontend:analysis.group.row_label` | {{name}}: median {{median}}, {{count}} with a value | {{name}}：中央値 {{median}}、値のあるもの {{count}} 件 | pending |
+| `frontend:analysis.group.shown_median` | Median of the shown | 表示中の中央値 | pending |
+| `frontend:analysis.group.shown_median_value` | {{median}} ({{count}}) | {{median}}（{{count}} 件） | pending |
+| `frontend:settings.form.always_in_grid` | The grid always shows this. | 一覧には常に表示されます。 | pending |
+| `frontend:settings.form.always_in_record` | A release's record always shows this. | リリースの詳細には常に表示されます。 | pending |
+| `frontend:settings.form.in_grid` | Show in grid | 一覧に表示 | pending |
+| `frontend:settings.form.in_grid_label` | Show {{name}} in the grid | {{name}} を一覧に表示 | pending |
+| `frontend:settings.form.in_record` | Show in record | 詳細に表示 | pending |
+| `frontend:settings.form.in_record_label` | Show {{name}} in a release's record | {{name}} をリリースの詳細画面に表示 | pending |
+| `frontend:settings.institution.display_zone_none` | None | なし | pending |
+| `frontend:settings.institution.display_zone_place` | Zone {{place}} | 時間帯 {{place}} | pending |
+| `frontend:settings.institution.display_zones_all` | All time zones | すべての時間帯 | pending |
+| `frontend:settings.institution.display_zones_common` | Often used | よく使う時間帯 | pending |
+| `frontend:analysis.answers.caption_one` | Per cent of the {{count}} shown releases whose researchers answered the question. | その質問に研究者が回答した表示中のリリース {{count}} 件に占める割合です。 | pending |

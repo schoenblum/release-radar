@@ -344,7 +344,8 @@ async def _present(
             .where(
                 CoreFieldConfig.institution_id == institution.id,
                 CoreFieldConfig.required.is_(True),
-                CoreFieldConfig.hidden.is_(False),
+                # Required where it is filled in: a field off the record is never asked for.
+                CoreFieldConfig.in_record.is_(True),
             )
             .order_by(CoreFieldConfig.position, CoreFieldConfig.key)
         )
@@ -675,7 +676,7 @@ async def _refuse_emptying_a_required_field(
         select(CoreFieldConfig.required).where(
             CoreFieldConfig.institution_id == institution_id,
             CoreFieldConfig.key == _ATTRIBUTE_CORE.get(field, field),
-            CoreFieldConfig.hidden.is_(False),
+            CoreFieldConfig.in_record.is_(True),
         )
     )
     if required:

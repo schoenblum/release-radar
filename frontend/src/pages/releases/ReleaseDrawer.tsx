@@ -482,7 +482,7 @@ export default function ReleaseDrawer({
   const configs = useMemo(
     () =>
       [...context.coreFields]
-        .filter((config) => !config.hidden)
+        .filter((config) => config.in_record)
         .sort((a, b) => a.position - b.position),
     [context.coreFields],
   );

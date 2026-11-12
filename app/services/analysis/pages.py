@@ -61,7 +61,10 @@ def altmetric_dimension(basis: str) -> str:
 def page_keys(dataset: Dataset) -> list[str]:
     """Every dimension with a page, in order: the score, Altmetric, then the rest as the read
     layer lists them. A dimension appears once any release has a value for it, so measures added
-    later (pickups, the journal metric) get a card and a page without any change here."""
+    later (pickups, the journal metric) get a card and a page without any change here.
+
+    Researcher feedback has no page (Daniel, 2026-11-12: ranking releases by it is not how it
+    is read); it shows as bars on the Overview, and its dimensions stay for score profiles."""
     with_data = {key for row in dataset.rows for key, cell in row.cells.items() if cell.has_value}
     keys = [SCORE]
     if with_data & {"altmetric.d28", ALTMETRIC_INCREASE}:
@@ -69,9 +72,47 @@ def page_keys(dataset: Dataset) -> list[str]:
     keys += [
         item.key
         for item in dataset.dimensions
-        if item.key not in _RAW_ALTMETRIC and item.kind != "score" and item.key in with_data
+        if item.key not in _RAW_ALTMETRIC
+        and item.key not in FEEDBACK_DIMENSIONS
+        and item.kind != "score"
+        and item.key in with_data
     ]
     return keys
+
+
+# What a chart can be split by (Daniel, 2026-11-12): the filter dimensions, by the names the
+# address uses. Never the writer (D9).
+GROUPINGS = ("ay", "type", "field", "unit", "emb", "gender")
+# Fewer values than this give a group its dots and median, but no box: a box of three says
+# nothing a reader should trust.
+MIN_BOX = 5
+
+
+def group_of(row: Row, by: str) -> object:
+    """A release's value on a grouping: its academic year, type, field, unit, embargo or
+    researcher gender (None for no type, field or unit)."""
+    if by == "ay":
+        return row.academic_year
+    if by == "type":
+        return row.release_type_id
+    if by == "field":
+        return row.field_id
+    if by == "unit":
+        return row.unit_id
+    if by == "emb":
+        return row.embargoed
+    if by == "gender":
+        return row.gender
+    raise KeyError(by)
+
+
+def group_token(value: object) -> str:
+    """A group's value as the address writes it: ``none``, ``1``/``0``, a year, an ID."""
+    if value is None:
+        return "none"
+    if isinstance(value, bool):
+        return "1" if value else "0"
+    return str(value)
 
 
 @dataclass(frozen=True)
@@ -133,6 +174,19 @@ class Card:
     box: Box | None
     counts: Counts
     # Shown releases in the population, as points.
+    points: list[Entry]
+    shown_median: float | None
+
+
+@dataclass
+class Group:
+    """One group of a split chart: its box (None below ``MIN_BOX`` values), its median, and
+    its shown releases as points. Like the card, the box describes the analysed releases."""
+
+    value: object
+    n: int
+    median: float
+    box: Box | None
     points: list[Entry]
     shown_median: float | None
 
@@ -286,6 +340,32 @@ class Analysis:
             shown_median=quantile_inc(shown_values, 0.5),
         )
 
+    def groups(self, key: str, by: str) -> list[Group]:
+        """The card's population split by one grouping, each group with its own box: years,
+        fields, units … side by side on the card's scale (Daniel, 2026-11-12). Only groups with
+        a value appear, in the order of their values; the page orders them for reading."""
+        found, _ = self.entries(key)
+        members: dict[object, list[Entry]] = defaultdict(list)
+        for entry in found:
+            if self._in_population(key, entry):
+                members[group_of(entry.row, by)].append(entry)
+        groups = []
+        for value, entries in sorted(members.items(), key=lambda item: group_token(item[0])):
+            values = sorted(entry.value for entry in entries)
+            points = [entry for entry in entries if self.shown.matches(entry.row)]
+            shown_values = sorted(entry.value for entry in points)
+            groups.append(
+                Group(
+                    value=value,
+                    n=len(values),
+                    median=quantile_inc(values, 0.5),
+                    box=box_of(values) if len(values) >= MIN_BOX else None,
+                    points=points,
+                    shown_median=quantile_inc(shown_values, 0.5) if shown_values else None,
+                )
+            )
+        return groups
+
     def rows(self, key: str) -> list[Entry]:
         """The shown releases on this key, best first, rows without a value last."""
         found, _ = self.entries(key)
@@ -326,26 +406,41 @@ class Analysis:
             )
         return medians
 
-    def answer_chart(self, question: str) -> "AnswerChart | None":
-        """How many of the analysed releases' researchers ticked each box, per academic year.
-        Only releases whose researchers answered the question count (Daniel, 2026-11-12)."""
+    def answer_chart(self, question: str, by: str | None = None) -> "AnswerChart | None":
+        """How many of the shown releases' researchers ticked each box (Daniel, 2026-11-12:
+        the bars follow both filters). Only releases whose researchers answered the question
+        count. Split by a grouping, one bar per group; otherwise one bar for the shown releases
+        and, when they are fewer than the analysed ones, one for those to compare with."""
         choices = [choice for choice in self.dataset.choices if choice.question == question]
-        answered: dict[int, list[frozenset[str]]] = defaultdict(list)
-        for row in self.analysed_rows:
-            ticked = row.answers.get(question)
-            if ticked is not None:
-                answered[row.academic_year].append(ticked)
-        if not choices or not answered:
+
+        def answered(rows: list[Row]) -> list[Row]:
+            return [row for row in rows if row.answers.get(question) is not None]
+
+        shown = answered(self.shown_rows)
+        series: list[tuple[str, list[Row]]]
+        if by is not None:
+            members: dict[object, list[Row]] = defaultdict(list)
+            for row in shown:
+                members[group_of(row, by)].append(row)
+            series = [
+                (group_token(value), rows)
+                for value, rows in sorted(members.items(), key=lambda item: group_token(item[0]))
+            ]
+        else:
+            series = [(SHOWN, shown)] if shown else []
+            analysed = answered(self.analysed_rows)
+            if len(analysed) != len(shown) and series:
+                series.append((ANALYSED, analysed))
+        if not choices or not series:
             return None
-        years = sorted(answered)
         bars = []
         for choice in choices:
             shares = []
-            for year in years:
-                count = sum(1 for ticked in answered[year] if choice.key in ticked)
-                shares.append(Share(year, count, 100 * count / len(answered[year])))
+            for key, rows in series:
+                count = sum(1 for row in rows if choice.key in row.answers[question])
+                shares.append(Share(key, count, 100 * count / len(rows)))
             bars.append(Bar(choice, shares))
-        return AnswerChart(question, [(year, len(answered[year])) for year in years], bars)
+        return AnswerChart(question, by, [(key, len(rows)) for key, rows in series], bars)
 
     def standings(
         self, keys: list[str]
@@ -380,11 +475,17 @@ class YearMedian:
     last: date
 
 
+# The two bars of an unsplit survey chart.
+SHOWN = "shown"
+ANALYSED = "analysed"
+
+
 @dataclass(frozen=True)
 class Share:
-    year: int
+    # Which bar: a group's token, or SHOWN or ANALYSED.
+    series: str
     count: int
-    # Of the year's releases whose researchers answered, in per cent.
+    # Of that bar's releases whose researchers answered, in per cent.
     share: float
 
 
@@ -397,8 +498,10 @@ class Bar:
 @dataclass(frozen=True)
 class AnswerChart:
     question: str
-    # Each academic year, with how many releases' researchers answered.
-    years: list[tuple[int, int]]
+    # The grouping it is split by, if any.
+    by: str | None
+    # Each bar's series, with how many releases' researchers answered.
+    series: list[tuple[str, int]]
     bars: list[Bar]
 
 
@@ -411,9 +514,6 @@ class Standing:
     difference: float | None
 
 
-# Researcher feedback shows on the Overview as bar charts instead of cards (Daniel,
-# 2026-11-12); its dimensions keep their pages.
-OVERVIEW_WITHOUT_CARDS = frozenset(FEEDBACK_DIMENSIONS)
 # The All releases page: the score and the three numbers that travel (Daniel, 2026-11-12).
 RELEASE_TABLE_KEYS = (SCORE, "hp_views.d28", "ea_views.d28", ALTMETRIC)
 

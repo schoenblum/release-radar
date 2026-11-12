@@ -602,11 +602,11 @@ async def test_changing_the_writer_moves_the_release_between_people(client, head
 # ---------------------------------------------------------------- required fields
 
 
-async def _require(key: str, *, hidden: bool = False) -> None:
+async def _require(key: str, *, in_record: bool = True) -> None:
     async with SessionLocal() as db:
         config = await db.scalar(select(CoreFieldConfig).where(CoreFieldConfig.key == key))
         config.required = True
-        config.hidden = hidden
+        config.in_record = in_record
         await db.commit()
 
 
@@ -627,8 +627,8 @@ async def test_a_required_field_can_stay_empty_on_a_draft_but_cannot_be_emptied(
     assert current["journal"] == "Journal of Examples"
 
 
-async def test_a_hidden_field_is_not_asked_for(client, admin_headers):
-    await _require("journal", hidden=True)
+async def test_a_field_off_the_record_is_not_asked_for(client, admin_headers):
+    await _require("journal", in_record=False)
     assert (await _create(client, admin_headers))["missing_required"] == []
 
 

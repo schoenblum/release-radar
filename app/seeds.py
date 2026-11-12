@@ -108,6 +108,26 @@ CORE_FIELDS = (
 )
 # R5.4.4: the optional Japanese title is hidden by default.
 HIDDEN_BY_DEFAULT = frozenset({"title_ja"})
+# The grid's columns for anyone who has not chosen their own (R7.5.2): what people work with
+# daily, and what analysis tells releases apart by, so it gets filled in (Daniel, 2026-11-09).
+IN_GRID_BY_DEFAULT = frozenset(
+    {
+        "code",
+        "title",
+        "release_date",
+        "researcher",
+        "researcher_gender",
+        "unit",
+        "field",
+        "release_type",
+        "doi",
+        "publication_date",
+        "embargoed",
+        "ea_url",
+        "website_url",
+        "ea_top_page",
+    }
+)
 
 
 def _label_key(key: str) -> str:
@@ -209,7 +229,8 @@ async def seed_defaults(db: AsyncSession, institution: Institution) -> None:
                 CoreFieldConfig(
                     institution_id=institution_id,
                     key=key,
-                    hidden=key in HIDDEN_BY_DEFAULT,
+                    in_record=key not in HIDDEN_BY_DEFAULT,
+                    in_grid=key in IN_GRID_BY_DEFAULT,
                     position=position,
                 )
             )

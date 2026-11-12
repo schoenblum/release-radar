@@ -702,6 +702,20 @@
   .analysis-points-scroll {
     @apply max-h-72 overflow-auto;
   }
+  /* A measure split by a grouping (GroupedChart.tsx): a label, then its strip, on one scale.
+     On a phone the label sits above its strip. */
+  .group-rows {
+    @apply grid gap-y-5xs;
+  }
+  .group-row {
+    @apply grid grid-cols-1 items-center gap-x-xs border-b border-line-primary pb-5xs last:border-b-0 sm:grid-cols-[minmax(7rem,13rem)_1fr];
+  }
+  .group-label {
+    @apply text-sm leading-snug;
+  }
+  .group-count {
+    @apply tabular-nums text-content-secondary;
+  }
   /* Titles wrap: a table's cells keep to one line, which let long titles run over the next
      column (Daniel, 2026-11-12). Two classes, to outweigh the table's own rule. */
   .count-table .analysis-title-cell {
@@ -721,6 +735,10 @@
   }
   .point-popover {
     @apply absolute z-20 rounded border border-line-primary bg-surface-primary p-4xs text-left shadow-lg;
+  }
+  /* The window holds the focus while open; its own border marks it, so no ring around it. */
+  .point-popover:focus {
+    outline: none;
   }
   .point-popover-title {
     @apply mt-5xs block font-semibold text-content-accent underline-offset-2 hover:underline;

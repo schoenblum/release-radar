@@ -89,8 +89,9 @@ export interface Institution {
   /** Where the two Analysis filters start (R6.4.2): release type IDs; empty means every type. */
   analysed_release_type_ids: string[] | null;
   shown_release_type_ids: string[] | null;
-  /** Further zones a release time is shown in, IANA names (at most three). */
-  display_time_zones: string[];
+  /** Further zones a release time is shown in, in order: IANA names, or null for a place left
+   * empty (at most three). */
+  display_time_zones: (string | null)[];
   field_versions: FieldVersions;
 }
 
@@ -211,10 +212,14 @@ export interface CoreField {
   key: string;
   label_en: string | null;
   label_ja: string | null;
-  hidden: boolean;
+  /** Shown in a release's record. */
+  in_record: boolean;
+  /** Shown in the grid for everyone who has not chosen their own columns. */
+  in_grid: boolean;
   required: boolean;
   position: number;
-  can_hide: boolean;
+  can_leave_record: boolean;
+  can_leave_grid: boolean;
   can_require: boolean;
   field_versions: FieldVersions;
 }
@@ -799,15 +804,20 @@ export interface AnalysisYearMedian {
   last: string;
 }
 
-/** A survey question as bars: the share of respondents who ticked each box, per year. */
+/**
+ * A survey question as bars: the share of respondents who ticked each box, for the shown
+ * releases (and the analysed ones to compare, when fewer are shown), or per group of `by`.
+ * A series is "shown", "analysed" or a group's value as the filters write it.
+ */
 export interface AnalysisAnswerChart {
   question: "inquiries" | "activities";
-  years: { year: number; respondents: number }[];
+  by: FilterDimension | null;
+  series: { key: string; respondents: number }[];
   bars: {
     key: string;
     label_en: string;
     label_ja: string;
-    shares: { year: number; count: number; share: number }[];
+    shares: { series: string; count: number; share: number }[];
   }[];
 }
 
@@ -838,10 +848,22 @@ export interface AnalysisEntry {
   components: string[];
 }
 
+/** One group of a split chart; no box below five values. */
+export interface AnalysisGroup {
+  value: string;
+  n: number;
+  median: number;
+  box: AnalysisBox | null;
+  points: AnalysisPoint[];
+  shown_median: number | null;
+}
+
 export interface AnalysisDimension {
   scope: AnalysisScope;
   card: AnalysisCard;
   rows: AnalysisEntry[];
+  group_by: FilterDimension | null;
+  groups: AnalysisGroup[] | null;
 }
 
 export interface AnalysisTop {

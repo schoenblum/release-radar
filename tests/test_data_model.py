@@ -126,8 +126,10 @@ async def test_every_core_field_is_configurable_and_the_japanese_title_starts_hi
     async with SessionLocal() as db:
         configs = {c.key: c for c in await db.scalars(select(CoreFieldConfig))}
     assert set(configs) == set(CORE_FIELDS)
-    assert [key for key, c in configs.items() if c.hidden] == ["title_ja"]
+    assert [key for key, c in configs.items() if not c.in_record] == ["title_ja"]
     assert sorted(c.position for c in configs.values()) == list(range(len(CORE_FIELDS)))
+    # The grid starts with what people work with; the release time waits to be chosen.
+    assert configs["release_date"].in_grid and not configs["release_time"].in_grid
 
 
 async def test_seeding_repeats_without_duplicating_or_undoing_admin_changes():
@@ -138,7 +140,7 @@ async def test_seeding_repeats_without_duplicating_or_undoing_admin_changes():
         measure = await db.scalar(select(Measure).where(Measure.key == "ea_views.d28"))
         measure.is_active = False
         config = await db.scalar(select(CoreFieldConfig).where(CoreFieldConfig.key == "title_ja"))
-        config.hidden = False
+        config.in_record = True
         await db.commit()
 
     await bootstrap()
@@ -152,7 +154,7 @@ async def test_seeding_repeats_without_duplicating_or_undoing_admin_changes():
         measure = await db.scalar(select(Measure).where(Measure.key == "ea_views.d28"))
         assert measure.is_active is False
         config = await db.scalar(select(CoreFieldConfig).where(CoreFieldConfig.key == "title_ja"))
-        assert config.hidden is False
+        assert config.in_record is True
 
 
 async def test_a_missing_seed_is_added_back_to_an_existing_install():
@@ -626,6 +628,98 @@ async def test_upgrading_an_existing_install_keeps_its_data_and_can_be_reversed(
         await connection.close()
 
 
+async def test_hidden_becomes_shown_in_the_record_and_the_grid_keeps_its_columns():
+    """0016 (Daniel, 2026-11-12): ``hidden`` turns into ``in_record`` with the opposite value
+    and its versions follow; ``in_grid`` starts with the grid's old default columns among the
+    fields not hidden. The downgrade puts it all back."""
+    name = "release_radar_in_grid_test"
+    url = _PARSED_URL.set(database=name).render_as_string(hide_password=False)
+    connection = await admin_connection()
+    try:
+        await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        await connection.execute(f'CREATE DATABASE "{name}"')
+    finally:
+        await connection.close()
+
+    import asyncpg
+
+    async def run(statement: str, *arguments):
+        database = await asyncpg.connect(
+            host=_PARSED_URL.host,
+            port=_PARSED_URL.port or 5432,
+            user=_PARSED_URL.username,
+            password=_PARSED_URL.password,
+            database=name,
+        )
+        try:
+            return await database.fetch(statement, *arguments)
+        finally:
+            await database.close()
+
+    try:
+        _migrate("upgrade", "0015", database_url=url)
+        institution = (
+            await run(
+                "INSERT INTO institutions (id, name_en, timezone, ay_start_month, settings) "
+                "VALUES (gen_random_uuid(), 'Existing', 'Asia/Tokyo', 4, '{}') RETURNING id"
+            )
+        )[0]["id"]
+        # (key, hidden, field versions): a grid column, one hidden by an admin, one never in
+        # the grid, the Japanese title as seeded.
+        old = [
+            ("doi", False, "{}"),
+            ("unit", True, '{"hidden": 3}'),
+            ("release_time", False, "{}"),
+            ("title_ja", True, "{}"),
+        ]
+        for position, (key, hidden, versions) in enumerate(old):
+            await run(
+                "INSERT INTO core_field_configs (id, institution_id, key, hidden, required, "
+                "position, field_versions) VALUES (gen_random_uuid(), $1, $2, $3, false, $4, "
+                "CAST($5 AS jsonb))",
+                institution,
+                key,
+                hidden,
+                position,
+                versions,
+            )
+        _migrate("upgrade", "0016", database_url=url)
+        rows = {
+            row["key"]: row
+            for row in await run(
+                "SELECT key, in_record, in_grid, field_versions::text AS versions "
+                "FROM core_field_configs"
+            )
+        }
+        assert {key: (row["in_record"], row["in_grid"]) for key, row in rows.items()} == {
+            "doi": (True, True),
+            "unit": (False, False),
+            "release_time": (True, False),
+            "title_ja": (False, False),
+        }
+        assert rows["unit"]["versions"] == '{"in_record": 3}'
+        _migrate("downgrade", "0015", database_url=url)
+        rows = {
+            row["key"]: row
+            for row in await run(
+                "SELECT key, hidden, field_versions::text AS versions FROM core_field_configs"
+            )
+        }
+        assert {key: row["hidden"] for key, row in rows.items()} == {
+            "doi": False,
+            "unit": True,
+            "release_time": False,
+            "title_ja": True,
+        }
+        assert rows["unit"]["versions"] == '{"hidden": 3}'
+    finally:
+        connection = await admin_connection()
+        try:
+            await connection.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
+        finally:
+            await connection.close()
+
+
 async def test_a_bootstrap_user_role_is_stored_by_name():
     async with SessionLocal() as db:
         admin = await db.scalar(select(User).where(User.role == UserRole.admin))
@@ -695,13 +789,13 @@ async def test_the_publication_date_moves_next_to_the_doi_and_nothing_else_moves
         )
         _migrate("upgrade", "head", database_url=url)
         rows = await run(
-            "SELECT key, hidden, required, position FROM core_field_configs ORDER BY position"
+            "SELECT key, in_record, required, position FROM core_field_configs ORDER BY position"
         )
         keys = [row["key"] for row in rows]
         assert keys.index("researcher_gender") == keys.index("researcher") + 1
         assert [row["position"] for row in rows] == list(range(len(rows)))
         gender = next(row for row in rows if row["key"] == "researcher_gender")
-        assert (gender["hidden"], gender["required"]) == (False, False)
+        assert (gender["in_record"], gender["required"]) == (True, False)
         # Running it again would add nothing: the row exists.
         _migrate("downgrade", "0006", database_url=url)
         assert "researcher_gender" not in [

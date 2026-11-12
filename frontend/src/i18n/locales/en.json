@@ -198,7 +198,7 @@
       "users": "Invite people and choose what they can do. People are switched off rather than deleted, so their name stays in the history.",
       "lists": "The values people choose from. To retire an entry, switch off Active: releases that use it keep it.",
       "researchers": "Everyone named on a release. Tidy up names, add identifiers, merge duplicates and split records that cover two people. Nothing here changes any statistics, because releases refer to the record and not the name.",
-      "form": "Adapt the fields on a release: rename, hide, require or reorder them, or add your own.",
+      "form": "Adapt the fields on a release: rename them, choose where they show, require or reorder them, or add your own.",
       "checkpoints": "The moments around a release when numbers are collected, and which numbers those are.",
       "data": "Your backups, a full copy of your data, and what the automatic jobs have been doing.",
       "integrations": "Connections to outside services. Keys are stored encrypted and never shown again.",
@@ -210,7 +210,7 @@
       "timezone": "Time zone",
       "timezone_hint": "Dates show in this time zone, and release dates and times are kept in it. Nightly jobs switch over at the next restart.",
       "display_zones": "Also show release times in",
-      "display_zones_hint": "Up to {{count}}. They show when you point at a release time in the grid, and under it in a release's record. In the record, a date and time can also be typed in one of these zones.",
+      "display_zones_hint": "Up to {{count}}, in the order they show. They show when you point at a release time in the grid (add the Release time column with Columns above the grid, or for everyone in Settings → Form) and under the time in a release's record. In the record, a date and time can also be typed in one of these zones.",
       "ay_start": "Academic year starts in",
       "website_domain": "News website address",
       "website_domain_hint": "Website views count only for releases on exactly this address, for example news.example.org.",
@@ -222,7 +222,11 @@
       "landing_hint": "The first page after signing in. Someone with no writer entry always lands on all releases.",
       "landing_mine": "Their own releases",
       "landing_all": "All releases",
-      "landing_analysis": "Analysis"
+      "landing_analysis": "Analysis",
+      "display_zone_place": "Zone {{place}}",
+      "display_zone_none": "None",
+      "display_zones_common": "Often used",
+      "display_zones_all": "All time zones"
     },
     "users": {
       "email": "Email",
@@ -294,16 +298,20 @@
     },
     "form": {
       "core_title": "Built-in fields",
-      "core_help": "Leave a label empty to keep the standard one. Hidden fields keep their data.",
+      "core_help": "Leave a label empty to keep the standard one. Show in grid sets the Data page's columns for everyone; each person can still add or remove columns for themselves with Columns. Show in record sets what a release's record shows. A field shown in neither is not in use: it leaves the column list and the export, and keeps its data.",
       "field": "Field",
       "label_en": "Label (EN)",
       "label_ja": "Label (JA)",
-      "hidden": "Hidden",
       "required": "Required",
-      "cannot_hide": "Release Radar relies on this field, so it stays visible.",
       "cannot_require": "Release Radar assigns this itself.",
       "custom_title": "Your own fields",
-      "custom_help": "Extra fields for everyone in your institution. Personal ones are under My fields in the account menu."
+      "custom_help": "Extra fields for everyone in your institution. Personal ones are under My fields in the account menu.",
+      "in_grid": "Show in grid",
+      "in_record": "Show in record",
+      "in_grid_label": "Show {{name}} in the grid",
+      "in_record_label": "Show {{name}} in a release's record",
+      "always_in_grid": "The grid always shows this.",
+      "always_in_record": "A release's record always shows this."
     },
     "checkpoints": {
       "checkpoints_title": "Checkpoints",
@@ -985,11 +993,11 @@
     },
     "answers": {
       "heading": "What researchers told us",
-      "intro": "From the researcher feedback on the analysed releases. Each release counts once, however many of its researchers answered.",
+      "intro": "From the researcher feedback on the shown releases, so both filters above apply. Each release counts once, however many of its researchers answered.",
       "separator": ", ",
-      "respondents": "{{year}}: {{count}}",
-      "bar": "{{year}}: {{share}}% ({{count}} of {{total}})",
-      "caption": "Per cent of the releases whose researchers answered the question. Releases that answered, by academic year: {{respondents}}.",
+      "respondents": "{{name}}: {{count}}",
+      "bar": "{{name}}: {{share}}% ({{count}} of {{total}})",
+      "caption": "Per cent of the releases whose researchers answered the question. Releases that answered: {{respondents}}.",
       "inquiries": {
         "title": "Who got in touch",
         "describe": "Who contacted the researchers about the release."
@@ -997,7 +1005,12 @@
       "activities": {
         "title": "What came of it",
         "describe": "Activities the researchers said came from the release."
-      }
+      },
+      "series": {
+        "shown": "Shown releases",
+        "analysed": "All analysed releases"
+      },
+      "caption_one": "Per cent of the {{count}} shown releases whose researchers answered the question."
     },
     "releases": {
       "tab": "All releases",
@@ -1016,6 +1029,34 @@
     "pick": {
       "open_hint": "Click the title to open the release.",
       "in_ranking": "Show it in the ranking"
+    },
+    "group": {
+      "label": "Compare by",
+      "label_for": "Compare “{{name}}” by",
+      "none": "Nothing",
+      "options": {
+        "ay": "Academic year",
+        "type": "Release type",
+        "field": "Field",
+        "unit": "Unit",
+        "emb": "Embargo",
+        "gender": "Researcher gender"
+      },
+      "nouns": {
+        "ay": "academic year",
+        "type": "release type",
+        "field": "field",
+        "unit": "unit",
+        "emb": "embargo",
+        "gender": "researcher gender"
+      },
+      "all": "All analysed",
+      "row_label": "{{name}}: median {{median}}, {{count}} with a value",
+      "caption": "One row per {{group}}. A row's box is where the middle half of its analysed releases land, the thick line is its median and the dots are its shown releases. In brackets, how many analysed releases have a value; with fewer than {{min}}, a row shows its median only.",
+      "medians": "Medians: {{medians}}.",
+      "median_of": "{{name}} {{median}}",
+      "shown_median": "Median of the shown",
+      "shown_median_value": "{{median}} ({{count}})"
     }
   },
   "page_error": {

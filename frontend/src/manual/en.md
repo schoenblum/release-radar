@@ -11,7 +11,7 @@ On **Data**, paste a DOI or type a title in the top row of the grid and press En
 - It starts as a **Peer-reviewed publication** (see *Set the release type*). You are its writer.
 - The paper's **Publication date** is the column right after the DOI. If Crossref knows only the month, it stays empty: type it in.
 - **Dates** show as YYYY-MM-DD everywhere. Type them as you write them: `2026-11-10`, `26/11/10`, `10/11/26`, `10 Nov 2026` and `2026年11月10日` all mean 10 November 2026. The day comes before the month; a two-digit year can come first or last, and the one that is this year, last year or next year is the year. In a release's record, the calendar button beside a date opens a calendar.
-- The **Release date** and **Release time** are in Japan time (your institution's time zone), as the website goes by it. EurekAlert gives its date and time in US Eastern time: type them together in the Release date cell, such as `2026-11-10 10:00 ET`, or type `10:00 ET` in the time cell. In a release's record, choose the zone above the date first, then type the date and time as given. Either way they are converted, so the date can move by a day. Point at a release time to see it in the other zones chosen in Settings; the record shows them under the time.
+- The **Release date** and **Release time** are in Japan time (your institution's time zone), as the website goes by it. EurekAlert gives its date and time in US Eastern time: type them together in the Release date cell, such as `2026-11-10 10:00 ET`, or type `10:00 ET` in the time cell. In a release's record, choose the zone above the date first, then type the date and time as given. Either way they are converted, so the date can move by a day. Point at a release time to see it in the other zones chosen in Settings; the record shows them under the time. The grid shows **Release time** once you add it with **Columns** above the grid (or an admin adds it for everyone in Settings → Form).
 - Paste the **DOI**, the **EurekAlert link** and the **Website link** into their cells. A DOI can be bare (`10.1038/…`) or a link (`https://doi.org/10.1038/…`): Release Radar keeps the DOI either way. A saved link shows as **✓ ↗**: click the mark to open the page in a new tab, or click beside it to select the cell, for example to paste a corrected link over it.
 
 ## Fill in day-28 numbers
@@ -65,7 +65,7 @@ Double-click any cell of a release, or press Shift+Enter, to open its full recor
 
 ### Choose your columns
 
-**Columns** chooses what the grid shows. By default it shows what analysis tells releases apart by, so it gets filled in; details such as the paper's title and authors are in the full record. Release Radar remembers your choice.
+**Columns** chooses what the grid shows, such as the **Release time**. Until you choose, it shows what an admin set for everyone in Settings → Form: to begin with, what analysis tells releases apart by, so it gets filled in; details such as the paper's title and authors are in the full record. Release Radar remembers your choice.
 
 ### Find and sort releases
 
@@ -85,7 +85,7 @@ Click a name to see that writer's releases of the year on the Data page. **Expor
 
 ## Read the Analysis pages
 
-**Analysis** shows how the releases did in their first 28 days, compared with each other. It is for the office: guest pages for researchers never show any of it. **Overview** has a card per measure and, below them, what researchers told us. **All releases** lists every shown release with its score and three numbers. Each page after that ranks the releases by one measure, and **Top & bottom 5** lists the highest and lowest.
+**Analysis** shows how the releases did in their first 28 days, compared with each other. It is for the office: guest pages for researchers never show any of it. **Overview** has a card per measure and, below them, what researchers told us. **All releases** lists every shown release with its score and three numbers. Each page after that shows one measure, split by year, field or another grouping if you like, and ranks the releases by it; **Top & bottom 5** lists the highest and lowest.
 
 ### The two filters
 
@@ -95,7 +95,7 @@ Both start as an admin set them in Settings (peer-reviewed publications to begin
 
 ### Reading a card
 
-The coloured box holds the middle half of the analysed releases: a quarter did better than its right edge, a quarter worse than its left. The thick line is the median, and the thin lines reach to the lowest and highest values. The dots above are the shown releases, one each; where many share a value they pile up, smaller when the pile is tall. Click a dot, or near it, to see which release it is: a small window names it, and its title opens the release's record. Esc or × closes the window. With both filters at their start, the dots are the same releases as the box. The caption says the same in words, and the line under it counts the releases with a value, missing and not applicable, so gaps stay visible. **Show as table** gives the same numbers as a table.
+The coloured box holds the middle half of the analysed releases: a quarter did better than its right edge, a quarter worse than its left. The thick line is the median, and the thin lines reach to the lowest and highest values. The dots above are the shown releases, one each; where many share a value they pile up, smaller when the pile is tall. Click a dot, or near it, to see which release it is: a small window names it, and its title opens the release's record. Esc, ×, or a click anywhere else closes the window. With both filters at their start, the dots are the same releases as the box. The caption says the same in words, and the line under it counts the releases with a value, missing and not applicable, so gaps stay visible. **Show as table** gives the same numbers as a table.
 
 Some measures have a few very large values that squash the rest into one corner. **Log scale** spreads the small values out; Release Radar remembers it per card. The Altmetric card follows the score profile: the increase from day 0 to day 28, or the score on day 28, with a switch for the other. Medians and quartiles are calculated as Excel's QUARTILE.INC does, so any number can be checked in a spreadsheet.
 
@@ -105,7 +105,7 @@ A score compares each release with its neighbours, so half of them always score 
 
 ### What researchers told us
 
-Under the cards, two charts come from the researcher feedback: **Who got in touch** (journalists, other researchers, students, companies, the public) and **What came of it** (presentations, visits, joint research, articles). Each bar is the per cent of analysed releases whose researchers ticked that box, among the releases whose researchers answered the question; with more than one academic year there is a bar per year. A release counts once, however many of its researchers answered. Satisfaction isn't shown here for now; its page is still there.
+Under the cards, two charts come from the researcher feedback: **Who got in touch** (journalists, other researchers, students, companies, the public) and **What came of it** (presentations, visits, joint research, articles). Each bar is the per cent of the shown releases whose researchers ticked that box, among the releases whose researchers answered the question, so both filters decide what counts. When fewer releases are shown than analysed, a second bar gives all analysed releases to compare with. **Compare by** on each chart splits it into a bar per academic year, release type, field, embargo or researcher gender (not per unit: with some twenty units, the bars could not be read). A release counts once, however many of its researchers answered. The feedback measures have no ranking of their own: a release is not better because its researcher ticked more boxes.
 
 ### All releases
 
@@ -117,7 +117,7 @@ A score, from 0 to 100, says how a release did compared with similar releases: i
 
 ### Rankings, top and bottom 5
 
-A measure's page shows its card, larger, and below it every shown release, highest first. **Rank** counts among the analysed releases with a value, and equal values share a rank. **Percentile** is the one the score uses. Rows without a value come last; provisional ones are marked. Click a heading to sort by it, and a title to open the release's record. **Export** downloads the list as Excel or CSV, with a Read me naming both filters, the score profile and the date.
+A measure's page shows its card, larger, and below it every shown release, highest first. **Compare by** above the chart splits it into a row per academic year, release type, field, unit, embargo or researcher gender: each row has its own box over its analysed releases and its shown releases as dots, all on one scale under the box of every analysed release. In brackets is how many analysed releases in the row have a value; a row with fewer than 5 shows its median only, as a box of three says little. Units are ordered by their median, years in time. The split goes with you to the other measures; **Nothing** takes it away. **Show as table** lists each row's numbers. **Rank** counts among the analysed releases with a value, and equal values share a rank. **Percentile** is the one the score uses. Rows without a value come last; provisional ones are marked. Click a heading to sort by it, and a title to open the release's record. **Export** downloads the list as Excel or CSV, with a Read me naming both filters, the score profile and the date.
 
 **Top & bottom 5** lists the five highest and five lowest shown releases by the score, or by any measure chosen at the top. Only finished releases with a value count, so a release less than 30 days old, or with too little data for a score, never lands at the bottom.
 
@@ -163,11 +163,11 @@ Use the button next to your name at the top right to switch between English and 
 
 **Settings** is only visible to admins, and every section works without changing anything. Changes save themselves when you leave a field. If a colleague changed the same field a moment earlier, you see what they entered and choose which to keep.
 
-- **Institution:** names, time zone, up to three further time zones to show release times in, the month the academic year starts, your news website, and where people land after signing in: their own releases, all releases, or **Analysis**.
+- **Institution:** names, time zone, up to three further time zones to show release times in (any zone, in the order you choose; leave a place on **None** to skip it), the month the academic year starts, your news website, and where people land after signing in: their own releases, all releases, or **Analysis**.
 - **Users:** invite people and set their role. To remove someone, switch off **Active**: their name stays in the history. If they tracked personal fields, pass those on or make them institution fields here.
 - **Lists:** units, fields, writers, release types and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
 - **Release types:** EurekAlert's eleven categories, in the order the menus show them. Rename, reorder or switch off any, or add your own. **New releases start as** sets the type new and imported releases get; choose **No type** to have people choose every time.
-- **Form:** rename, hide, require or reorder the fields on a release, and add your own.
+- **Form:** rename, require or reorder the fields on a release, and add your own. **Show in grid** sets the Data page's columns for everyone who hasn't chosen their own with **Columns**; **Show in record** sets what a release's record shows. A field in neither is not in use: it leaves the column list and the export, and keeps its data.
 - **Checkpoints & reminders:** when numbers are collected and which numbers those are. A checkpoint can fall before the release date: use a negative number, so −3 is three days before. Choose whether its reminder comes at the start of that day or the day before. The reminder emails themselves arrive in a later phase.
 - **Integrations:** Google Analytics, for website views. See *Connect Google Analytics* below.
 - **Data:** backups, a full copy of your data, what the automatic jobs have been doing, and the import of the old workbook.

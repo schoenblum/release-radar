@@ -165,10 +165,15 @@ def test_top_and_bottom_keep_provisional_and_insufficient_releases_out():
 
 
 def test_pages_exist_for_dimensions_with_data_with_altmetric_once():
+    """Researcher feedback has values but no page (Daniel, 2026-11-12)."""
     dimensions = [
         Dimension(key, key, key, "views", 0, "measure")
         for key in ("altmetric.d0", "altmetric.d28", "ea_views.d28", "pickups_all")
-    ] + [Dimension("altmetric_increase", "i", "i", "score", 2, "derived")]
+    ] + [
+        Dimension("altmetric_increase", "i", "i", "score", 2, "derived"),
+        Dimension("satisfaction", "s", "s", "scale", 2, "derived"),
+        Dimension("inquiries", "q", "q", "count", 0, "derived"),
+    ]
     row = _row("one", 1)
     row.cells = {
         "altmetric.d28": Cell("value", 3.0),
@@ -176,8 +181,38 @@ def test_pages_exist_for_dimensions_with_data_with_altmetric_once():
         "altmetric_increase": Cell("value", 2.0),
         "ea_views.d28": Cell("value", 10.0),
         "pickups_all": NOT_APPLICABLE,
+        "satisfaction": Cell("value", 4.0),
+        "inquiries": Cell("value", 2.0),
     }
     assert page_keys(Dataset(TODAY, dimensions, [row])) == ["score", "altmetric", "ea_views.d28"]
+
+
+def test_a_chart_splits_into_a_box_per_group():
+    """By unit: SCIENCE has 109, 180, 247 (three, too few for a box: median only); no unit has
+    150, 180, 400, 500 (r9 is provisional, but a value is a value), also below five. By year,
+    with two more 2024 releases: 2024 holds 100, 200 (median 150), 2025 the seven above
+    (QUARTILE.INC: 165, 180, 323.5) with a box. The feature is not analysed and counts nowhere;
+    shown narrowed to SCIENCE, each group keeps its box and median, and only its points change."""
+    by_unit = {group.value: group for group in _analysis().groups("views", "unit")}
+    assert set(by_unit) == {SCIENCE, None}
+    science, none = by_unit[SCIENCE], by_unit[None]
+    assert (science.n, science.median, science.box) == (3, 180, None)
+    assert (none.n, none.median, none.box) == (4, 290, None)
+    rows = [*ROWS, _row("old1", 100, year=2024), _row("old2", 200, year=2024)]
+    years = _analysis(rows=rows).groups("views", "ay")
+    assert [(group.value, group.n, group.median) for group in years] == [
+        (2024, 2, 150),
+        (2025, 7, 180),
+    ]
+    assert years[0].box is None
+    box = years[1].box
+    assert (box.low, box.q1, box.median, box.q3, box.high) == (109, 165, 180, 323.5, 500)
+    narrowed = _analysis(rows=rows, shown=AnalysisFilter(units=frozenset({SCIENCE})))
+    shown_years = narrowed.groups("views", "ay")
+    assert shown_years[1].box == box
+    assert [entry.row.code for entry in shown_years[1].points] == ["r1", "r3", "r5"]
+    assert shown_years[1].shown_median == 180
+    assert shown_years[0].points == [] and shown_years[0].shown_median is None
 
 
 # ---------------------------------------------------------------- through the API
@@ -312,7 +347,23 @@ async def test_a_dimension_page_ranks_the_shown_releases(client, headers_for):
     assert provisional["AY2026-06"] and not provisional["AY2026-04"]
     # The seeded profile wants 10 values per component; four finished are too few.
     assert {row["percentile"] for row in rows} == {None}
+    assert response.json()["groups"] is None
     assert (await client.get(f"{URL}/dimensions/nonsense", headers=viewer)).status_code == 404
+    # Researcher feedback has no page of its own any more (Daniel, 2026-11-12).
+    assert (await client.get(f"{URL}/dimensions/satisfaction", headers=viewer)).status_code == 404
+
+    # Split by unit: "sci" holds 100 and 300, no unit 50, 200, 400; too few for boxes.
+    body = (await client.get(f"{URL}/dimensions/ea_views.d28?group=unit", headers=viewer)).json()
+    assert body["group_by"] == "unit"
+    groups = {group["value"]: group for group in body["groups"]}
+    assert groups["none"]["median"] == 200 and groups["none"]["n"] == 3
+    assert groups["none"]["box"] is None
+    assert sorted(point["value"] for point in groups["none"]["points"]) == [50, 200, 400]
+    assert len(groups) == 2
+    # The ranking is the same, and an unknown grouping is no grouping.
+    assert body["rows"] == rows
+    body = (await client.get(f"{URL}/dimensions/ea_views.d28?group=writer", headers=viewer)).json()
+    assert body["group_by"] is None and body["groups"] is None
 
 
 async def test_top_and_bottom_by_a_dimension(client, headers_for):
@@ -405,7 +456,8 @@ def _answered(name, year, inquiries, activities=None) -> Row:
 
 
 def test_the_survey_bars_count_only_releases_whose_researchers_answered():
-    """Daniel, 2026-11-12: per cent of respondents who were contacted by each group, by year."""
+    """Daniel, 2026-11-12: per cent of respondents who were contacted by each group, for the
+    shown releases; split by a grouping on request."""
     choices = [
         Choice("inquiries", "inq_media", "Media", "報道機関"),
         Choice("inquiries", "inq_public", "Public", "一般の方"),
@@ -421,14 +473,45 @@ def test_the_survey_bars_count_only_releases_whose_researchers_answered():
     found = Analysis(
         Dataset(TODAY, [VIEWS], rows, choices), ANALYSED, AnalysisFilter(), SPEC, "d28"
     )
+    # Not split, everything analysed shown: one bar per box.
     chart = found.answer_chart("inquiries")
-    assert chart.years == [(2025, 3), (2026, 1)]
+    assert (chart.by, chart.series) == (None, [("shown", 4)])
     media, public = chart.bars
-    assert [(share.year, share.count) for share in media.shares] == [(2025, 2), (2026, 0)]
+    assert [(share.series, share.count, share.share) for share in media.shares] == [
+        ("shown", 2, 50)
+    ]
+    assert public.shares[0].share == 50
+    # By academic year: the years the shown releases come from, nothing written in.
+    by_year = found.answer_chart("inquiries", "ay")
+    assert by_year.series == [("2025", 3), ("2026", 1)]
+    media, public = by_year.bars
+    assert [(share.series, share.count) for share in media.shares] == [("2025", 2), ("2026", 0)]
     assert media.shares[0].share == pytest.approx(200 / 3)
     assert [share.share for share in public.shares] == [pytest.approx(100 / 3), 100]
-    activities = found.answer_chart("activities")
-    assert activities.years == [(2026, 1)]
+    assert found.answer_chart("activities").series == [("shown", 1)]
+    # Shown narrowed to 2026: its bar, and the analysed releases' bar to compare with.
+    narrowed = Analysis(
+        Dataset(TODAY, [VIEWS], rows, choices),
+        ANALYSED,
+        AnalysisFilter(academic_years=frozenset({2026})),
+        SPEC,
+        "d28",
+    )
+    chart = narrowed.answer_chart("inquiries")
+    assert chart.series == [("shown", 1), ("analysed", 4)]
+    assert [(share.series, share.count) for share in chart.bars[1].shares] == [
+        ("shown", 1),
+        ("analysed", 2),
+    ]
+    # The analysed filter narrows every bar.
+    only_2025 = Analysis(
+        Dataset(TODAY, [VIEWS], rows, choices),
+        AnalysisFilter(release_types=frozenset({PAPER}), academic_years=frozenset({2025})),
+        AnalysisFilter(),
+        SPEC,
+        "d28",
+    )
+    assert only_2025.answer_chart("inquiries", "ay").series == [("2025", 3)]
     # No question asked, or nobody answered: no chart.
     assert (
         Analysis(
@@ -436,6 +519,7 @@ def test_the_survey_bars_count_only_releases_whose_researchers_answered():
         ).answer_chart("inquiries")
         is None
     )
+    assert narrowed.answer_chart("activities", "emb").series == [("0", 1)]
 
 
 ENDPOINTS = [

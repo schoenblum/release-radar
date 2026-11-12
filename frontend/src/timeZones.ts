@@ -1,6 +1,8 @@
 /**
  * Release times: kept in the institution's time zone (Japan time for NU), entered and shown in
- * a few others (Daniel, 2026-11-12). Mirrors `app/services/time_zones.py`.
+ * up to three others, any IANA zone, in the order an admin chooses (Daniel, 2026-11-12). The
+ * zones listed here have a short label and names in both languages and mirror
+ * `app/services/time_zones.py`; any other zone goes by its city.
  */
 
 export interface Zone {
@@ -27,21 +29,67 @@ export const ZONES: Zone[] = [
 
 const BY_KEY = new Map(ZONES.map((zone) => [zone.key, zone]));
 
-export function shortLabel(key: string): string {
-  return BY_KEY.get(key)?.short ?? key;
+/** "Berlin" for Europe/Berlin, "Ho Chi Minh" for Asia/Ho_Chi_Minh. */
+export function cityOf(key: string): string {
+  return (key.split("/").pop() ?? key).replaceAll("_", " ");
 }
 
-/** "US Eastern (ET)", "米国東部時間（ET）". */
+/** ET, JST … for the listed zones; the city for any other. */
+export function shortLabel(key: string): string {
+  return BY_KEY.get(key)?.short ?? cityOf(key);
+}
+
+/** The browser's own name for a zone, such as "Central European Time": "" if it has none. */
+function generic(key: string, language: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat(language === "ja" ? "ja" : "en", {
+      timeZone: key,
+      timeZoneName: "longGeneric",
+    }).formatToParts(new Date());
+    const name = parts.find((part) => part.type === "timeZoneName")?.value ?? "";
+    // Without a name of its own, a zone gets its offset ("GMT+05:45"): that says nothing new.
+    return /^(GMT|UTC)[+−-]/.test(name) || name === cityOf(key) ? "" : name;
+  } catch {
+    return "";
+  }
+}
+
+/** "US Eastern (ET)", "米国東部時間（ET）"; any other zone "Europe/Berlin (Central European Time)". */
 export function zoneName(key: string, language: string): string {
   const zone = BY_KEY.get(key);
-  if (!zone) return key;
-  return language === "ja" ? `${zone.nameJa}（${zone.short}）` : `${zone.nameEn} (${zone.short})`;
+  if (zone) {
+    return language === "ja" ? `${zone.nameJa}（${zone.short}）` : `${zone.nameEn} (${zone.short})`;
+  }
+  const name = generic(key, language);
+  const plain = key.replaceAll("_", " ");
+  if (!name) return plain;
+  return language === "ja" ? `${plain}（${name}）` : `${plain} (${name})`;
 }
 
-/** The zone a typed word means, if any. */
+/** Every zone the browser knows, UTC included. */
+export function allZones(): string[] {
+  const known = typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : [];
+  return known.includes("UTC") ? known : [...known, "UTC"];
+}
+
+let cities: Map<string, string> | null = null;
+
+/**
+ * The zone a typed word means, if any: the listed zones' words (ET, JST …), and any zone's
+ * IANA name or city, so "10:00 Berlin" works once Berlin is among the zones shown.
+ */
 export function zoneFromWord(word: string): string | null {
   const clean = word.normalize("NFKC").trim().toLowerCase();
-  return ZONES.find((zone) => zone.words.includes(clean))?.key ?? null;
+  const listed = ZONES.find((zone) => zone.words.includes(clean))?.key;
+  if (listed) return listed;
+  if (cities === null) {
+    cities = new Map();
+    for (const key of allZones()) {
+      cities.set(key.toLowerCase(), key);
+      if (!cities.has(cityOf(key).toLowerCase())) cities.set(cityOf(key).toLowerCase(), key);
+    }
+  }
+  return cities.get(clean) ?? cities.get(clean.replaceAll("_", " ")) ?? null;
 }
 
 /** The wall-clock date and time of an instant in a zone, as numbers. */

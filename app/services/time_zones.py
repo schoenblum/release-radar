@@ -3,9 +3,11 @@
 A release time is stored in the institution's zone (Japan time for NU), because that is what
 the website and the researchers go by (Daniel, 2026-11-12). EurekAlert works in US Eastern
 time, so a date and time can be entered in another zone: both are then converted, and the date
-can move by a day. Admins choose up to three further zones to show a release time in.
+can move by a day. Admins choose up to three further zones to show a release time in, any
+IANA zone, in the order they want them (Daniel, 2026-11-12).
 
-``frontend/src/timeZones.ts`` mirrors this list.
+The zones listed here have a short label and names in both languages; ``frontend/src/timeZones.ts``
+mirrors the list. Any other zone is named after its city.
 """
 
 from dataclasses import dataclass

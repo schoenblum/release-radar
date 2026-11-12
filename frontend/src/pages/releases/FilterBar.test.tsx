@@ -62,7 +62,9 @@ function setup(filters: ReleaseFilters = {}, showWriter = true, typeHidden = fal
         context={context({
           writers: [WRITER],
           releaseTypes: [PAPER, FEATURE, RETIRED],
-          coreFields: coreFields({ release_type: { hidden: typeHidden } }),
+          coreFields: coreFields({
+            release_type: typeHidden ? { in_record: false, in_grid: false } : {},
+          }),
         })}
         onChange={onChange}
         onClear={onClear}

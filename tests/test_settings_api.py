@@ -136,7 +136,8 @@ async def test_invalid_values_are_refused_with_a_translatable_reason(
 
 
 async def test_release_times_show_in_up_to_three_further_zones(client, admin_headers, headers_for):
-    """Daniel, 2026-11-12. US Eastern to start with, as EurekAlert works in it."""
+    """Daniel, 2026-11-12. US Eastern to start with, as EurekAlert works in it. Any zone, in
+    the order chosen; a place can stay empty."""
     brand = (await client.get("/api/v1/brand")).json()
     assert brand["display_time_zones"] == ["America/New_York"]
     chosen = ["Europe/London", "America/New_York", "Europe/London"]
@@ -144,6 +145,16 @@ async def test_release_times_show_in_up_to_three_further_zones(client, admin_hea
     assert saved.json()["value"] == ["Europe/London", "America/New_York"]
     brand = (await client.get("/api/v1/brand")).json()
     assert brand["display_time_zones"] == ["Europe/London", "America/New_York"]
+    # Not on the old list of seven, an empty first place, nothing at the end.
+    chosen = [None, "Europe/Berlin", None]
+    saved = await _patch(client, INSTITUTION, admin_headers, "display_time_zones", chosen, 1)
+    assert saved.json()["value"] == [None, "Europe/Berlin"]
+    settings = (await client.get(INSTITUTION, headers=admin_headers)).json()
+    assert settings["display_time_zones"] == [None, "Europe/Berlin"]
+    # The brand lists the zones to show, in order, without the empty place.
+    assert (await client.get("/api/v1/brand")).json()["display_time_zones"] == ["Europe/Berlin"]
+    saved = await _patch(client, INSTITUTION, admin_headers, "display_time_zones", [None], 2)
+    assert saved.json()["value"] == []
 
 
 async def test_values_are_cleaned_up(client, admin_headers):
@@ -289,35 +300,51 @@ async def test_moving_a_checkpoint_keeps_its_key(client, admin_headers):
 # ---------------------------------------------------------------- core fields
 
 
-async def test_core_fields_can_be_relabelled_hidden_and_required(client, admin_headers):
+async def test_core_fields_can_be_relabelled_shown_and_required(client, admin_headers):
     fields = {
         f["key"]: f for f in (await client.get("/api/v1/core-fields", headers=admin_headers)).json()
     }
-    url = f"/api/v1/core-fields/{fields['notes']['id']}"
+    notes, time = fields["notes"], fields["release_time"]
+    assert (notes["in_record"], notes["in_grid"]) == (True, False)
+    assert (time["in_record"], time["in_grid"]) == (True, False)
+    url = f"/api/v1/core-fields/{notes['id']}"
     assert (await _patch(client, url, admin_headers, "label_ja", "備考")).json()["value"] == "備考"
-    assert (await _patch(client, url, admin_headers, "hidden", True)).json()["value"] is True
+    assert (await _patch(client, url, admin_headers, "in_record", False)).json()["value"] is False
+    assert (await _patch(client, url, admin_headers, "in_grid", True)).json()["value"] is True
     assert (await _patch(client, url, admin_headers, "required", True)).json()["value"] is True
+    # Daniel, 2026-11-12: the release time can be put in everyone's grid.
+    url = f"/api/v1/core-fields/{time['id']}"
+    assert (await _patch(client, url, admin_headers, "in_grid", True)).json()["value"] is True
 
 
 @pytest.mark.parametrize(
     ("key", "field"),
     [
-        ("code", "hidden"),
+        ("code", "in_record"),
+        ("code", "in_grid"),
         ("code", "required"),
-        ("title", "hidden"),
-        ("release_date", "hidden"),
+        ("title", "in_record"),
+        ("title", "in_grid"),
+        ("release_date", "in_record"),
     ],
 )
 async def test_core_fields_the_system_relies_on_are_protected(client, admin_headers, key, field):
-    """D35: the system assigns the code, so nobody can be asked to fill it in."""
+    """D35: the system assigns the code, so nobody can be asked to fill it in. A record needs
+    its code, title and date; a grid its code and title."""
     fields = {
         f["key"]: f for f in (await client.get("/api/v1/core-fields", headers=admin_headers)).json()
     }
-    assert fields[key]["can_hide" if field == "hidden" else "can_require"] is False
+    flag = {"in_record": "can_leave_record", "in_grid": "can_leave_grid"}.get(field, "can_require")
+    assert fields[key][flag] is False
     response = await _patch(
-        client, f"/api/v1/core-fields/{fields[key]['id']}", admin_headers, field, True
+        client,
+        f"/api/v1/core-fields/{fields[key]['id']}",
+        admin_headers,
+        field,
+        field == "required",
     )
     assert response.status_code == 409
+    assert fields["release_date"]["can_leave_grid"] is True
     assert response.json() == {"detail": "core_field_locked"}
 
 

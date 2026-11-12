@@ -70,7 +70,8 @@ class Institution(UuidKeyed, Timestamped, Audited, FieldVersioned, Base):
     # until first seeded (peer-reviewed publications); an empty list means every type.
     analysed_release_type_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     shown_release_type_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
-    # Further zones a release time is shown in, IANA names (``app.services.time_zones``).
+    # Further zones a release time is shown in, in order: IANA names, or None for a place
+    # left empty (``app.services.time_zones``).
     display_time_zones: Mapped[list] = mapped_column(
         JSONB,
         nullable=False,

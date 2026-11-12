@@ -25,8 +25,8 @@ class InstitutionOut(_Out):
     # Where the Analysis filters start (R6.4.2): release type IDs; empty means every type.
     analysed_release_type_ids: list[UUID] | None
     shown_release_type_ids: list[UUID] | None
-    # Further zones a release time is shown in (``app.services.time_zones``).
-    display_time_zones: list[str]
+    # Further zones a release time is shown in, in order; None for a place left empty.
+    display_time_zones: list[str | None]
     field_versions: dict[str, int]
 
 
@@ -142,10 +142,13 @@ class CoreFieldOut(_Out):
     key: str
     label_en: str | None
     label_ja: str | None
-    hidden: bool
+    # Shown in a release's record; shown in the grid by default (Daniel, 2026-11-12).
+    in_record: bool
+    in_grid: bool
     required: bool
     position: int
-    can_hide: bool
+    can_leave_record: bool
+    can_leave_grid: bool
     can_require: bool
     field_versions: dict[str, int]
 

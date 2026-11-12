@@ -8,9 +8,11 @@ import { PageLoading } from "../../components/Spinner";
 import { AnalysisHeader, useOptions } from "./AnalysisLayout";
 import ChartBlock from "./ChartBlock";
 import { AltmetricBasis, LogScaleToggle } from "./DimensionCard";
+import GroupChoice from "./GroupChoice";
+import GroupedChart from "./GroupedChart";
 import { cardDescription, cardLabel, type Language } from "./labels";
 import RankingTable from "./RankingTable";
-import { queryOf, RELEASE_PARAM } from "./state";
+import { GROUP_PARAM, queryOf, RELEASE_PARAM } from "./state";
 import { useDimension, useLogScale } from "./useAnalysis";
 
 /**
@@ -61,13 +63,25 @@ export default function DimensionPage() {
       />
       <ErrorNotice error={error} />
       <section className="analysis-card analysis-card-wide" aria-label={t("analysis.chart_label", { name: label })}>
-        <div className="mb-4xs flex flex-wrap items-center gap-4xs">
+        <div className="mb-4xs flex flex-wrap items-center gap-x-xs gap-y-4xs">
           {key === "altmetric" && <AltmetricBasis scope={scope} />}
+          {card.box && <GroupChoice param={GROUP_PARAM} scope={scope} />}
           {card.box && (
             <LogScaleToggle on={isLog(key)} onChange={(on) => setLog(key, on)} label={label} />
           )}
         </div>
-        <ChartBlock card={card} scope={scope} logScale={isLog(key)} large selectedId={picked} />
+        {data.groups && data.group_by ? (
+          <GroupedChart
+            card={card}
+            groups={data.groups}
+            by={data.group_by}
+            scope={scope}
+            logScale={isLog(key)}
+            selectedId={picked}
+          />
+        ) : (
+          <ChartBlock card={card} scope={scope} logScale={isLog(key)} large selectedId={picked} />
+        )}
       </section>
       <h2 className="mb-4xs mt-s text-2xl">{t("analysis.ranking")}</h2>
       <p className="mb-4xs max-w-3xl text-sm text-content-secondary">

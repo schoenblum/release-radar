@@ -64,7 +64,8 @@ class CustomField(Record, FieldVersioned, Base):
 
 
 class CoreFieldConfig(Record, FieldVersioned, Base):
-    """How admins have adapted a core release field: relabel, hide, require, reorder (R6.6.3)."""
+    """How admins have adapted a core release field: relabel, show or hide, require, reorder
+    (R6.6.3)."""
 
     __tablename__ = "core_field_configs"
     __table_args__ = (UniqueConstraint("institution_id", "key", name="uq_core_field_configs_key"),)
@@ -73,6 +74,9 @@ class CoreFieldConfig(Record, FieldVersioned, Base):
     # Null keeps the translated default label.
     label_en: Mapped[str | None] = mapped_column(String(255), nullable=True)
     label_ja: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Whether a release's record shows it (Daniel, 2026-11-12: was "hidden", the opposite).
+    in_record: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Whether the grid shows it to everyone who has not chosen their own columns.
+    in_grid: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

@@ -57,16 +57,36 @@ export const PAPER = releaseType("peer_reviewed", "Peer-reviewed publication", {
 export const FEATURE = releaseType("feature", "Feature story", { position: 1 });
 export const RETIRED = releaseType("book", "Book announcement", { position: 2, is_active: false });
 
+// The grid's columns on a new install (the server's IN_GRID_BY_DEFAULT).
+const IN_GRID = new Set([
+  "code",
+  "title",
+  "release_date",
+  "researcher",
+  "researcher_gender",
+  "unit",
+  "field",
+  "release_type",
+  "doi",
+  "publication_date",
+  "embargoed",
+  "ea_url",
+  "website_url",
+  "ea_top_page",
+]);
+
 export function coreFields(changes: Partial<Record<string, Partial<CoreField>>> = {}): CoreField[] {
   return CORE_KEYS.map((key, position) => ({
     id: `core-${key}`,
     key,
     label_en: null,
     label_ja: null,
-    hidden: key === "title_ja",
+    in_record: key !== "title_ja",
+    in_grid: IN_GRID.has(key),
     required: false,
     position,
-    can_hide: true,
+    can_leave_record: true,
+    can_leave_grid: true,
     can_require: true,
     field_versions: {},
     ...changes[key],

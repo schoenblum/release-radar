@@ -13,7 +13,7 @@ import type {
 } from "../../api/types";
 import { useAuth } from "../../auth";
 import { useToast } from "../../components/Toast";
-import { queryOf } from "./state";
+import { answerGroupParam, queryOf } from "./state";
 
 /** The filter choices, pages and profiles. They change rarely, so one fetch serves a visit. */
 export function useAnalysisOptions() {
@@ -30,7 +30,15 @@ function useAddress(): URLSearchParams {
 }
 
 export function useOverview() {
-  const query = queryOf(useAddress());
+  const address = useAddress();
+  // Each survey chart's own split travels with the Overview's request.
+  const extra: Record<string, string> = {};
+  for (const question of ["inquiries", "activities"]) {
+    const name = answerGroupParam(question);
+    const value = address.get(name);
+    if (value) extra[name] = value;
+  }
+  const query = queryOf(address, extra);
   return useQuery({
     queryKey: ["analysis", "overview", query],
     queryFn: () => http.get<AnalysisOverview>(`/analysis/overview${query}`),

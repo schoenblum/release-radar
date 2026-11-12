@@ -35,7 +35,7 @@ from app.models import (
 )
 from app.schemas.analysis import (
     AnswerChartOut,
-    AnswerYearOut,
+    AnswerSeriesOut,
     BarOut,
     BoxOut,
     CardOut,
@@ -44,6 +44,7 @@ from app.schemas.analysis import (
     DimensionOut,
     EntryOut,
     FilterOut,
+    GroupOut,
     OptionOut,
     OptionsOut,
     OverviewOut,
@@ -63,14 +64,17 @@ from app.services import release_export
 from app.services.analysis import dataset as analysis
 from app.services.analysis.filters import GENDERS, AnalysisFilter
 from app.services.analysis.pages import (
-    OVERVIEW_WITHOUT_CARDS,
+    GROUPINGS,
     RELEASE_TABLE_KEYS,
     SCORE,
     Analysis,
     AnswerChart,
+    Box,
     Card,
     Entry,
+    Group,
     basis_or_default,
+    group_token,
     page_keys,
 )
 from app.services.analysis.profiles import default_filters, spec_of
@@ -255,8 +259,27 @@ async def _context(
     return Context(institution, found, _profile_ref(*chosen) if chosen else None)
 
 
+def _box_out(box: Box | None) -> BoxOut | None:
+    if box is None:
+        return None
+    return BoxOut(low=box.low, q1=box.q1, median=box.median, q3=box.q3, high=box.high, n=box.n)
+
+
+def _points_out(entries: list[Entry]) -> list[PointOut]:
+    return [
+        PointOut(
+            id=entry.row.id,
+            code=entry.row.code,
+            title=entry.row.title,
+            release_date=entry.row.release_date,
+            value=entry.value,
+            inferred=entry.inferred,
+        )
+        for entry in entries
+    ]
+
+
 def _card_out(card: Card) -> CardOut:
-    box = card.box
     return CardOut(
         key=card.key,
         dimension=card.dimension,
@@ -264,22 +287,21 @@ def _card_out(card: Card) -> CardOut:
         label_ja=card.label_ja,
         unit=card.unit,
         decimals=card.decimals,
-        box=BoxOut(low=box.low, q1=box.q1, median=box.median, q3=box.q3, high=box.high, n=box.n)
-        if box
-        else None,
+        box=_box_out(card.box),
         counts=CountsOut(**vars(card.counts)),
-        points=[
-            PointOut(
-                id=entry.row.id,
-                code=entry.row.code,
-                title=entry.row.title,
-                release_date=entry.row.release_date,
-                value=entry.value,
-                inferred=entry.inferred,
-            )
-            for entry in card.points
-        ],
+        points=_points_out(card.points),
         shown_median=card.shown_median,
+    )
+
+
+def _group_out(group: Group) -> GroupOut:
+    return GroupOut(
+        value=group_token(group.value),
+        n=group.n,
+        median=group.median,
+        box=_box_out(group.box),
+        points=_points_out(group.points),
+        shown_median=group.shown_median,
     )
 
 
@@ -418,7 +440,8 @@ async def options(
 def _answer_out(chart: AnswerChart) -> AnswerChartOut:
     return AnswerChartOut(
         question=chart.question,
-        years=[AnswerYearOut(year=year, respondents=count) for year, count in chart.years],
+        by=chart.by,
+        series=[AnswerSeriesOut(key=key, respondents=count) for key, count in chart.series],
         bars=[
             BarOut(
                 key=bar.choice.key,
@@ -431,6 +454,16 @@ def _answer_out(chart: AnswerChart) -> AnswerChartOut:
     )
 
 
+# The survey questions the Overview shows as bars, each split by its own ``group_<question>``.
+ANSWER_QUESTIONS = (INQUIRIES, ACTIVITIES)
+
+
+def _grouping(request: Request, name: str) -> str | None:
+    """A grouping from the address; anything else counts as none, so an old link still opens."""
+    value = request.query_params.get(name)
+    return value if value in GROUPINGS else None
+
+
 @router.get("/overview", response_model=OverviewOut)
 async def overview(
     request: Request,
@@ -440,15 +473,15 @@ async def overview(
     db: AsyncSession = Depends(get_db),
 ) -> OverviewOut:
     """One card per dimension with data, the score first (phase-2 brief §5.2); researcher
-    feedback as two bar charts instead of cards (Daniel, 2026-11-12)."""
+    feedback as two bar charts instead of cards, each following both filters and split by
+    ``group_<question>`` when asked (Daniel, 2026-11-12)."""
     context = await _context(request, user, db, profile, altmetric)
     found = context.analysis
-    keys = [
-        key
-        for key in page_keys(found.dataset)
-        if (key != SCORE or context.profile is not None) and key not in OVERVIEW_WITHOUT_CARDS
+    keys = [key for key in page_keys(found.dataset) if key != SCORE or context.profile is not None]
+    answers = [
+        found.answer_chart(question, _grouping(request, f"group_{question}"))
+        for question in ANSWER_QUESTIONS
     ]
-    answers = [found.answer_chart(question) for question in (INQUIRIES, ACTIVITIES)]
     return OverviewOut(
         scope=context.scope(),
         cards=[_card_out(found.card(key)) for key in keys],
@@ -467,16 +500,21 @@ async def dimension_page(
     request: Request,
     profile: uuid.UUID | None = None,
     altmetric: Literal["increase", "d28"] | None = None,
+    group: str | None = None,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> DimensionOut:
-    """The card's numbers and the ranked list of shown releases (phase-2 brief §5.3)."""
+    """The card's numbers and the ranked list of shown releases (phase-2 brief §5.3); split
+    into a box per year, field, unit … with ``group`` (Daniel, 2026-11-12)."""
     context = await _context(request, user, db, profile, altmetric)
     key = _page_key(context, key)
+    by = group if group in GROUPINGS else None
     return DimensionOut(
         scope=context.scope(),
         card=_card_out(context.analysis.card(key)),
         rows=[_entry_out(entry) for entry in context.analysis.rows(key)],
+        group_by=by,
+        groups=[_group_out(item) for item in context.analysis.groups(key, by)] if by else None,
     )
 
 

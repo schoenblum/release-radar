@@ -7,7 +7,7 @@ import { errorMessage } from "../../api/errors";
 import type { Institution, LandingView, UserRole } from "../../api/types";
 import { SelectField, TextField } from "../../components/fields/Autosave";
 import { useFieldSaver } from "../../components/fields/useFieldSaver";
-import { MAX_SHOWN, ZONES, zoneName } from "../../timeZones";
+import { allZones, MAX_SHOWN, ZONES, zoneName } from "../../timeZones";
 import { SectionHeader, SubHeading } from "./SettingsLayout";
 
 const ROLES: UserRole[] = ["admin", "editor", "viewer"];
@@ -21,8 +21,12 @@ function monthNames(language: string): { value: string; label: string }[] {
   }));
 }
 
-/** Up to three further zones a release time shows in, besides the institution's own. */
-function DisplayZones({
+/**
+ * Up to three further zones a release time shows in, besides the institution's own: a choice
+ * per place, any zone, in the order they show; each place can stay empty (Daniel, 2026-11-12).
+ * The zones people use most come first in each list.
+ */
+export function DisplayZones({
   institution,
   save,
 }: {
@@ -31,37 +35,66 @@ function DisplayZones({
 }) {
   const { t, i18n } = useTranslation();
   const [error, setError] = useState<unknown>(null);
-  const chosen = institution.display_time_zones;
-  const offered = ZONES.filter((zone) => zone.key !== institution.timezone);
+  const places = Array.from(
+    { length: MAX_SHOWN },
+    (_, place) => institution.display_time_zones[place] ?? null,
+  );
+  const local = institution.timezone;
+  const common = ZONES.map((zone) => zone.key).filter((key) => key !== local);
+  const others = allZones().filter((key) => key !== local && !common.includes(key));
+  const named = (key: string) => ({ key, label: zoneName(key, i18n.language) });
+  const commonOptions = common.map(named);
+  const otherOptions = others.map(named).sort((a, b) => a.label.localeCompare(b.label));
+
+  function choose(place: number, value: string | null): void {
+    setError(null);
+    // A zone chosen again moves here from its old place.
+    const next = places.map((zone, index) =>
+      index === place ? value : zone === value ? null : zone,
+    );
+    save(next, institution.field_versions.display_time_zones ?? 0).catch((failure: unknown) =>
+      setError(failure),
+    );
+  }
+
   return (
     <fieldset className="sm:col-span-2">
       <legend className="field-label">{t("settings.institution.display_zones")}</legend>
       <p className="field-hint mb-4xs mt-0">
         {t("settings.institution.display_zones_hint", { count: MAX_SHOWN })}
       </p>
-      <div className="flex flex-wrap gap-x-xs gap-y-5xs">
-        {offered.map((zone) => {
-          const on = chosen.includes(zone.key);
-          return (
-            <label key={zone.key} className="flex items-center gap-5xs">
-              <input
-                type="checkbox"
-                checked={on}
-                disabled={!on && chosen.length >= MAX_SHOWN}
-                onChange={() => {
-                  setError(null);
-                  const next = on
-                    ? chosen.filter((key) => key !== zone.key)
-                    : [...chosen, zone.key];
-                  save(next, institution.field_versions.display_time_zones ?? 0).catch(
-                    (failure: unknown) => setError(failure),
-                  );
-                }}
-              />
-              {zoneName(zone.key, i18n.language)}
-            </label>
-          );
-        })}
+      <div className="grid gap-4xs sm:grid-cols-3">
+        {places.map((zone, place) => (
+          <label key={place} className="block">
+            <span className="text-sm text-content-secondary">
+              {t("settings.institution.display_zone_place", { place: place + 1 })}
+            </span>
+            <select
+              className="input"
+              value={zone ?? ""}
+              onChange={(event) => choose(place, event.target.value || null)}
+            >
+              <option value="">{t("settings.institution.display_zone_none")}</option>
+              {zone && !common.includes(zone) && !others.includes(zone) && (
+                <option value={zone}>{zoneName(zone, i18n.language)}</option>
+              )}
+              <optgroup label={t("settings.institution.display_zones_common")}>
+                {commonOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={t("settings.institution.display_zones_all")}>
+                {otherOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </label>
+        ))}
       </div>
       {error !== null && (
         <p role="alert" className="field-error">

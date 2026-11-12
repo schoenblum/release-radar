@@ -126,7 +126,8 @@ class YearMedianOut(BaseModel):
 
 
 class ShareOut(BaseModel):
-    year: int
+    # The bar's series: a group's value, or "shown" / "analysed".
+    series: str
     count: int
     share: float
 
@@ -138,16 +139,19 @@ class BarOut(BaseModel):
     shares: list[ShareOut]
 
 
-class AnswerYearOut(BaseModel):
-    year: int
+class AnswerSeriesOut(BaseModel):
+    key: str
     respondents: int
 
 
 class AnswerChartOut(BaseModel):
-    """A survey question as bars: the share of respondents who ticked each box, per year."""
+    """A survey question as bars: the share of respondents who ticked each box, for the shown
+    releases (and the analysed ones to compare), or per group of a grouping."""
 
     question: str
-    years: list[AnswerYearOut]
+    # The grouping (ay, type, field, unit, emb, gender), or None.
+    by: str | None
+    series: list[AnswerSeriesOut]
     bars: list[BarOut]
 
 
@@ -178,10 +182,26 @@ class EntryOut(BaseModel):
     components: list[str]
 
 
+class GroupOut(BaseModel):
+    """One group of a split chart; its value as the address writes it (an ID, a year, "none",
+    "1"/"0", a gender)."""
+
+    value: str
+    n: int
+    median: float
+    # None below five values: dots and median only.
+    box: BoxOut | None
+    points: list[PointOut]
+    shown_median: float | None
+
+
 class DimensionOut(BaseModel):
     scope: ScopeOut
     card: CardOut
     rows: list[EntryOut]
+    # The grouping asked for and its groups (Daniel, 2026-11-12); None when not split.
+    group_by: str | None = None
+    groups: list[GroupOut] | None = None
 
 
 class TopOut(BaseModel):

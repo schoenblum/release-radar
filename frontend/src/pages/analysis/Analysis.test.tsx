@@ -173,33 +173,55 @@ function respond(url: string): unknown {
         { year: 2026, median: 55, n: 15, first: "2026-04-02", last: "2026-10-01" },
       ],
       answers: [
-        {
-          question: "inquiries",
-          years: [
-            { year: 2025, respondents: 40 },
-            { year: 2026, respondents: 6 },
-          ],
-          bars: [
-            {
-              key: "inq_media",
-              label_en: "Journalists/media",
-              label_ja: "報道機関（記者・放送局など）",
-              shares: [
-                { year: 2025, count: 18, share: 45 },
-                { year: 2026, count: 2, share: 100 / 3 },
+        params.get("group_inquiries") === "ay"
+          ? {
+              question: "inquiries",
+              by: "ay",
+              series: [
+                { key: "2025", respondents: 40 },
+                { key: "2026", respondents: 6 },
+              ],
+              bars: [
+                {
+                  key: "inq_media",
+                  label_en: "Journalists/media",
+                  label_ja: "報道機関（記者・放送局など）",
+                  shares: [
+                    { series: "2025", count: 18, share: 45 },
+                    { series: "2026", count: 2, share: 100 / 3 },
+                  ],
+                },
+              ],
+            }
+          : {
+              question: "inquiries",
+              by: null,
+              series: [{ key: "shown", respondents: 46 }],
+              bars: [
+                {
+                  key: "inq_media",
+                  label_en: "Journalists/media",
+                  label_ja: "報道機関（記者・放送局など）",
+                  shares: [{ series: "shown", count: 20, share: (100 * 20) / 46 }],
+                },
               ],
             },
-          ],
-        },
         {
           question: "activities",
-          years: [{ year: 2026, respondents: 6 }],
+          by: null,
+          series: [
+            { key: "shown", respondents: 6 },
+            { key: "analysed", respondents: 46 },
+          ],
           bars: [
             {
               key: "act_collab",
               label_en: "Joint research",
               label_ja: "共同研究",
-              shares: [{ year: 2026, count: 1, share: 100 / 6 }],
+              shares: [
+                { series: "shown", count: 1, share: 100 / 6 },
+                { series: "analysed", count: 23, share: 50 },
+              ],
             },
           ],
         },
@@ -228,6 +250,28 @@ function respond(url: string): unknown {
         entry("AY2025-03", 2, 300, { title: "Another" }),
         entry("AY2025-04", null, null),
       ],
+      group_by: params.get("group") === "ay" ? "ay" : null,
+      groups:
+        params.get("group") === "ay"
+          ? [
+              {
+                value: "2026",
+                n: 3,
+                median: 250,
+                box: null,
+                points: card("x").points.slice(0, 3),
+                shown_median: 250,
+              },
+              {
+                value: "2025",
+                n: 91,
+                median: 180,
+                box: { low: 43, q1: 100, median: 180, q3: 240, high: 321, n: 91 },
+                points: card("x").points.slice(3),
+                shown_median: 180,
+              },
+            ]
+          : null,
     } satisfies AnalysisDimension;
   }
   if (parsed.pathname.endsWith("/releases")) {
@@ -505,21 +549,78 @@ describe("the Analysis pages", () => {
     await waitFor(() => expect(urls()).toContain("/api/v1/analysis/top?dimension=ea_views.d28"));
   });
 
-  it("shows researcher feedback as bars per academic year", async () => {
-    setup("/analysis");
+  it("shows researcher feedback as bars for the shown releases, split on request", async () => {
+    const { actor, urls } = setup("/analysis");
     const card = await screen.findByRole("region", { name: "Who got in touch" });
     expect(within(card).getByText("Journalists/media")).toBeInTheDocument();
-    expect(within(card).getByText("AY2025: 45% (18 of 40)")).toBeInTheDocument();
-    expect(within(card).getByText("AY2026: 33% (2 of 6)")).toBeInTheDocument();
-    expect(card.querySelectorAll(".answer-fill")).toHaveLength(2);
-    expect(card.querySelector<HTMLElement>(".answer-fill")?.style.width).toBe("45%");
+    // Not split: one bar, no legend, and no year written in anywhere (Daniel, 2026-11-12).
+    expect(within(card).getByText("Shown releases: 43% (20 of 46)")).toBeInTheDocument();
+    expect(card.querySelector(".answer-legend")).toBeNull();
+    expect(card.querySelectorAll(".answer-fill")).toHaveLength(1);
     expect(
-      within(card).getByText(/Releases that answered, by academic year: AY2025: 40, AY2026: 6\./),
+      within(card).getByText(
+        "Per cent of the 46 shown releases whose researchers answered the question.",
+      ),
     ).toBeInTheDocument();
-    // One year: no legend, one bar.
+    // Fewer shown than analysed: a second bar to compare with, and a legend.
     const outcomes = screen.getByRole("region", { name: "What came of it" });
-    expect(outcomes.querySelector(".answer-legend")).toBeNull();
-    expect(outcomes.querySelectorAll(".answer-fill")).toHaveLength(1);
+    expect(outcomes.querySelectorAll(".answer-fill")).toHaveLength(2);
+    expect(within(outcomes).getByText("All analysed releases: 50% (23 of 46)")).toBeInTheDocument();
+    // Split by academic year: a bar per year. Units are not offered: 23 bars per box.
+    const choice = within(card).getByRole("combobox", { name: "Compare “Who got in touch” by" });
+    expect(within(choice).queryByRole("option", { name: "Unit" })).toBeNull();
+    await actor.selectOptions(choice, "ay");
+    expect(address()).toBe("/analysis?group_inquiries=ay");
+    await waitFor(() => expect(urls()).toContain("/api/v1/analysis/overview?group_inquiries=ay"));
+    const split = await screen.findByRole("region", { name: "Who got in touch" });
+    expect(await within(split).findByText("AY2025: 45% (18 of 40)")).toBeInTheDocument();
+    expect(within(split).getByText("AY2026: 33% (2 of 6)")).toBeInTheDocument();
+    expect(split.querySelector<HTMLElement>(".answer-fill")?.style.width).toBe("45%");
+    expect(within(split).getByText(/Releases that answered: AY2025: 40, AY2026: 6\./)).toBeInTheDocument();
+  });
+
+  it("splits a measure's chart into a box per group, on one scale", async () => {
+    const { actor, urls } = setup("/analysis/d/ea_views.d28");
+    await screen.findByRole("heading", { level: 1, name: "EurekAlert views, day 28" });
+    const choice = screen.getByRole("combobox", { name: "Compare by" });
+    // Two units among the analysed: offered here, as rows. One field or none: not offered.
+    expect(within(choice).getByRole("option", { name: "Unit" })).toBeInTheDocument();
+    expect(within(choice).queryByRole("option", { name: "Field" })).toBeNull();
+    expect(within(choice).queryByRole("option", { name: "Release type" })).toBeNull();
+    await actor.selectOptions(choice, "ay");
+    expect(address()).toBe("/analysis/d/ea_views.d28?group=ay");
+    await waitFor(() => expect(urls()).toContain("/api/v1/analysis/dimensions/ea_views.d28?group=ay"));
+    // Years in time, under the box of every analysed release; three values give no box.
+    const labels = await screen.findAllByText(/^(All analysed|AY2025|AY2026)/, { selector: ".group-label" });
+    expect(labels.map((label) => label.textContent)).toEqual([
+      "All analysed (94)",
+      "AY2025 (91)",
+      "AY2026 (3)",
+    ]);
+    const rows = document.querySelectorAll(".group-row");
+    expect(rows[1].querySelectorAll(".rr-box")).toHaveLength(1);
+    expect(rows[2].querySelectorAll(".rr-box")).toHaveLength(0);
+    expect(rows[2].querySelectorAll(".rr-median")).toHaveLength(1);
+    expect(screen.getByText(/Medians: AY2025 180, AY2026 250\./)).toBeInTheDocument();
+    await actor.click(screen.getByRole("button", { name: "Show as table" }));
+    const table = screen.getByRole("table", { name: /One row per academic year/ });
+    const year = within(table).getByRole("rowheader", { name: "AY2026" }).closest("tr");
+    expect(within(year as HTMLElement).getAllByRole("cell").map((cell) => cell.textContent)).toEqual([
+      "3",
+      "–",
+      "–",
+      "250",
+      "–",
+      "–",
+      "250 (3)",
+    ]);
+    // The split carries over to another measure, and Nothing takes it away.
+    expect(screen.getByRole("link", { name: "Score" })).toHaveAttribute(
+      "href",
+      "/analysis/d/score?group=ay",
+    );
+    await actor.selectOptions(screen.getByRole("combobox", { name: "Compare by" }), "");
+    expect(address()).toBe("/analysis/d/ea_views.d28");
   });
 
   it("says which release a clicked point is, with a link to its record", async () => {
@@ -535,7 +636,15 @@ describe("the Analysis pages", () => {
       "/data?view=all&release=r0",
     );
     expect(within(window).getByText("43")).toBeInTheDocument();
+    // The window holds the focus, not its link, so no focus ring is drawn around the title
+    // (Daniel, 2026-11-12); Tab reaches the close button, then the link.
+    expect(window).toHaveFocus();
     await actor.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    // A press anywhere outside the chart closes it too.
+    await actor.pointer({ keys: "[MouseLeft]", target: chart, coords: { clientX: 0, clientY: 0 } });
+    expect(await screen.findByRole("dialog", { name: "Release 0" })).toBeInTheDocument();
+    await actor.click(screen.getByRole("heading", { level: 1 }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 

@@ -46,7 +46,9 @@ _DOMAIN = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0
 LANDING_ROLES = {"admin", "editor", "viewer"}
 LANDING_VIEWS = {"mine", "all", "analysis"}
 # The grid and the date logic rely on these, so they stay visible.
-NOT_HIDEABLE = frozenset({"code", "title", "release_date"})
+# A record without these makes no sense, nor a grid without the first two.
+ALWAYS_IN_RECORD = frozenset({"code", "title", "release_date"})
+ALWAYS_IN_GRID = frozenset({"code", "title"})
 # The system assigns the code (D35), so nobody can be asked to fill it in.
 # A gender belongs to the researcher, and is often not known: never required of a release.
 NOT_REQUIRABLE = frozenset({"code", "researcher_gender"})
@@ -106,13 +108,22 @@ def _parse_type_ids(value: Any) -> list[str]:
     return found
 
 
-def _parse_time_zones(value: Any) -> list[str]:
-    """Up to three further zones to show release times in, from the offered list."""
-    if not isinstance(value, list) or not all(item in time_zones.BY_KEY for item in value):
+def _parse_time_zones(value: Any) -> list[str | None]:
+    """Up to three further zones to show release times in, in the order they show: any IANA
+    zone, or None for a place left empty (Daniel, 2026-11-12). A zone named twice keeps its
+    first place; empty places at the end are dropped."""
+    if not isinstance(value, list):
         raise field_error("invalid_timezone")
-    chosen = list(dict.fromkeys(value))
-    if len(chosen) > time_zones.MAX_SHOWN:
+    if len(value) > time_zones.MAX_SHOWN:
         raise field_error("too_many_time_zones")
+    known = available_timezones()
+    chosen: list[str | None] = []
+    for item in value:
+        if item is not None and (not isinstance(item, str) or item not in known):
+            raise field_error("invalid_timezone")
+        chosen.append(None if item in chosen else item)
+    while chosen and chosen[-1] is None:
+        chosen.pop()
     return chosen
 
 
@@ -151,7 +162,8 @@ MEASURE_SPECS: dict[str, FieldSpec] = {
 CORE_FIELD_SPECS: dict[str, FieldSpec] = {
     "label_en": field_patch.text(),
     "label_ja": field_patch.text(),
-    "hidden": field_patch.boolean(),
+    "in_record": field_patch.boolean(),
+    "in_grid": field_patch.boolean(),
     "required": field_patch.boolean(),
 }
 
@@ -353,10 +365,12 @@ def _core_field_out(config: CoreFieldConfig) -> CoreFieldOut:
         key=config.key,
         label_en=config.label_en,
         label_ja=config.label_ja,
-        hidden=config.hidden,
+        in_record=config.in_record,
+        in_grid=config.in_grid,
         required=config.required,
         position=config.position,
-        can_hide=config.key not in NOT_HIDEABLE,
+        can_leave_record=config.key not in ALWAYS_IN_RECORD,
+        can_leave_grid=config.key not in ALWAYS_IN_GRID,
         can_require=config.key not in NOT_REQUIRABLE,
         field_versions=config.field_versions,
     )
@@ -382,8 +396,10 @@ async def patch_core_field(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     config = await load_for_update(db, CoreFieldConfig, config_id, admin.institution_id)
-    if (patch.field == "hidden" and patch.value and config.key in NOT_HIDEABLE) or (
-        patch.field == "required" and patch.value and config.key in NOT_REQUIRABLE
+    if (
+        (patch.field == "in_record" and patch.value is False and config.key in ALWAYS_IN_RECORD)
+        or (patch.field == "in_grid" and patch.value is False and config.key in ALWAYS_IN_GRID)
+        or (patch.field == "required" and patch.value and config.key in NOT_REQUIRABLE)
     ):
         raise HTTPException(status.HTTP_409_CONFLICT, detail="core_field_locked")
     version = await patch_field(db, config, CORE_FIELD_SPECS, patch, admin.institution_id)

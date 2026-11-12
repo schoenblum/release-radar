@@ -47,12 +47,22 @@ function CoreFieldRow({
       </td>
       <td className="text-center">
         <ToggleField
-          label={t("settings.form.hidden")}
-          title={field.can_hide ? undefined : t("settings.form.cannot_hide")}
-          value={field.hidden}
-          version={versions.hidden}
-          save={saver("hidden")}
-          disabled={!field.can_hide}
+          label={t("settings.form.in_grid_label", { name: defaultLabel })}
+          title={field.can_leave_grid ? undefined : t("settings.form.always_in_grid")}
+          value={field.in_grid}
+          version={versions.in_grid}
+          save={saver("in_grid")}
+          disabled={!field.can_leave_grid}
+        />
+      </td>
+      <td className="text-center">
+        <ToggleField
+          label={t("settings.form.in_record_label", { name: defaultLabel })}
+          title={field.can_leave_record ? undefined : t("settings.form.always_in_record")}
+          value={field.in_record}
+          version={versions.in_record}
+          save={saver("in_record")}
+          disabled={!field.can_leave_record}
         />
       </td>
       <td className="text-center">
@@ -117,7 +127,8 @@ export default function FormSettings() {
               <th>{t("settings.form.field")}</th>
               <th>{t("settings.form.label_en")}</th>
               <th>{t("settings.form.label_ja")}</th>
-              <th>{t("settings.form.hidden")}</th>
+              <th>{t("settings.form.in_grid")}</th>
+              <th>{t("settings.form.in_record")}</th>
               <th>{t("settings.form.required")}</th>
               <th>{t("common.order")}</th>
             </tr>

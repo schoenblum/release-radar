@@ -18,6 +18,19 @@ import {
 } from "./labels";
 import ScoreOverTime from "./ScoreOverTime";
 
+/** A point's hover text: code, title, value. */
+export function usePointWords(decimals: number): (point: AnalysisPoint) => string {
+  const { t, i18n } = useTranslation();
+  const language: Language = i18n.language === "ja" ? "ja" : "en";
+  return useCallback(
+    (point: AnalysisPoint) =>
+      [point.code, point.title, formatValue(point.value, decimals, language)]
+        .filter(Boolean)
+        .join(" · ") + (point.inferred ? ` (${t("data.inferred")})` : ""),
+    [decimals, language, t],
+  );
+}
+
 /**
  * A dimension's chart with what it shows in words: lowest, median and highest, a plain caption,
  * the count line, and the same numbers as a table for keyboards and screen readers.
@@ -61,17 +74,7 @@ export default function ChartBlock({
             .join(t("analysis.answers.separator")),
         })
       : caption(t, language, card, sameSet, logScale);
-  const describe = useCallback(
-    (point: AnalysisPoint) =>
-      [
-        point.code,
-        point.title,
-        formatValue(point.value, card.decimals, language),
-      ]
-        .filter(Boolean)
-        .join(" · ") + (point.inferred ? ` (${t("data.inferred")})` : ""),
-    [card.decimals, language, t],
-  );
+  const describe = usePointWords(card.decimals);
 
   return (
     <div>
@@ -89,7 +92,7 @@ export default function ChartBlock({
             box={card.box}
             points={card.points}
             logScale={logScale}
-            large={large}
+            size={large ? "large" : "card"}
             label={words}
             describe={describe}
             measure={measure}

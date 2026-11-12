@@ -218,8 +218,10 @@ export default function FilterBar({
   // A retired entry stays in the list only while it is chosen.
   const offered = <T extends { id: string; is_active: boolean }>(rows: T[], chosen?: string) =>
     rows.filter((row) => row.is_active || row.id === chosen);
-  // An institution that hides the type in Settings has no use for its filter either.
-  const showType = context.coreFields.some((row) => row.key === "release_type" && !row.hidden);
+  // An institution that uses no type (neither grid nor record) has no use for its filter.
+  const showType = context.coreFields.some(
+    (row) => row.key === "release_type" && (row.in_record || row.in_grid),
+  );
 
   return (
     <div className="filter-bar" role="search" aria-label={t("data.filters.label")}>

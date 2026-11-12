@@ -19,7 +19,7 @@ interface Made {
 
 async function releases(
   word: string,
-  specs: { title: string; views: number; age?: number; feature?: boolean }[],
+  specs: { title: string; views: number; age?: number; feature?: boolean; embargoed?: boolean }[],
 ): Promise<Made> {
   const admin = await Api.signIn(ADMIN);
   const unitName = `Unit ${word}`;
@@ -33,6 +33,7 @@ async function releases(
       ea_url: `https://www.eurekalert.org/news-releases/${2_000_000 + place + Math.floor(Math.random() * 90_000)}`,
       unit_id: unit.id,
       ...(spec.feature ? { release_type_id: feature } : {}),
+      ...(spec.embargoed ? { embargoed: true } : {}),
     });
     const views = reading(release, "ea_views.d28");
     await admin.send("patch", `/readings/${views.id}`, { version: views.version, value: spec.views });
@@ -74,6 +75,17 @@ test("@webkit the overview: changing what is analysed changes the sentence and t
   await expect(views.locator("svg.rr-plot").first()).toBeVisible();
   await expect(views.locator("svg style")).toHaveCount(0);
 
+  // A clicked dot opens its window, which takes the focus itself: its title link draws no
+  // focus ring, the frame Daniel saw in Safari (2026-11-12). A click elsewhere closes it.
+  const dot = await views.locator(".rr-pickable circle").first().boundingBox();
+  if (!dot) throw new Error("No dot");
+  await page.mouse.click(dot.x + dot.width / 2, dot.y + dot.height / 2);
+  const window = page.getByRole("dialog");
+  await expect(window).toBeFocused();
+  expect(await window.getByRole("link").evaluate((link) => link.matches(":focus-visible"))).toBe(false);
+  await page.getByRole("heading", { level: 1, name: "Overview" }).click();
+  await expect(window).toBeHidden();
+
   // Analyse every type: the feature joins the box, and its median moves. What is shown stays
   // where the institution starts it, peer-reviewed publications.
   await page.getByRole("button", { name: "Analysed, Type: Peer-reviewed publication" }).click();
@@ -104,7 +116,7 @@ test("a dimension page: ranked, sorted by another column, exported with both fil
   const { unit } = await releases(word, [
     { title: "Banana", views: 300 },
     { title: "Apple", views: 100 },
-    { title: "Cherry", views: 500 },
+    { title: "Cherry", views: 500, embargoed: true },
   ]);
   await page.goto(`/analysis/d/ea_views.d28?a_unit=${unit}`);
   const table = page.getByRole("table", { name: "Ranking by EurekAlert views, day 28" });
@@ -130,6 +142,18 @@ test("a dimension page: ranked, sorted by another column, exported with both fil
   expect(lines[0].split(",").slice(0, 3)).toEqual(["Rank", "Code", "Title"]);
   expect(lines).toHaveLength(4);
   expect(lines[1]).toContain(`Cherry ${word}`);
+
+  // Split by embargo (Daniel, 2026-11-12): a row each, under every analysed release; too few
+  // for a box, so each shows its median. The ranking stays as it was.
+  await page.getByRole("combobox", { name: "Compare by" }).selectOption("emb");
+  await expect(page).toHaveURL(/group=emb/);
+  await expect(page.locator(".group-label")).toHaveText([
+    "All analysed (3)",
+    "Embargoed (1)",
+    "Not embargoed (2)",
+  ]);
+  await expect(page.getByText("Medians: Embargoed 500, Not embargoed 200.")).toBeVisible();
+  await expect(titles).toHaveText([`Apple ${word}`, `Banana ${word}`, `Cherry ${word}`]);
 
   // The record opens from the title.
   await titles.first().click();

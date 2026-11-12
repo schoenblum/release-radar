@@ -22,7 +22,7 @@ from uuid import UUID
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font
 from openpyxl.utils import get_column_letter
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.i18n import t
@@ -211,7 +211,8 @@ async def release_table(
             select(CoreFieldConfig)
             .where(
                 CoreFieldConfig.institution_id == institution.id,
-                CoreFieldConfig.hidden.is_(False),
+                # A field in use, in the record or the grid (Daniel, 2026-11-12).
+                or_(CoreFieldConfig.in_record.is_(True), CoreFieldConfig.in_grid.is_(True)),
             )
             .order_by(CoreFieldConfig.position, CoreFieldConfig.key)
         )

@@ -151,9 +151,21 @@ export function PointPopover({
     function onKey(event: KeyboardEvent): void {
       if (event.key === "Escape") onClose();
     }
+    // A press anywhere outside the chart closes the window; inside it, the chart's own click
+    // picks another dot or closes it.
+    function onPress(event: PointerEvent): void {
+      const chart = box.current?.parentElement;
+      if (chart && !chart.contains(event.target as Node)) onClose();
+    }
     document.addEventListener("keydown", onKey);
-    box.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPress);
+    // The window itself takes the focus, not its link: a link focused by a script draws the
+    // focus ring after a mouse click in Safari (Daniel, 2026-11-12). Tab reaches the link.
+    box.current?.focus({ preventScroll: true });
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPress);
+    };
   }, [onClose, point.id]);
 
   return (
@@ -161,6 +173,7 @@ export function PointPopover({
       ref={box}
       className="point-popover"
       role="dialog"
+      tabIndex={-1}
       aria-label={point.title ?? point.code ?? ""}
       style={{ left, top: y + 10, width: popoverWidth }}
     >

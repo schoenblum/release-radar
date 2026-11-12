@@ -12,13 +12,42 @@ export const PROFILE_PARAM = "profile";
 export const ALTMETRIC_PARAM = "altmetric";
 /** A release picked out on a measure's page, as from All releases. Never sent to the server. */
 export const RELEASE_PARAM = "release";
+/**
+ * What a measure's chart is split by (Daniel, 2026-11-12): one of the filter dimensions. It
+ * carries over between measures, so years compare on each in turn.
+ */
+export const GROUP_PARAM = "group";
 export const ALL = "all";
 
 const CARRIED = new Set([
   ...DIMENSIONS.flatMap((dimension) => [`a_${dimension}`, `s_${dimension}`]),
   PROFILE_PARAM,
   ALTMETRIC_PARAM,
+  GROUP_PARAM,
 ]);
+
+/** Each survey chart on the Overview has a split of its own. */
+export function answerGroupParam(question: string): string {
+  return `group_${question}`;
+}
+
+/** A grouping from the address, if it names one. */
+export function groupIn(params: URLSearchParams, name: string): FilterDimension | null {
+  const value = params.get(name);
+  return value && (DIMENSIONS as string[]).includes(value) ? (value as FilterDimension) : null;
+}
+
+/** The address with a grouping chosen, or taken away. */
+export function withGroup(
+  params: URLSearchParams,
+  name: string,
+  value: FilterDimension | null,
+): URLSearchParams {
+  const next = new URLSearchParams(params);
+  if (value) next.set(name, value);
+  else next.delete(name);
+  return next;
+}
 
 export function paramName(side: FilterSide, dimension: FilterDimension): string {
   return `${side}_${dimension}`;

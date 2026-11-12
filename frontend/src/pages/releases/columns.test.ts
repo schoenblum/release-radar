@@ -139,7 +139,9 @@ describe("which columns there are", () => {
     const ids = moved.map((c) => c.id);
     expect(ids.indexOf("publication_date")).toBe(ids.indexOf("doi") + 1);
     // Without a DOI column it still has a place.
-    const noDoi = buildColumns(context({ coreFields: coreFields({ doi: { hidden: true } }) }));
+    const noDoi = buildColumns(
+      context({ coreFields: coreFields({ doi: { in_record: false, in_grid: false } }) }),
+    );
     expect(noDoi.map((c) => c.id)).toContain("publication_date");
   });
 
@@ -149,11 +151,11 @@ describe("which columns there are", () => {
     expect(columns.filter((c) => c.locked).map((c) => c.id)).toEqual(["code", "title"]);
   });
 
-  it("offers a hidden field to nobody, and uses a label from Settings", () => {
+  it("offers a field in use by neither grid nor record to nobody, and uses a label from Settings", () => {
     const columns = buildColumns(
       context({
         coreFields: coreFields({
-          journal: { hidden: true },
+          journal: { in_record: false, in_grid: false },
           doi: { label_en: "Paper ID" },
         }),
       }),
@@ -161,6 +163,26 @@ describe("which columns there are", () => {
     expect(columns.map((c) => c.id)).not.toContain("journal");
     expect(columns.map((c) => c.id)).not.toContain("title_ja");
     expect(find(columns, "doi").label).toBe("Paper ID");
+  });
+
+  it("shows by default what Settings puts in the grid, and offers what is in the record", () => {
+    // Daniel, 2026-11-12: the release time can be put in everyone's grid.
+    const before = buildColumns(context());
+    expect(find(before, "release_time").byDefault).toBe(false);
+    expect(find(before, "unit").byDefault).toBe(true);
+    const after = buildColumns(
+      context({
+        coreFields: coreFields({
+          release_time: { in_grid: true },
+          unit: { in_grid: false },
+          title_ja: { in_grid: true },
+        }),
+      }),
+    );
+    expect(find(after, "release_time").byDefault).toBe(true);
+    expect(find(after, "unit").byDefault).toBe(false);
+    // In the grid only, not in the record: still a column.
+    expect(find(after, "title_ja").byDefault).toBe(true);
   });
 
   it("follows the order set in Settings", () => {
