@@ -8,6 +8,7 @@ import type {
   AnalysisDimension,
   AnalysisOptions,
   AnalysisOverview,
+  AnalysisReleases,
   AnalysisTop,
 } from "../../api/types";
 import { useAuth } from "../../auth";
@@ -43,6 +44,15 @@ export function useDimension(key: string) {
     queryKey: ["analysis", "dimension", key, query],
     queryFn: () =>
       http.get<AnalysisDimension>(`/analysis/dimensions/${encodeURIComponent(key)}${query}`),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useReleases() {
+  const query = queryOf(useAddress());
+  return useQuery({
+    queryKey: ["analysis", "releases", query],
+    queryFn: () => http.get<AnalysisReleases>(`/analysis/releases${query}`),
     placeholderData: keepPreviousData,
   });
 }

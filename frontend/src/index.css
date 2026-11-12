@@ -160,6 +160,24 @@
     @apply cursor-default text-content-secondary;
   }
 
+  /* A date typed as text, with a button for the browser's calendar beside it. */
+  .date-field {
+    @apply flex items-center gap-5xs;
+  }
+
+  .date-picker {
+    @apply relative inline-flex shrink-0;
+  }
+
+  .date-picker-button {
+    @apply rounded p-5xs text-content-secondary hover:bg-surface-secondary hover:text-content-primary disabled:cursor-default disabled:opacity-50;
+  }
+
+  /* Invisible, under the button, so the calendar opens there. */
+  .date-picker-native {
+    @apply pointer-events-none absolute bottom-0 left-0 h-px w-px opacity-0;
+  }
+
   .field-status {
     @apply px-5xs text-sm text-content-secondary;
   }
@@ -684,11 +702,107 @@
   .analysis-points-scroll {
     @apply max-h-72 overflow-auto;
   }
-  .analysis-title-cell {
-    @apply max-w-[28rem] whitespace-normal text-left;
+  /* Titles wrap: a table's cells keep to one line, which let long titles run over the next
+     column (Daniel, 2026-11-12). Two classes, to outweigh the table's own rule. */
+  .count-table .analysis-title-cell {
+    @apply min-w-[16rem] max-w-[28rem] whitespace-normal text-left;
   }
-  .analysis-based-on {
-    @apply max-w-[16rem] whitespace-normal text-left text-content-secondary;
+  .count-table .analysis-based-on {
+    @apply min-w-[10rem] max-w-[16rem] whitespace-normal text-left text-content-secondary;
+  }
+  .rank-table tr.is-picked td,
+  .rank-table tr.is-picked th {
+    @apply bg-accent-10;
+  }
+
+  /* Which release a dot is: a click opens a small window beside it (PointPicker.tsx). */
+  .rr-chart {
+    @apply relative;
+  }
+  .point-popover {
+    @apply absolute z-20 rounded border border-line-primary bg-surface-primary p-4xs text-left shadow-lg;
+  }
+  .point-popover-title {
+    @apply mt-5xs block font-semibold text-content-accent underline-offset-2 hover:underline;
+  }
+  .point-popover-close {
+    @apply -mr-5xs -mt-5xs rounded px-5xs text-lg leading-none text-content-secondary hover:bg-surface-secondary hover:text-content-primary;
+  }
+
+  /* Researcher feedback as bars (AnswerChart.tsx). */
+  .answer-legend {
+    @apply mb-4xs flex flex-wrap gap-x-xs gap-y-5xs text-sm;
+  }
+  .answer-legend li {
+    @apply flex items-center gap-5xs;
+  }
+  .answer-swatch {
+    @apply inline-block h-3 w-3 rounded-sm;
+  }
+  .answer-row {
+    @apply mb-4xs;
+  }
+  .answer-row dt {
+    @apply mb-5xs text-sm;
+  }
+  .answer-line {
+    @apply flex items-center gap-4xs;
+  }
+  .answer-track {
+    @apply relative h-3 flex-1 overflow-hidden rounded-sm bg-surface-secondary;
+  }
+  .answer-fill {
+    @apply block h-full;
+  }
+  .answer-share {
+    @apply w-10 shrink-0 text-right text-sm tabular-nums;
+  }
+  .answer-colour-0 {
+    background-color: var(--chart-1);
+  }
+  .answer-colour-1 {
+    background-color: var(--chart-2);
+  }
+  .answer-colour-2 {
+    background-color: var(--chart-3);
+  }
+  .answer-colour-3 {
+    background-color: var(--chart-4);
+  }
+  .answer-colour-4 {
+    background-color: var(--chart-5);
+  }
+  .answer-colour-5 {
+    background-color: var(--chart-6);
+  }
+
+  /* Analysis → All releases: a value, a bar from the median, and how far (AllReleases.tsx). */
+  .releases-table td {
+    @apply align-middle;
+  }
+  .standing {
+    @apply inline-flex items-center gap-4xs text-content-primary no-underline hover:underline;
+  }
+  .standing-value {
+    @apply min-w-[3.5rem] text-right tabular-nums;
+  }
+  .standing-track {
+    @apply relative inline-block h-2.5 w-16 shrink-0 rounded-full bg-surface-secondary;
+  }
+  .standing-middle {
+    @apply absolute bottom-[-2px] left-1/2 top-[-2px] w-px bg-line-primary;
+  }
+  .standing-bar {
+    @apply absolute bottom-0 top-0 rounded-full;
+  }
+  .standing-above {
+    background-color: var(--chart-1);
+  }
+  .standing-below {
+    background-color: var(--chart-2);
+  }
+  .standing-percent {
+    @apply min-w-[3rem] text-right text-xs tabular-nums text-content-secondary;
   }
   .rank-table td,
   .rank-table th {
@@ -737,12 +851,19 @@
   .rr-plot .rr-median line {
     stroke: var(--text-primary);
   }
+  .rr-plot .rr-pickable circle {
+    cursor: pointer;
+  }
+  .rr-plot .rr-pickable circle.rr-picked {
+    fill-opacity: 1;
+    stroke: var(--text-primary);
+    stroke-width: 2;
+  }
+  .rr-plot .rr-year-median path {
+    stroke: var(--chart-2);
+  }
 
   .btn-small[aria-pressed="true"] {
     @apply border-line-primary bg-accent-10;
-  }
-  /* The Data page's positions (phase-2 brief §5.5): small and neutral. */
-  .position-chip {
-    @apply ml-5xs inline-block rounded-full border border-line-disabled bg-surface-secondary px-5xs text-[0.6875rem] font-normal leading-4 text-content-secondary;
   }
 }

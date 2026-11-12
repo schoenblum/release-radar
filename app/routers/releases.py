@@ -59,7 +59,8 @@ from app.schemas.releases import (
     ReleasePage,
     ReleaseSaved,
 )
-from app.services import crossref, custom_values, field_patch, release_filters
+from app.services import crossref, custom_values, field_patch, release_filters, time_zones
+from app.services.audit import to_json
 from app.services.field_patch import (
     FieldConflict,
     FieldPatch,
@@ -163,7 +164,7 @@ SPECS: dict[str, FieldSpec] = {
     "authors": FieldSpec(_parse_authors),
     "embargoed": field_patch.boolean(),
     "release_date": field_patch.iso_date(),
-    "release_time_et": field_patch.clock_time(),
+    "release_time": field_patch.clock_time(),
     "ea_url": field_patch.web_address(),
     "website_url": field_patch.web_address(),
     "ea_top_page": field_patch.boolean(),
@@ -200,6 +201,60 @@ async def _patch_researcher_gender(
     await commit_unique(db)
     return {
         **patch_result(RESEARCHER_GENDER, _shown_gender(value), version),
+        "release": await _present_one(db, institution, release),
+    }
+
+
+# A release date or time given in another zone (Daniel, 2026-11-12): {"date"?, "time"?, "zone"}.
+ZONED_FIELDS = frozenset({"release_date", "release_time"})
+
+
+async def _patch_zoned(
+    db: AsyncSession, institution: Institution, release: Release, patch: FieldPatch
+) -> dict[str, Any]:
+    """Date and time as given in ``zone``, kept in the institution's zone: the date can move.
+
+    What is not given comes from the release, as it reads in that zone: a time typed in US
+    Eastern goes with the release's US Eastern date. Without a time there is nothing to
+    convert, and a date is kept as given.
+    """
+    value, local = patch.value, institution.timezone
+    zone = value.get("zone")
+    if zone != local and zone not in time_zones.BY_KEY:
+        raise field_error("invalid_timezone")
+    version = release.field_versions.get(patch.field, 0)
+    if patch.version != version:
+        raise FieldConflict(patch.field, to_json(getattr(release, patch.field)), version)
+    if release.release_date is not None and release.release_time is not None:
+        there_day, there_time = time_zones.convert(
+            release.release_date, release.release_time, local, zone
+        )
+    else:
+        there_day, there_time = release.release_date, release.release_time
+    day = there_day
+    if patch.field == "release_date":
+        day = SPECS["release_date"].parse(value.get("date"))
+        if day is None:
+            raise field_error("field_invalid")
+    at = SPECS["release_time"].parse(value["time"]) if "time" in value else there_time
+    if patch.field == "release_time" and at is not None and day is None:
+        raise field_error("release_date_first")
+    if day is not None and at is not None:
+        day, at = time_zones.convert(day, at, zone, local)
+    date_moved = day != release.release_date
+    if date_moved:
+        set_versioned(release, "release_date", day)
+    if at != release.release_time:
+        set_versioned(release, "release_time", at)
+    if date_moved:
+        await _apply_consequences(db, release, "release_date", institution)
+    await commit_unique(db)
+    return {
+        **patch_result(
+            patch.field,
+            getattr(release, patch.field),
+            release.field_versions.get(patch.field, 0),
+        ),
         "release": await _present_one(db, institution, release),
     }
 
@@ -639,6 +694,8 @@ async def patch_release(
     release = await _load(db, release_id, institution.id, lock=True)
     if patch.field == RESEARCHER_GENDER:
         return await _patch_researcher_gender(db, institution, release, patch)
+    if patch.field in ZONED_FIELDS and isinstance(patch.value, dict):
+        return await _patch_zoned(db, institution, release, patch)
     version = await patch_field(db, release, SPECS, patch, institution.id)
     if release.title is None and release.doi is None:
         raise field_error("title_or_doi_required")

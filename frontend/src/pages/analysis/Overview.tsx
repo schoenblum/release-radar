@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import ErrorNotice from "../../components/ErrorNotice";
 import { PageLoading } from "../../components/Spinner";
 import { AnalysisHeader } from "./AnalysisLayout";
+import AnswerChart from "./AnswerChart";
 import DimensionCard from "./DimensionCard";
 import { useLogScale, useOverview } from "./useAnalysis";
 
 /**
  * How the releases did, one card per dimension with data, the score first (phase-2 brief §5.2).
- * The box always describes the analysed releases; the points are the shown ones.
+ * The box always describes the analysed releases; the points are the shown ones. The score shows
+ * over time, and researcher feedback as two bar charts (Daniel, 2026-11-12).
  */
 export default function Overview() {
   const { t } = useTranslation();
@@ -16,7 +18,7 @@ export default function Overview() {
   const [isLog, setLog] = useLogScale();
   if (isLoading) return <PageLoading />;
   if (!data) return <ErrorNotice error={error} />;
-  const { scope, cards } = data;
+  const { scope, cards, score_years: scoreYears, answers } = data;
 
   return (
     <div>
@@ -45,9 +47,23 @@ export default function Overview() {
             scope={scope}
             logScale={isLog(card.key)}
             onLogScale={(on) => setLog(card.key, on)}
+            years={card.key === "score" ? scoreYears : undefined}
           />
         ))}
       </div>
+      {answers.length > 0 && (
+        <>
+          <h2 className="mb-4xs mt-s text-2xl">{t("analysis.answers.heading")}</h2>
+          <p className="mb-4xs max-w-3xl text-sm text-content-secondary">
+            {t("analysis.answers.intro")}
+          </p>
+          <div className="analysis-grid">
+            {answers.map((chart) => (
+              <AnswerChart key={chart.question} chart={chart} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

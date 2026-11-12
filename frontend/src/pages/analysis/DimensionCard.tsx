@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 
-import type { AnalysisCard, AnalysisScope } from "../../api/types";
+import type { AnalysisCard, AnalysisScope, AnalysisYearMedian } from "../../api/types";
 import ChartBlock from "./ChartBlock";
 import { cardDescription, cardLabel, type Language } from "./labels";
 import { ALTMETRIC_PARAM, pagePath } from "./state";
@@ -65,11 +65,14 @@ export default function DimensionCard({
   scope,
   logScale,
   onLogScale,
+  years,
 }: {
   card: AnalysisCard;
   scope: AnalysisScope;
   logScale: boolean;
   onLogScale: (on: boolean) => void;
+  /** The score's median per academic year: the card shows the score over time. */
+  years?: AnalysisYearMedian[];
 }) {
   const { t, i18n } = useTranslation();
   const language: Language = i18n.language === "ja" ? "ja" : "en";
@@ -87,9 +90,11 @@ export default function DimensionCard({
       {description && <p className="mb-4xs text-sm text-content-secondary">{description}</p>}
       <div className="mb-4xs flex flex-wrap items-center gap-4xs">
         {card.key === "altmetric" && <AltmetricBasis scope={scope} />}
-        {card.box && <LogScaleToggle on={logScale} onChange={onLogScale} label={label} />}
+        {card.box && !years && (
+          <LogScaleToggle on={logScale} onChange={onLogScale} label={label} />
+        )}
       </div>
-      <ChartBlock card={card} scope={scope} logScale={logScale} />
+      <ChartBlock card={card} scope={scope} logScale={logScale} years={years} />
       <Link className="analysis-open mt-auto" to={pagePath(card.key, params)}>
         {t("analysis.card.open")}
         <span className="sr-only"> {label}</span>

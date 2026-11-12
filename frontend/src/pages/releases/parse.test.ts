@@ -27,7 +27,7 @@ describe("dates", () => {
     expect(normaliseDate(text)).toBe(iso);
   });
 
-  it.each(["4/9/2026", "someday", "2026-13-01", "2026-02-30", "32-Jan-26"])(
+  it.each(["someday", "2026-13-01", "2026-02-30", "32-Jan-26"])(
     "passes %s on unchanged, for the server to explain",
     (text) => {
       expect(normaliseDate(text)).toBe(text);

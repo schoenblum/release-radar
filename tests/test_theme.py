@@ -149,6 +149,7 @@ async def test_brand_endpoint_is_public_and_shows_the_institution(client):
         "institution_name_en": "Example University",
         "institution_name_ja": "例大学",
         "timezone": "Asia/Tokyo",
+        "display_time_zones": ["America/New_York"],
         "logo": None,
     }
 

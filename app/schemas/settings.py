@@ -25,6 +25,8 @@ class InstitutionOut(_Out):
     # Where the Analysis filters start (R6.4.2): release type IDs; empty means every type.
     analysed_release_type_ids: list[UUID] | None
     shown_release_type_ids: list[UUID] | None
+    # Further zones a release time is shown in (``app.services.time_zones``).
+    display_time_zones: list[str]
     field_versions: dict[str, int]
 
 

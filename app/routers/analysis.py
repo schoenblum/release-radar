@@ -34,6 +34,9 @@ from app.models import (
     User,
 )
 from app.schemas.analysis import (
+    AnswerChartOut,
+    AnswerYearOut,
+    BarOut,
     BoxOut,
     CardOut,
     CountsOut,
@@ -46,17 +49,25 @@ from app.schemas.analysis import (
     OverviewOut,
     PageOut,
     PointOut,
-    PositionsOut,
     ProfileRef,
+    ReleaseColumnOut,
+    ReleaseLineOut,
+    ReleasesOut,
     ScopeOut,
+    ShareOut,
+    StandingOut,
     TopOut,
+    YearMedianOut,
 )
 from app.services import release_export
 from app.services.analysis import dataset as analysis
 from app.services.analysis.filters import GENDERS, AnalysisFilter
 from app.services.analysis.pages import (
+    OVERVIEW_WITHOUT_CARDS,
+    RELEASE_TABLE_KEYS,
     SCORE,
     Analysis,
+    AnswerChart,
     Card,
     Entry,
     basis_or_default,
@@ -64,6 +75,7 @@ from app.services.analysis.pages import (
 )
 from app.services.analysis.profiles import default_filters, spec_of
 from app.services.analysis.scoring import ALTMETRIC, BASIS_INCREASE
+from app.services.feedback.template import ACTIVITIES, INQUIRIES
 from app.services.readings import today_in
 from app.services.release_export import Table
 
@@ -261,6 +273,7 @@ def _card_out(card: Card) -> CardOut:
                 id=entry.row.id,
                 code=entry.row.code,
                 title=entry.row.title,
+                release_date=entry.row.release_date,
                 value=entry.value,
                 inferred=entry.inferred,
             )
@@ -402,6 +415,22 @@ async def options(
 # ---------------------------------------------------------------- pages
 
 
+def _answer_out(chart: AnswerChart) -> AnswerChartOut:
+    return AnswerChartOut(
+        question=chart.question,
+        years=[AnswerYearOut(year=year, respondents=count) for year, count in chart.years],
+        bars=[
+            BarOut(
+                key=bar.choice.key,
+                label_en=bar.choice.label_en,
+                label_ja=bar.choice.label_ja,
+                shares=[ShareOut(**vars(share)) for share in bar.shares],
+            )
+            for bar in chart.bars
+        ],
+    )
+
+
 @router.get("/overview", response_model=OverviewOut)
 async def overview(
     request: Request,
@@ -410,16 +439,25 @@ async def overview(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> OverviewOut:
-    """One card per dimension with data, the score first (phase-2 brief §5.2)."""
+    """One card per dimension with data, the score first (phase-2 brief §5.2); researcher
+    feedback as two bar charts instead of cards (Daniel, 2026-11-12)."""
     context = await _context(request, user, db, profile, altmetric)
+    found = context.analysis
     keys = [
         key
-        for key in page_keys(context.analysis.dataset)
-        if key != SCORE or context.profile is not None
+        for key in page_keys(found.dataset)
+        if (key != SCORE or context.profile is not None) and key not in OVERVIEW_WITHOUT_CARDS
     ]
+    answers = [found.answer_chart(question) for question in (INQUIRIES, ACTIVITIES)]
     return OverviewOut(
         scope=context.scope(),
-        cards=[_card_out(context.analysis.card(key)) for key in keys],
+        cards=[_card_out(found.card(key)) for key in keys],
+        score_years=(
+            [YearMedianOut(**vars(year)) for year in found.year_medians()]
+            if context.profile is not None
+            else []
+        ),
+        answers=[_answer_out(chart) for chart in answers if chart is not None],
     )
 
 
@@ -468,20 +506,63 @@ async def top_and_bottom(
     )
 
 
-@router.get("/positions", response_model=PositionsOut)
-async def positions(
-    user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-) -> PositionsOut:
-    """Every measure's percentile per release, from the default profile's settings and the
-    default inclusion filter (phase-2 brief §5.5). Releases outside that set are left out."""
-    institution = await db.get(Institution, user.institution_id)
-    analysed, shown = default_filters(institution)
-    chosen = await _profile(db, institution.id, None)
-    spec = spec_of(chosen[1]) if chosen else None
-    dataset = await analysis.load(db, institution, today_in(institution.timezone))
-    found = Analysis(dataset, analysed, shown, spec, basis_or_default(None, spec))
-    measures = [item.key for item in dataset.dimensions if item.kind == "measure"]
-    return PositionsOut(measures=measures, releases=found.positions(measures))
+@router.get("/releases", response_model=ReleasesOut)
+async def releases(
+    request: Request,
+    profile: uuid.UUID | None = None,
+    altmetric: Literal["increase", "d28"] | None = None,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> ReleasesOut:
+    """Analysis → All releases (Daniel, 2026-11-12): each shown release by title and date, on
+    the score, website views, EurekAlert views and Altmetric, each against the analysed
+    releases' median."""
+    context = await _context(request, user, db, profile, altmetric)
+    found = context.analysis
+    available = set(page_keys(found.dataset))
+    keys = [
+        key
+        for key in RELEASE_TABLE_KEYS
+        if key in available and (key != SCORE or context.profile is not None)
+    ]
+    medians, table = found.standings(keys)
+    columns = []
+    for key in keys:
+        described = found.describe(key)
+        columns.append(
+            ReleaseColumnOut(
+                key=key,
+                label_en=described.label_en,
+                label_ja=described.label_ja,
+                unit=described.unit,
+                decimals=described.decimals,
+                median=medians[key],
+            )
+        )
+    return ReleasesOut(
+        scope=context.scope(),
+        columns=columns,
+        releases=[
+            ReleaseLineOut(
+                id=row.id,
+                code=row.code,
+                title=row.title,
+                release_date=row.release_date,
+                standings={
+                    key: StandingOut(
+                        value=standing.entry.value,
+                        state=standing.entry.state,
+                        provisional=standing.entry.provisional,
+                        difference=standing.difference,
+                    )
+                    for key, standing in line.items()
+                },
+            )
+            for row, line in sorted(
+                table, key=lambda item: (-item[0].release_date.toordinal(), item[0].code or "")
+            )
+        ],
+    )
 
 
 # ---------------------------------------------------------------- exports

@@ -1,6 +1,6 @@
-"""The Analysis pages (phase-2 brief §5): cards, rankings, top and bottom, positions, the two
-filters in the address, exports and who may read them. Synthetic data; expected numbers worked
-out by hand."""
+"""The Analysis pages (phase-2 brief §5): cards, rankings, top and bottom, all releases, the
+survey's bar charts, the two filters in the address, exports and who may read them. Synthetic
+data; expected numbers worked out by hand."""
 
 import csv
 import io
@@ -14,7 +14,15 @@ from sqlalchemy import select
 
 from app.database import SessionLocal
 from app.models import Institution, Measure, Reading, Release, ReleaseType, Unit, UserRole
-from app.services.analysis.dataset import MISSING, NOT_APPLICABLE, Cell, Dataset, Dimension, Row
+from app.services.analysis.dataset import (
+    MISSING,
+    NOT_APPLICABLE,
+    Cell,
+    Choice,
+    Dataset,
+    Dimension,
+    Row,
+)
 from app.services.analysis.filters import AnalysisFilter
 from app.services.analysis.pages import Analysis, page_keys
 from app.services.analysis.scoring import ProfileSpec
@@ -352,22 +360,82 @@ async def test_the_export_names_both_filters_the_profile_and_the_date(client, ad
     assert "上位5件" in text
 
 
-async def test_positions_follow_the_default_profile_and_filter(client, headers_for):
-    made = await _releases(
-        [{"code": f"AY2026-{n:02d}", "views": n * 10} for n in range(1, 12)]
-        + [{"code": "AY2026-90", "views": 5, "type": "feature"}]
-    )
+async def test_all_releases_stand_against_the_analysed_median(client, headers_for):
+    """Daniel, 2026-11-12: the shown releases, newest first, on the score and three numbers,
+    each as a per cent above or below the analysed releases' median."""
+    made = await _releases(SPECS)
     viewer = await headers_for(UserRole.viewer)
-    body = (await client.get(f"{URL}/positions", headers=viewer)).json()
-    assert "ea_views.d28" in body["measures"]
-    releases = body["releases"]
-    # The feature is outside the default analysis: no entry, so no chip.
-    assert str(made["AY2026-90"].id) not in releases
-    # Eleven finished peer-reviewed values, at least the 10 the profile asks for.
-    # AY2026-11 (110): (10 below + ½) / 11 = 95.45.
-    top = releases[str(made["AY2026-11"].id)]
-    assert top["ea_views.d28"] == pytest.approx(10.5 / 11 * 100)
-    assert "altmetric.d28" not in top
+    response = await client.get(f"{URL}/releases", headers=viewer)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    columns = {column["key"]: column for column in body["columns"]}
+    # Only what has data: no website views or Altmetric in this synthetic set.
+    assert list(columns) == ["score", "ea_views.d28"]
+    assert columns["ea_views.d28"]["median"] == 200
+    lines = {line["code"]: line for line in body["releases"]}
+    # The feature is outside the analysed set; the newest comes first.
+    assert "AY2026-05" not in lines
+    assert body["releases"][0]["code"] == "AY2026-06"
+    views = lines["AY2026-04"]["standings"]["ea_views.d28"]
+    assert (views["value"], views["difference"]) == (400, 100)
+    assert lines["AY2026-01"]["standings"]["ea_views.d28"]["difference"] == -50
+    # Shown narrowed: fewer lines, the same median.
+    unit = str(made["AY2026-01"].unit_id)
+    body = (await client.get(f"{URL}/releases?s_unit={unit}", headers=viewer)).json()
+    assert sorted(line["code"] for line in body["releases"]) == ["AY2026-01", "AY2026-03"]
+    assert {c["key"]: c["median"] for c in body["columns"]}["ea_views.d28"] == 200
+
+
+def test_the_score_has_a_median_per_academic_year():
+    rows = [_row("a", 100, year=2024), _row("b", 300, year=2024), _row("c", 200, year=2025)]
+    medians = _analysis(rows=rows).year_medians("views")
+    assert [(item.year, item.median, item.n) for item in medians] == [
+        (2024, 200, 2),
+        (2025, 200, 1),
+    ]
+
+
+def _answered(name, year, inquiries, activities=None) -> Row:
+    row = _row(name, 1, year=year)
+    row.answers = {
+        "inquiries": None if inquiries is None else frozenset(inquiries),
+        "activities": None if activities is None else frozenset(activities),
+    }
+    return row
+
+
+def test_the_survey_bars_count_only_releases_whose_researchers_answered():
+    """Daniel, 2026-11-12: per cent of respondents who were contacted by each group, by year."""
+    choices = [
+        Choice("inquiries", "inq_media", "Media", "報道機関"),
+        Choice("inquiries", "inq_public", "Public", "一般の方"),
+        Choice("activities", "act_collab", "Joint research", "共同研究"),
+    ]
+    rows = [
+        _answered("a", 2025, {"inq_media"}),
+        _answered("b", 2025, {"inq_media", "inq_public"}),
+        _answered("c", 2025, set()),  # answered "none"
+        _answered("d", 2025, None),  # never answered: not a respondent
+        _answered("e", 2026, {"inq_public"}, {"act_collab"}),
+    ]
+    found = Analysis(
+        Dataset(TODAY, [VIEWS], rows, choices), ANALYSED, AnalysisFilter(), SPEC, "d28"
+    )
+    chart = found.answer_chart("inquiries")
+    assert chart.years == [(2025, 3), (2026, 1)]
+    media, public = chart.bars
+    assert [(share.year, share.count) for share in media.shares] == [(2025, 2), (2026, 0)]
+    assert media.shares[0].share == pytest.approx(200 / 3)
+    assert [share.share for share in public.shares] == [pytest.approx(100 / 3), 100]
+    activities = found.answer_chart("activities")
+    assert activities.years == [(2026, 1)]
+    # No question asked, or nobody answered: no chart.
+    assert (
+        Analysis(
+            Dataset(TODAY, [VIEWS], rows[:1], []), ANALYSED, AnalysisFilter(), SPEC, "d28"
+        ).answer_chart("inquiries")
+        is None
+    )
 
 
 ENDPOINTS = [
@@ -377,7 +445,7 @@ ENDPOINTS = [
     "/dimensions/score/export",
     "/top",
     "/top/export",
-    "/positions",
+    "/releases",
 ]
 
 
@@ -456,13 +524,6 @@ async def test_preferences_merge_so_a_page_keeps_the_others(client, admin_header
     )
     preferences = saved.json()["preferences"]
     assert preferences["data_columns"]["hidden"] == ["code"]
-    assert preferences["analysis_log_scale"] == ["ea_views.d28"]
-    assert preferences["data_positions"] is True
-    saved = await client.patch(
-        me, json={"preferences": {"data_positions": False}}, headers=admin_headers
-    )
-    preferences = saved.json()["preferences"]
-    assert preferences["data_positions"] is False
     assert preferences["analysis_log_scale"] == ["ea_views.d28"]
 
 

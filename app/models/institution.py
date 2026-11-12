@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
 from app.models.mixins import Audited, FieldVersioned, Timestamped, UuidKeyed
+from app.services.time_zones import EASTERN
 
 # The view each role lands on: "mine" and "all" are the two views of the Data page
 # (D30). "mine" falls back to "all" for someone with no writer entry (step 1.6).
@@ -69,4 +70,11 @@ class Institution(UuidKeyed, Timestamped, Audited, FieldVersioned, Base):
     # until first seeded (peer-reviewed publications); an empty list means every type.
     analysed_release_type_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
     shown_release_type_ids: Mapped[list | None] = mapped_column(JSONB, nullable=True)
+    # Further zones a release time is shown in, IANA names (``app.services.time_zones``).
+    display_time_zones: Mapped[list] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=lambda: [EASTERN],
+        server_default=text(f"""'["{EASTERN}"]'::jsonb"""),
+    )
     settings: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

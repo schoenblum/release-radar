@@ -301,7 +301,7 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:settings.institution.name_en` | Name (English) | 機関名（英語） | pending |
 | `frontend:settings.institution.name_ja` | Name (Japanese) | 機関名（日本語） | pending |
 | `frontend:settings.institution.timezone` | Time zone | タイムゾーン | pending |
-| `frontend:settings.institution.timezone_hint` | Dates show in this time zone. Nightly jobs switch over at the next restart. | 日付はこのタイムゾーンで表示されます。夜間の自動処理には次回の再起動後に反映されます。 | pending |
+| `frontend:settings.institution.timezone_hint` | Dates show in this time zone, and release dates and times are kept in it. Nightly jobs switch over at the next restart. | 日付はこのタイムゾーンで表示され、リリース日時もこのタイムゾーンで保存されます。夜間の自動処理には次回の再起動後に反映されます。 | pending |
 | `frontend:settings.institution.website_domain` | News website address | ニュースサイトのアドレス | pending |
 | `frontend:settings.institution.website_domain_hint` | Website views count only for releases on exactly this address, for example news.example.org. | ウェブサイト閲覧数は、このアドレス上のリリースのみが対象です（例：news.example.org）。 | pending |
 | `frontend:settings.lists.add_field` | Add a field | 分野を追加 | pending |
@@ -527,7 +527,6 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `backend:export.fields.paper_title` | Paper title | 論文タイトル | pending |
 | `backend:export.fields.publication_date` | Publication date | 論文の発表日 | pending |
 | `backend:export.fields.release_date` | Release date | リリース日 | pending |
-| `backend:export.fields.release_time_et` | Release time (ET) | リリース時刻（米国東部時間） | pending |
 | `backend:export.fields.researcher` | Researcher | 研究者 | pending |
 | `backend:export.fields.title` | Title | タイトル | pending |
 | `backend:export.fields.title_ja` | Title (Japanese) | タイトル（日本語） | pending |
@@ -1100,14 +1099,45 @@ The whole of `frontend/src/manual/ja.md` is also a draft awaiting review.
 | `frontend:nav.analysis` | Analysis | 分析 | pending |
 | `frontend:settings.institution.landing_analysis` | Analysis | 分析 | pending |
 | `frontend:analysis.sentence.full` | {{analysed}} {{shown}} | {{analysed}}{{shown}} | pending |
-| `frontend:data.positions.hint` | Percentile {{percentile}}: higher than about {{percentile}} % of comparable releases. | パーセンタイル {{percentile}}：同種のリリースの約 {{percentile}} % を上回っています。 | pending |
-| `frontend:data.positions.label` | Positions | 位置 | pending |
-| `frontend:data.positions.not_saved` | Couldn't save this choice. It applies until you leave this page. | この選択を保存できませんでした。このページを離れるまでは有効です。 | pending |
-| `frontend:data.positions.outside` | Not in the analysis: the analysis defaults leave this release out. | 分析対象外：分析の既定の設定ではこのリリースを含めていません。 | pending |
-| `frontend:data.positions.sr` | percentile | パーセンタイル | pending |
-| `frontend:data.positions.toggle_hint` | Show next to each number its percentile among comparable releases, as the default score profile compares them. | 各数値の横に、既定のスコアのプロファイルで比べた同種のリリースの中でのパーセンタイルを表示します。 | pending |
 | `frontend:analysis.filters.name_label` | {{name}}: | {{name}}： | pending |
 | `frontend:page_error.failed` | Something went wrong while showing it. Reloading usually fixes it; the rest of Release Radar works as before. If it happens again, tell whoever looks after Release Radar which page it was. | 表示中に問題が起きました。多くの場合、再読み込みで解決します。Release Radar のほかのページはこれまでどおり使えます。再び起きる場合は、どのページだったかを Release Radar の担当者に伝えてください。 | pending |
 | `frontend:page_error.load_failed` | Part of it didn't load. Release Radar may have been updated since this tab was opened, or the connection dropped. Reloading usually fixes it; the rest of Release Radar works as before. | ページの一部を読み込めませんでした。このタブを開いた後に Release Radar が更新されたか、接続が切れた可能性があります。多くの場合、再読み込みで解決します。Release Radar のほかのページはこれまでどおり使えます。 | pending |
 | `frontend:page_error.reload` | Reload the page | ページを再読み込み | pending |
 | `frontend:page_error.title` | This page couldn't be shown | このページを表示できませんでした | pending |
+| `frontend:common.pick_date` | Pick {{field}} from a calendar | カレンダーから{{field}}を選ぶ | pending |
+| `frontend:data.elsewhere` | Elsewhere: {{times}} | 他の時間帯：{{times}} | pending |
+| `frontend:data.entry_zone` | Release date and time typed in | 入力するリリース日時の時間帯 | pending |
+| `frontend:data.entry_zone_hint` | Type them as given in {{zone}}. They are kept in {{local}}, so the date can move by a day. | {{zone}}の日時をそのまま入力してください。{{local}}に変換して保存されるため、日付が1日ずれることがあります。 | pending |
+| `frontend:errors.release_date_first` | Enter the release date first: a time in another zone needs its date to be converted. | 先にリリース日を入力してください。別の時間帯の時刻は、日付がないと変換できません。 | pending |
+| `frontend:errors.too_many_time_zones` | Choose up to three time zones. | 時間帯は3つまで選べます。 | pending |
+| `frontend:release_fields.release_time` | Release time | リリース時刻 | pending |
+| `frontend:settings.institution.display_zones` | Also show release times in | リリース時刻を併せて表示する時間帯 | pending |
+| `frontend:settings.institution.display_zones_hint` | Up to {{count}}. They show when you point at a release time in the grid, and under it in a release's record. In the record, a date and time can also be typed in one of these zones. | {{count}}つまで選べます。表のリリース時刻にポインタを合わせたときと、レコードの時刻の下に表示されます。レコードでは、これらの時間帯で日時を入力することもできます。 | pending |
+| `backend:export.fields.release_time` | Release time | リリース時刻 | pending |
+| `frontend:analysis.answers.activities.describe` | Activities the researchers said came from the release. | リリースをきっかけに生まれたと研究者が答えた活動です。 | pending |
+| `frontend:analysis.answers.activities.title` | What came of it | その後の展開 | pending |
+| `frontend:analysis.answers.bar` | {{year}}: {{share}}% ({{count}} of {{total}}) | {{year}}：{{share}}%（{{total}} 件中 {{count}} 件） | pending |
+| `frontend:analysis.answers.caption` | Per cent of the releases whose researchers answered the question. Releases that answered, by academic year: {{respondents}}. | その質問に回答があったリリースに占める割合です。回答があったリリース（年度別）：{{respondents}}。 | pending |
+| `frontend:analysis.answers.heading` | What researchers told us | 研究者からのフィードバック | pending |
+| `frontend:analysis.answers.inquiries.describe` | Who contacted the researchers about the release. | リリースについて研究者に連絡してきた相手です。 | pending |
+| `frontend:analysis.answers.inquiries.title` | Who got in touch | 問い合わせの相手 | pending |
+| `frontend:analysis.answers.intro` | From the researcher feedback on the analysed releases. Each release counts once, however many of its researchers answered. | 分析対象のリリースについての研究者アンケートから集計しています。1 件のリリースに複数の研究者が回答しても、1 件として数えます。 | pending |
+| `frontend:analysis.answers.respondents` | {{year}}: {{count}} | {{year}} {{count}} 件 | pending |
+| `frontend:analysis.answers.separator` | ,  | 、 | pending |
+| `frontend:analysis.columns.academic_year` | Academic year | 年度 | pending |
+| `frontend:analysis.pick.open_hint` | Click the title to open the release. | タイトルをクリックするとリリースが開きます。 | pending |
+| `frontend:analysis.releases.above` | {{percent}}% above the median | 中央値より {{percent}}% 高い | pending |
+| `frontend:analysis.releases.below` | {{percent}}% below the median | 中央値より {{percent}}% 低い | pending |
+| `frontend:analysis.releases.caption` | The shown releases with their score, website views, EurekAlert views and Altmetric | 表示中のリリースのスコア、ウェブサイト閲覧数、EurekAlert 閲覧数、Altmetric | pending |
+| `frontend:analysis.releases.how` | The bar starts at the median of the analysed releases: to the right above it, to the left below. At twice the median or more, the bar is full and the per cent says how far. | バーは分析対象のリリースの中央値から伸びます。右は中央値より上、左は下です。中央値の 2 倍以上ではバーがいっぱいになり、どれだけ離れているかは割合で示します。 | pending |
+| `frontend:analysis.releases.intro` | Each shown release, with its score and the three numbers that travel, against the median of the analysed releases. Click a title to open the release, or a number to see it among the others. | 表示中の各リリースについて、スコアと広がりを示す 3 つの数値を、分析対象のリリースの中央値と比べて示します。タイトルをクリックするとリリースが、数値をクリックするとその指標のページが開きます。 | pending |
+| `frontend:analysis.releases.median` | Median {{median}} | 中央値 {{median}} | pending |
+| `frontend:analysis.releases.no_median` | The median is 0, so there is no per cent | 中央値が 0 のため、割合は示せません | pending |
+| `frontend:analysis.releases.no_values` | No values yet | 値はまだありません | pending |
+| `frontend:analysis.releases.none` | No shown releases. | 表示中のリリースはありません。 | pending |
+| `frontend:analysis.releases.release` | Release | リリース | pending |
+| `frontend:analysis.releases.tab` | All releases | すべてのリリース | pending |
+| `frontend:analysis.releases.title` | All releases | すべてのリリース | pending |
+| `frontend:analysis.score_time.caption` | Each dot is a shown release with a final score, by its release date. Each line is an academic year's median: {{medians}}. | 点は最終スコアのある表示中のリリースで、リリース日の位置に置いています。線は各年度の中央値です：{{medians}}。 | pending |
+| `frontend:analysis.score_time.median` | {{year}} {{median}} | {{year}} {{median}} | pending |
+| `frontend:analysis.pick.in_ranking` | Show it in the ranking | ランキングで見る | pending |

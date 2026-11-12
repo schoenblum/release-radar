@@ -10,7 +10,7 @@ import ChartBlock from "./ChartBlock";
 import { AltmetricBasis, LogScaleToggle } from "./DimensionCard";
 import { cardDescription, cardLabel, type Language } from "./labels";
 import RankingTable from "./RankingTable";
-import { queryOf } from "./state";
+import { queryOf, RELEASE_PARAM } from "./state";
 import { useDimension, useLogScale } from "./useAnalysis";
 
 /**
@@ -33,6 +33,8 @@ export default function DimensionPage() {
   const { scope, card, rows } = data;
   const label = cardLabel(card, language, scope.profile);
   const isScore = key === "score";
+  // A release picked out from All releases: clicked on the chart, and marked in the ranking.
+  const picked = params.get(RELEASE_PARAM);
 
   async function download({ format, language: chosen }: ExportChoice): Promise<void> {
     const query = queryOf(params, { format, language: chosen });
@@ -65,7 +67,7 @@ export default function DimensionPage() {
             <LogScaleToggle on={isLog(key)} onChange={(on) => setLog(key, on)} label={label} />
           )}
         </div>
-        <ChartBlock card={card} scope={scope} logScale={isLog(key)} large />
+        <ChartBlock card={card} scope={scope} logScale={isLog(key)} large selectedId={picked} />
       </section>
       <h2 className="mb-4xs mt-s text-2xl">{t("analysis.ranking")}</h2>
       <p className="mb-4xs max-w-3xl text-sm text-content-secondary">
@@ -80,6 +82,7 @@ export default function DimensionPage() {
         isScore={isScore}
         label={label}
         caption={t("analysis.ranking_caption", { name: label })}
+        picked={picked}
       />
     </div>
   );

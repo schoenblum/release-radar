@@ -41,6 +41,7 @@ from app.models import (
     VocabularyItem,
     Writer,
 )
+from app.services import time_zones
 from app.services.readings import INFERRED_ZERO, STATE_NOT_APPLICABLE, STATE_VALUE
 from app.services.release_codes import academic_year
 
@@ -132,9 +133,9 @@ def _core_value(key: str, release: Release, look: Lookups, start_month: int) -> 
         return look.named(kind.name_en, kind.name_ja) if kind else None
     if key in ("embargoed", "ea_top_page"):
         return _flag(bool(getattr(release, key)))
-    if key == "release_time_et":
+    if key == "release_time":
         # A time of day, which a spreadsheet keeps as a number; seconds are never entered.
-        moment = release.release_time_et
+        moment = release.release_time
         return moment.replace(second=0, microsecond=0, tzinfo=None) if moment else None
     if key == "authors":
         return "; ".join(filter(None, map(_author_name, release.authors))) or None
@@ -290,6 +291,9 @@ async def release_table(
     columns: list[tuple[str, Callable[[Release], Any]]] = []
     for key in keys:
         header = labels.get(key) or t(language, f"export.fields.{key}")
+        if key == "release_time":
+            # Which zone the times are in, whatever the column is called.
+            header = f"{header} ({time_zones.short_label(institution.timezone)})"
         columns.append(
             (
                 header,

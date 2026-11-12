@@ -36,7 +36,7 @@ from app.models import (
     User,
     Writer,
 )
-from app.services import audit, crossref
+from app.services import audit, crossref, time_zones
 from app.services.field_patch import set_versioned
 from app.services.readings import (
     SOURCE_MANUAL,
@@ -792,7 +792,13 @@ class _Importer:
 
         posted = read_date(cells["release_date"])
         self._note_date(posted, "release_date", row, code, empty_matters=True)
-        assign("release_date", posted.value)
+        clock_time = read_time(cells["release_time"])
+        # The workbook's dates and times are EurekAlert's, US Eastern; Release Radar keeps
+        # them in the institution's time zone, so the date can move by a day.
+        day, at = posted.value, clock_time.value
+        if day is not None and at is not None:
+            day, at = time_zones.convert(day, at, time_zones.EASTERN, self.institution.timezone)
+        assign("release_date", day)
         if release.release_date is not None:
             year = academic_year(release.release_date, self.institution.ay_start_month)
             if str(year) not in code:
@@ -806,7 +812,6 @@ class _Importer:
                     year=year,
                 )
 
-        clock_time = read_time(cells["release_time"])
         if clock_time.how == "text":
             add(
                 "info",
@@ -835,7 +840,7 @@ class _Importer:
                 column=headings["release_time"],
                 value=cells["release_time"],
             )
-        assign("release_time_et", clock_time.value)
+        assign("release_time", at)
 
         for name in ("ea_url", "website_url"):
             link = read_text(cells[name])
@@ -1081,7 +1086,7 @@ _FIELD_COLUMNS = {
     "publication_date": "doi",
     "authors": "doi",
     "embargoed": "embargo",
-    "release_time_et": "release_time",
+    "release_time": "release_time",
     "ea_top_page": "notes",
     "ea_top_position": "notes",
 }

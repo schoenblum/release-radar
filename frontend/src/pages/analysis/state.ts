@@ -10,6 +10,8 @@ export const DIMENSIONS: FilterDimension[] = ["type", "ay", "unit", "field", "em
 export type FilterSide = "a" | "s";
 export const PROFILE_PARAM = "profile";
 export const ALTMETRIC_PARAM = "altmetric";
+/** A release picked out on a measure's page, as from All releases. Never sent to the server. */
+export const RELEASE_PARAM = "release";
 export const ALL = "all";
 
 const CARRIED = new Set([

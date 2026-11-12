@@ -86,6 +86,8 @@
     "field_out_of_range": "That number is outside the allowed range.",
     "field_not_editable": "This can't be changed.",
     "invalid_timezone": "Please choose a time zone from the list.",
+    "release_date_first": "Enter the release date first: a time in another zone needs its date to be converted.",
+    "too_many_time_zones": "Choose up to three time zones.",
     "invalid_domain": "Please enter an address like news.example.org.",
     "invalid_email": "Please enter a valid email address.",
     "invalid_code_pattern": "The pattern needs both {yyyy} and {nn}, and nothing else in braces.",
@@ -138,6 +140,7 @@
   "common": {
     "saving": "Saving…",
     "saved": "Saved",
+    "pick_date": "Pick {{field}} from a calendar",
     "active": "Active",
     "add": "Add",
     "apply": "Apply",
@@ -205,7 +208,9 @@
       "name_en": "Name (English)",
       "name_ja": "Name (Japanese)",
       "timezone": "Time zone",
-      "timezone_hint": "Dates show in this time zone. Nightly jobs switch over at the next restart.",
+      "timezone_hint": "Dates show in this time zone, and release dates and times are kept in it. Nightly jobs switch over at the next restart.",
+      "display_zones": "Also show release times in",
+      "display_zones_hint": "Up to {{count}}. They show when you point at a release time in the grid, and under it in a release's record. In the record, a date and time can also be typed in one of these zones.",
       "ay_start": "Academic year starts in",
       "website_domain": "News website address",
       "website_domain_hint": "Website views count only for releases on exactly this address, for example news.example.org.",
@@ -624,6 +629,7 @@
     "embargoed": "Embargoed",
     "release_date": "Release date",
     "release_time_et": "Release time (ET)",
+    "release_time": "Release time",
     "ea_url": "EurekAlert link",
     "website_url": "Website link",
     "ea_top_page": "EurekAlert top page",
@@ -661,6 +667,9 @@
     "due_title": "Due now",
     "due_count": "Due now: {{count}}",
     "caught_up": "All caught up. Nothing is due.",
+    "entry_zone": "Release date and time typed in",
+    "entry_zone_hint": "Type them as given in {{zone}}. They are kept in {{local}}, so the date can move by a day.",
+    "elsewhere": "Elsewhere: {{times}}",
     "open_to_fill": "Open to fill in",
     "failed_hint": "Press Enter or Backspace to correct it, or Esc to go back to what was there.",
     "paste_result": "{{saved}} saved, {{invalid}} invalid: see the highlighted cells.",
@@ -775,14 +784,6 @@
       "activities": "Activities",
       "inquiries": "Inquiries",
       "comments": "Comments"
-    },
-    "positions": {
-      "label": "Positions",
-      "toggle_hint": "Show next to each number its percentile among comparable releases, as the default score profile compares them.",
-      "hint": "Percentile {{percentile}}: higher than about {{percentile}} % of comparable releases.",
-      "outside": "Not in the analysis: the analysis defaults leave this release out.",
-      "sr": "percentile",
-      "not_saved": "Couldn't save this choice. It applies until you leave this page."
     }
   },
   "writers": {
@@ -922,7 +923,8 @@
       "percentile": "Percentile",
       "coverage": "Coverage",
       "based_on": "Based on",
-      "state": "State"
+      "state": "State",
+      "academic_year": "Academic year"
     },
     "states": {
       "value": "Value",
@@ -954,6 +956,44 @@
       "lowest_caption": "The five lowest by {{name}}",
       "none": "No finished release among the shown ones has a value yet.",
       "lowest_none": "Too few releases for a second list: each one is already above."
+    },
+    "score_time": {
+      "caption": "Each dot is a shown release with a final score, by its release date. Each line is an academic year's median: {{medians}}.",
+      "median": "{{year}} {{median}}"
+    },
+    "answers": {
+      "heading": "What researchers told us",
+      "intro": "From the researcher feedback on the analysed releases. Each release counts once, however many of its researchers answered.",
+      "separator": ", ",
+      "respondents": "{{year}}: {{count}}",
+      "bar": "{{year}}: {{share}}% ({{count}} of {{total}})",
+      "caption": "Per cent of the releases whose researchers answered the question. Releases that answered, by academic year: {{respondents}}.",
+      "inquiries": {
+        "title": "Who got in touch",
+        "describe": "Who contacted the researchers about the release."
+      },
+      "activities": {
+        "title": "What came of it",
+        "describe": "Activities the researchers said came from the release."
+      }
+    },
+    "releases": {
+      "tab": "All releases",
+      "title": "All releases",
+      "intro": "Each shown release, with its score and the three numbers that travel, against the median of the analysed releases. Click a title to open the release, or a number to see it among the others.",
+      "release": "Release",
+      "caption": "The shown releases with their score, website views, EurekAlert views and Altmetric",
+      "median": "Median {{median}}",
+      "no_values": "No values yet",
+      "above": "{{percent}}% above the median",
+      "below": "{{percent}}% below the median",
+      "no_median": "The median is 0, so there is no per cent",
+      "none": "No shown releases.",
+      "how": "The bar starts at the median of the analysed releases: to the right above it, to the left below. At twice the median or more, the bar is full and the per cent says how far."
+    },
+    "pick": {
+      "open_hint": "Click the title to open the release.",
+      "in_ranking": "Show it in the ranking"
     }
   },
   "page_error": {

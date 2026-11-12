@@ -24,6 +24,8 @@ class BrandOut(BaseModel):
     institution_name_en: str
     institution_name_ja: str | None
     timezone: str
+    # Further zones a release time is shown in.
+    display_time_zones: list[str]
     logo: LogoOut | None
 
 
@@ -41,6 +43,7 @@ async def brand(db: AsyncSession = Depends(get_db)) -> BrandOut:
         institution_name_en=institution.name_en,
         institution_name_ja=institution.name_ja,
         timezone=institution.timezone,
+        display_time_zones=institution.display_time_zones,
         logo=logo,
     )
 

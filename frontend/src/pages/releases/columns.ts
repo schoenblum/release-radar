@@ -16,8 +16,15 @@ import type {
   Writer,
 } from "../../api/types";
 import { translate } from "../../i18n";
+import { inOtherZones, shortLabel } from "../../timeZones";
 import { parseGender } from "./gender";
 import { formatNumber, isNotApplicable, normaliseDate, parseBoolean } from "./parse";
+import {
+  releaseDateValue,
+  releaseMomentSnapshot,
+  releaseTimeValue,
+  shownTime,
+} from "./releaseMoment";
 
 /** How the grid edits a column. "none" is edited in the drawer, as it needs more room. */
 export type EditorKind =
@@ -58,8 +65,6 @@ export interface CellView {
   href?: string;
   /** A small word after the value, such as "inferred". */
   badge?: string;
-  /** The value's percentile among comparable releases, as a small chip (BRIEF §8.4). */
-  position?: number;
 }
 
 export type Parsed = { ok: true; commit: Commit } | { ok: false; code: string };
@@ -112,11 +117,10 @@ export interface GridContext {
   writers: Writer[];
   releaseTypes: ReleaseType[];
   vocabularyItems: Record<string, VocabularyItem[]>;
-  /**
-   * Each release's percentile per measure from the default analysis (phase-2 brief §5.5), or
-   * null when positions are off. A release that is not a key is outside the analysis.
-   */
-  positions?: Record<string, Record<string, number>> | null;
+  /** The institution's time zone, which release dates and times are kept in. */
+  timezone: string;
+  /** Further zones a release time is shown in, on hover. */
+  displayZones: string[];
 }
 
 // R7.5.2, the paper's date (it decides how soon a release is needed), and whatever analysis
@@ -154,7 +158,7 @@ const WIDTHS: Record<string, number> = {
   researcher_gender: 120,
   publication_date: 116,
   embargoed: 90,
-  release_time_et: 96,
+  release_time: 96,
   ea_top_page: 90,
   ea_url: 96,
   website_url: 96,
@@ -170,7 +174,9 @@ function named(language: "en" | "ja", en: string, ja: string | null | undefined)
 
 function coreLabel(context: GridContext, config: CoreField): string {
   const custom = context.language === "ja" ? config.label_ja : config.label_en;
-  return custom || translate(context.t, `release_fields.${config.key}`);
+  const label = custom || translate(context.t, `release_fields.${config.key}`);
+  // Which zone the times are in, whatever the column is called.
+  return config.key === "release_time" ? `${label} (${shortLabel(context.timezone)})` : label;
 }
 
 const plain = (text: string, tone: Tone = "plain"): CellView => ({ text, tone });
@@ -211,6 +217,8 @@ interface CoreSpec {
   editable?: (release: Release) => boolean;
   /** Only ever shown here, and changed elsewhere. */
   readOnly?: boolean;
+  /** What undo puts back, when it is more than this field's value. */
+  snapshot?: (release: Release) => { field: string; value: unknown };
 }
 
 function matchOption(options: Option[], text: string): string | null {
@@ -228,7 +236,8 @@ function viewOption(options: Option[], id: string | null | undefined): CellView 
 }
 
 function coreSpec(context: GridContext, key: string): CoreSpec | null {
-  const { language, t } = context;
+  const { language, t, displayZones } = context;
+  const local = context.timezone;
   const units: Option[] = context.units
     .filter((unit) => unit.is_active)
     .map((unit) => ({
@@ -363,14 +372,30 @@ function coreSpec(context: GridContext, key: string): CoreSpec | null {
         view: (release) => viewOption(allReleaseTypes, release.release_type_id),
       };
     case "publication_date":
-    case "release_date":
       return { field: key, editor: "date", clean: normaliseDate };
-    case "release_time_et":
+    // Typed with a time and a zone, such as "2026-11-10 10:00 ET", both are converted to the
+    // institution's zone (Daniel, 2026-11-12).
+    case "release_date":
+      return {
+        field: key,
+        editor: "date",
+        read: (text) => ({ ok: true, value: releaseDateValue(text, local, local) }),
+        snapshot: (release) => releaseMomentSnapshot(release, "release_date", local),
+      };
+    case "release_time":
       return {
         field: key,
         editor: "text",
-        view: (release) => plain(release.release_time_et?.slice(0, 5) ?? ""),
-        editText: (release) => release.release_time_et?.slice(0, 5) ?? "",
+        view: (release) => ({
+          ...plain(shownTime(release.release_time)),
+          hint:
+            inOtherZones(release.release_date, release.release_time, local, displayZones).join(
+              " · ",
+            ) || undefined,
+        }),
+        editText: (release) => shownTime(release.release_time),
+        read: (text) => ({ ok: true, value: releaseTimeValue(text, local, local) }),
+        snapshot: (release) => releaseMomentSnapshot(release, "release_time", local),
       };
     case "embargoed":
       return { field: key, editor: "boolean" };
@@ -462,13 +487,21 @@ function coreColumn(context: GridContext, config: CoreField): GridColumn | null 
         commit: { kind: "field", field, value: spec.clean ? spec.clean(text) : text },
       };
     },
-    snapshot: (release) =>
-      readOnly || editor === "none" ? null : { kind: "field", field, value: raw(release) },
+    snapshot: (release) => {
+      if (readOnly || editor === "none") return null;
+      if (spec.snapshot) return { kind: "field", ...spec.snapshot(release) };
+      return { kind: "field", field, value: raw(release) };
+    },
     sortValue: (release) => {
       const value = raw(release);
       if (isBoolean) return value ? 1 : 0;
       if (LINKS.has(key)) return value ? 1 : null;
-      if (options.length > 0 || editor === "researcher" || key === "authors" || spec.read) {
+      if (
+        options.length > 0 ||
+        editor === "researcher" ||
+        key === "authors" ||
+        (spec.read && spec.view)
+      ) {
         return (spec.view ? spec.view(release).text : "") || null;
       }
       if (typeof value === "number") return value;
@@ -490,24 +523,6 @@ export function readingSnapshot(reading: Reading): ReadingBody {
     return { state: "not_applicable" };
   }
   return { state: "missing" };
-}
-
-/** A value's chip: its percentile when the release is analysed, a hint when it is not. */
-function withPosition(view: CellView, context: GridContext, releaseId: string, key: string): CellView {
-  if (!context.positions) return view;
-  const { t } = context;
-  const found = context.positions[releaseId];
-  if (found === undefined) {
-    return { ...view, hint: [view.hint, t("data.positions.outside")].filter(Boolean).join(" · ") };
-  }
-  const percentile = found[key];
-  if (percentile === undefined) return view;
-  const position = Math.round(percentile);
-  return {
-    ...view,
-    position,
-    hint: [view.hint, t("data.positions.hint", { percentile: position })].filter(Boolean).join(" · "),
-  };
 }
 
 function measureColumn(context: GridContext, measure: Measure): GridColumn {
@@ -532,15 +547,10 @@ function measureColumn(context: GridContext, measure: Measure): GridColumn {
       if (!reading) return { text: "", tone: "muted" };
       if (reading.inferred) {
         // R8.1.3: a 0 no one typed, because it cannot be anything else.
-        return withPosition(
-          { text: "0", tone: "plain", badge: t("data.inferred"), hint: t("data.inferred_why") },
-          context,
-          release.id,
-          measure.key,
-        );
+        return { text: "0", tone: "plain", badge: t("data.inferred"), hint: t("data.inferred_why") };
       }
       if (reading.display_state === "value") {
-        return withPosition(plain(formatNumber(reading.value ?? 0)), context, release.id, measure.key);
+        return plain(formatNumber(reading.value ?? 0));
       }
       if (reading.display_state === "not_applicable") {
         return { text: t("data.not_applicable"), tone: "na" };

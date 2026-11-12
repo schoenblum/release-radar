@@ -252,27 +252,6 @@ describe("what a number cell shows", () => {
     expect(day0.snapshot(row)).toMatchObject({ body: { state: "missing" } });
   });
 
-  it("shows a value's position among comparable releases as a chip, when positions are on", () => {
-    const positions = { "1": { "ea_views.d0": 72.6 }, "2": {} };
-    const views = find(buildColumns(context({ measures: MEASURES, positions })), "measure:ea_views.d0");
-    const valued = (id: string) =>
-      release(id, {
-        readings: [reading("ea_views.d0", { value: 1234, state: "value", display_state: "value" })],
-      });
-    const cell = views.view(valued("1"));
-    expect(cell).toMatchObject({ text: "1,234", position: 73 });
-    expect(cell.hint).toBe("Percentile 73: higher than about 73 % of comparable releases.");
-    // Analysed, but too few values to compare with: no chip.
-    expect(views.view(valued("2")).position).toBeUndefined();
-    // Outside the analysis: no chip, and the hover says why.
-    const outside = views.view(valued("3"));
-    expect(outside.position).toBeUndefined();
-    expect(outside.hint).toBe("Not in the analysis: the analysis defaults leave this release out.");
-    // Positions off: nothing at all.
-    const off = find(buildColumns(context({ measures: MEASURES, positions: null })), "measure:ea_views.d0");
-    expect(off.view(valued("1"))).toEqual({ text: "1,234", tone: "plain" });
-  });
-
   it("does not ask anyone for an automatic number, or let it be typed here", () => {
     const auto = find(buildColumns(context({ measures: MEASURES })), "measure:hp_views.d28");
     const row = release("1", { readings: [reading("hp_views.d28")] });
@@ -386,6 +365,50 @@ describe("reading what is typed", () => {
     expect(find(columns(), "code").parse("AY2026-99", row).ok).toBe(false);
     const read = buildColumns(context({ canEdit: false, measures: MEASURES }));
     expect(read.some((column) => column.isEditable(row))).toBe(false);
+  });
+});
+
+describe("the release date and time", () => {
+  beforeEach(() => applyLanguage("en"));
+  const ET = "America/New_York";
+
+  it("takes a date as people write it, and a date with a time in another zone together", () => {
+    const columns = buildColumns(context());
+    const date = find(columns, "release_date");
+    const field = (value: unknown) => ({ ok: true, commit: { kind: "field", field: "release_date", value } });
+    expect(date.parse("26/11/10", release("1"))).toEqual(field("2026-11-10"));
+    expect(date.parse("10 Nov 2026, 10:00 ET", release("1"))).toEqual(
+      field({ date: "2026-11-10", time: "10:00", zone: ET }),
+    );
+    expect(date.parse("", release("1"))).toEqual(field(null));
+  });
+
+  it("names the zone in the time's heading, and shows the time elsewhere on hover", () => {
+    const columns = buildColumns(context());
+    const time = find(columns, "release_time");
+    expect(time.label).toBe("Release time (JST)");
+    const saved = release("1", { release_date: "2026-11-10", release_time: "14:10:00" });
+    expect(time.view(saved)).toMatchObject({ text: "14:10", hint: "00:10 ET" });
+    expect(time.parse("10:00 ET", saved)).toEqual({
+      ok: true,
+      commit: { kind: "field", field: "release_time", value: { time: "10:00", zone: ET } },
+    });
+    expect(time.parse("9:30", saved)).toEqual({
+      ok: true,
+      commit: { kind: "field", field: "release_time", value: "09:30" },
+    });
+  });
+
+  it("puts the date and time back together on undo", () => {
+    const columns = buildColumns(context());
+    const saved = release("1", { release_date: "2026-11-11", release_time: "00:00:00" });
+    const back = {
+      kind: "field",
+      field: "release_date",
+      value: { date: "2026-11-11", time: "00:00:00", zone: "Asia/Tokyo" },
+    };
+    expect(find(columns, "release_time").snapshot(saved)).toEqual(back);
+    expect(find(columns, "release_date").snapshot(saved)).toEqual(back);
   });
 });
 

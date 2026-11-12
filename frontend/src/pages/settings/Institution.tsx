@@ -1,10 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { http } from "../../api/client";
+import { errorMessage } from "../../api/errors";
 import type { Institution, LandingView, UserRole } from "../../api/types";
 import { SelectField, TextField } from "../../components/fields/Autosave";
 import { useFieldSaver } from "../../components/fields/useFieldSaver";
+import { MAX_SHOWN, ZONES, zoneName } from "../../timeZones";
 import { SectionHeader, SubHeading } from "./SettingsLayout";
 
 const ROLES: UserRole[] = ["admin", "editor", "viewer"];
@@ -16,6 +19,57 @@ function monthNames(language: string): { value: string; label: string }[] {
     value: String(month + 1),
     label: format.format(new Date(2026, month, 1)),
   }));
+}
+
+/** Up to three further zones a release time shows in, besides the institution's own. */
+function DisplayZones({
+  institution,
+  save,
+}: {
+  institution: Institution;
+  save: (value: unknown, version: number) => Promise<unknown>;
+}) {
+  const { t, i18n } = useTranslation();
+  const [error, setError] = useState<unknown>(null);
+  const chosen = institution.display_time_zones;
+  const offered = ZONES.filter((zone) => zone.key !== institution.timezone);
+  return (
+    <fieldset className="sm:col-span-2">
+      <legend className="field-label">{t("settings.institution.display_zones")}</legend>
+      <p className="field-hint mb-4xs mt-0">
+        {t("settings.institution.display_zones_hint", { count: MAX_SHOWN })}
+      </p>
+      <div className="flex flex-wrap gap-x-xs gap-y-5xs">
+        {offered.map((zone) => {
+          const on = chosen.includes(zone.key);
+          return (
+            <label key={zone.key} className="flex items-center gap-5xs">
+              <input
+                type="checkbox"
+                checked={on}
+                disabled={!on && chosen.length >= MAX_SHOWN}
+                onChange={() => {
+                  setError(null);
+                  const next = on
+                    ? chosen.filter((key) => key !== zone.key)
+                    : [...chosen, zone.key];
+                  save(next, institution.field_versions.display_time_zones ?? 0).catch(
+                    (failure: unknown) => setError(failure),
+                  );
+                }}
+              />
+              {zoneName(zone.key, i18n.language)}
+            </label>
+          );
+        })}
+      </div>
+      {error !== null && (
+        <p role="alert" className="field-error">
+          {errorMessage(t, error)}
+        </p>
+      )}
+    </fieldset>
+  );
 }
 
 export default function InstitutionSettings() {
@@ -84,6 +138,7 @@ export default function InstitutionSettings() {
             hint={t("settings.institution.timezone_hint")}
           />
         </div>
+        <DisplayZones institution={data} save={saver("display_time_zones")} />
         <div>
           <label className="field-label" htmlFor="ay-start">
             {t("settings.institution.ay_start")}

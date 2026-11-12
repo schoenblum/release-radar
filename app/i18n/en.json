@@ -74,7 +74,7 @@
       "authors": "Authors",
       "embargoed": "Embargoed",
       "release_date": "Release date",
-      "release_time_et": "Release time (ET)",
+      "release_time": "Release time",
       "ea_url": "EurekAlert link",
       "website_url": "Website link",
       "ea_top_page": "EurekAlert top page",

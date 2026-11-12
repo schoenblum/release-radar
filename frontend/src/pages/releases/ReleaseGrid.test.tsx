@@ -42,9 +42,7 @@ function Harness({
   newRow = null,
   sort = null,
   onSort,
-  positions = null,
 }: {
-  positions?: Record<string, Record<string, number>> | null;
   apply: Apply;
   onOpen: (id: string) => void;
   canEdit?: boolean;
@@ -55,7 +53,7 @@ function Harness({
 }) {
   const [list] = useState(initial);
   const saves = useCellSaves(apply);
-  const columns = buildColumns(context({ measures: MEASURES, canEdit, positions }));
+  const columns = buildColumns(context({ measures: MEASURES, canEdit }));
   return (
     <ReleaseGrid
       rows={list}
@@ -81,7 +79,6 @@ function setup(
     initial?: Release[];
     newRow?: React.ReactNode;
     sort?: SortState | null;
-    positions?: Record<string, Record<string, number>> | null;
   } = {},
 ) {
   const apply = vi.fn<Apply>(options.apply ?? (async () => undefined));
@@ -97,7 +94,6 @@ function setup(
         newRow={options.newRow}
         sort={options.sort}
         onSort={onSort}
-        positions={options.positions}
       />
     </ToastProvider>,
   );
@@ -641,27 +637,3 @@ describe("the data grid", () => {
   });
 });
 
-describe("positions in the grid (phase-2 brief §5.5)", () => {
-  it("shows a small chip with the percentile, which a screen reader reads as such", () => {
-    const initial = rows(2).map((row) => ({
-      ...row,
-      readings: row.readings.map((item) =>
-        item.measure_key === "views.d0"
-          ? { ...item, value: 1234, state: "value" as const, display_state: "value" as const }
-          : item,
-      ),
-    }));
-    setup({ initial, positions: { "1": { "views.d0": 41.7 } } });
-    const first = cell("1", VIEWS);
-    expect(first).toHaveTextContent("1,234percentile42");
-    expect(first.querySelector(".position-chip")).toHaveTextContent("42");
-    expect(first).toHaveAttribute("title", "Percentile 42: higher than about 42 % of comparable releases.");
-    // The second release is outside the analysis: no chip, and the hover says so.
-    const second = cell("2", VIEWS);
-    expect(second.querySelector(".position-chip")).toBeNull();
-    expect(second).toHaveAttribute(
-      "title",
-      "Not in the analysis: the analysis defaults leave this release out.",
-    );
-  });
-});

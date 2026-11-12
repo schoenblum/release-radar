@@ -74,7 +74,7 @@
       "authors": "著者",
       "embargoed": "エンバーゴあり",
       "release_date": "リリース日",
-      "release_time_et": "リリース時刻（米国東部時間）",
+      "release_time": "リリース時刻",
       "ea_url": "EurekAlert のリンク",
       "website_url": "ウェブサイトのリンク",
       "ea_top_page": "EurekAlert トップページ掲載",

@@ -30,6 +30,10 @@ class FeedbackDimensions:
     research_outcomes: int | None
     inquiries: int | None
     inquiries_external: int | None
+    # Which groups and activities were ticked, for the Overview's bar charts (Daniel,
+    # 2026-11-12). None: the question was not answered.
+    inquiry_keys: frozenset[str] | None = None
+    activity_keys: frozenset[str] | None = None
 
 
 @dataclass(frozen=True)
@@ -77,6 +81,8 @@ def dimensions(
         inquiries_external=(
             sum(1 for key in inquiries if items[key].external) if inquiries is not None else None
         ),
+        inquiry_keys=frozenset(inquiries) if inquiries is not None else None,
+        activity_keys=frozenset(outcomes) if outcomes is not None else None,
     )
 
 

@@ -117,6 +117,13 @@ async def test_saving_the_same_value_does_not_raise_the_version(client, admin_he
         ("landing_pages", {"admin": "all"}, "field_invalid"),
         ("landing_pages", {"admin": "x", "editor": "all", "viewer": "all"}, "field_invalid"),
         ("major_outlet_threshold", 5, "field_not_editable"),
+        ("display_time_zones", ["Mars/Olympus"], "invalid_timezone"),
+        ("display_time_zones", "America/New_York", "invalid_timezone"),
+        (
+            "display_time_zones",
+            ["America/New_York", "Europe/London", "UTC", "Europe/Paris"],
+            "too_many_time_zones",
+        ),
         ("id", "x", "field_not_editable"),
     ],
 )
@@ -126,6 +133,17 @@ async def test_invalid_values_are_refused_with_a_translatable_reason(
     response = await _patch(client, INSTITUTION, admin_headers, field, value)
     assert response.status_code == 422
     assert response.json() == {"detail": code}
+
+
+async def test_release_times_show_in_up_to_three_further_zones(client, admin_headers, headers_for):
+    """Daniel, 2026-11-12. US Eastern to start with, as EurekAlert works in it."""
+    brand = (await client.get("/api/v1/brand")).json()
+    assert brand["display_time_zones"] == ["America/New_York"]
+    chosen = ["Europe/London", "America/New_York", "Europe/London"]
+    saved = await _patch(client, INSTITUTION, admin_headers, "display_time_zones", chosen)
+    assert saved.json()["value"] == ["Europe/London", "America/New_York"]
+    brand = (await client.get("/api/v1/brand")).json()
+    assert brand["display_time_zones"] == ["Europe/London", "America/New_York"]
 
 
 async def test_values_are_cleaned_up(client, admin_headers):

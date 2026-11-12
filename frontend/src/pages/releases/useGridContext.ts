@@ -29,12 +29,10 @@ function useList<T>(path: string, queryKey: readonly unknown[]) {
 }
 
 /** Everything the columns depend on, with what Settings says about them. */
-export function useGridColumns(
-  positions: GridContext["positions"] = null,
-): { columns: GridColumn[] | null; context: GridContext | null } {
+export function useGridColumns(): { columns: GridColumn[] | null; context: GridContext | null } {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const { timezone } = useBrand();
+  const { timezone, displayTimeZones } = useBrand();
   const coreFields = useList<CoreField>("/core-fields", ["core-fields"]);
   const checkpoints = useList<Checkpoint>("/checkpoints", ["checkpoints"]);
   const measures = useList<Measure>("/measures", ["measures"]);
@@ -90,7 +88,8 @@ export function useGridColumns(
       vocabularyItems: Object.fromEntries(
         vocabularyIds.map((id, index) => [id, vocabularies[index]?.data ?? []]),
       ),
-      positions,
+      timezone: timezone ?? "Asia/Tokyo",
+      displayZones: displayTimeZones,
     };
     // The queries array is new on each render. Its update times say when it changed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,6 +97,7 @@ export function useGridColumns(
     t,
     language,
     timezone,
+    displayTimeZones,
     user,
     coreFields.data,
     checkpoints.data,
@@ -109,7 +109,6 @@ export function useGridColumns(
     releaseTypes.data,
     vocabularyIds,
     vocabularyKey,
-    positions,
   ]);
   const columns = useMemo(() => (context ? buildColumns(context) : null), [context]);
   return { columns, context };

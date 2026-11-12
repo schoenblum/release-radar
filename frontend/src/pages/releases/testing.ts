@@ -29,7 +29,7 @@ const CORE_KEYS = [
   "authors",
   "embargoed",
   "release_date",
-  "release_time_et",
+  "release_time",
   "ea_url",
   "website_url",
   "ea_top_page",
@@ -172,7 +172,7 @@ export function release(id: string, changes: Partial<Release> = {}): Release {
     embargoed: false,
     release_date: "2026-05-01",
     academic_year: 2026,
-    release_time_et: null,
+    release_time: null,
     ea_url: null,
     website_url: null,
     ea_top_page: false,
@@ -205,6 +205,8 @@ export function context(changes: Partial<GridContext> = {}): GridContext {
     writers: [],
     releaseTypes: [],
     vocabularyItems: {},
+    timezone: "Asia/Tokyo",
+    displayZones: ["America/New_York"],
     ...changes,
   };
 }

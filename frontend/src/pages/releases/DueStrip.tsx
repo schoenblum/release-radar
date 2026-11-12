@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ApiError, http } from "../../api/client";
 import { errorMessage } from "../../api/errors";
 import type { DueItem, Reading, ReleaseSaved } from "../../api/types";
+import { normaliseDate } from "../../dates";
 import { DUE_KEY, useReleaseActions } from "./useReleaseData";
 
 function itemKey(item: DueItem): string {
@@ -86,7 +87,8 @@ export default function DueStrip({ onOpen }: { onOpen: (releaseId: string) => vo
     if (event.nativeEvent.isComposing) return;
     if (event.key !== "Enter") return;
     event.preventDefault();
-    const value = (drafts[itemKey(item)] ?? "").trim();
+    const typed = (drafts[itemKey(item)] ?? "").trim();
+    const value = item.field_type === "date" ? normaliseDate(typed) : typed;
     if (value) void send(item, { value });
     setFocusKey(nextKey(item, list));
   }

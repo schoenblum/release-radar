@@ -21,8 +21,6 @@ export interface User {
 export interface UserPreferences {
   /** Differences from the default columns, so a column added later still shows up. */
   data_columns: { hidden: string[]; shown: string[] };
-  /** The Data page's percentile chips, on unless switched off. */
-  data_positions: boolean;
   /** Analysis cards drawn on a log scale, by dimension key. */
   analysis_log_scale: string[];
 }
@@ -49,6 +47,8 @@ export interface Brand {
   institution_name_en: string;
   institution_name_ja: string | null;
   timezone: string;
+  /** Further zones a release time is shown in. */
+  display_time_zones: string[];
   logo: { url: string; alt_en: string | null; alt_ja: string | null } | null;
 }
 
@@ -89,6 +89,8 @@ export interface Institution {
   /** Where the two Analysis filters start (R6.4.2): release type IDs; empty means every type. */
   analysed_release_type_ids: string[] | null;
   shown_release_type_ids: string[] | null;
+  /** Further zones a release time is shown in, IANA names (at most three). */
+  display_time_zones: string[];
   field_versions: FieldVersions;
 }
 
@@ -366,7 +368,7 @@ export interface Release {
   release_date: string | null;
   /** From the date, never from the code. */
   academic_year: number | null;
-  release_time_et: string | null;
+  release_time: string | null;
   ea_url: string | null;
   website_url: string | null;
   ea_top_page: boolean;
@@ -748,6 +750,7 @@ export interface AnalysisPoint {
   id: string;
   code: string | null;
   title: string | null;
+  release_date: string;
   value: number;
   inferred: boolean;
 }
@@ -765,9 +768,32 @@ export interface AnalysisCard {
   shown_median: number | null;
 }
 
+export interface AnalysisYearMedian {
+  year: number;
+  median: number;
+  n: number;
+  /** The first and last release date among them, where the year's line starts and ends. */
+  first: string;
+  last: string;
+}
+
+/** A survey question as bars: the share of respondents who ticked each box, per year. */
+export interface AnalysisAnswerChart {
+  question: "inquiries" | "activities";
+  years: { year: number; respondents: number }[];
+  bars: {
+    key: string;
+    label_en: string;
+    label_ja: string;
+    shares: { year: number; count: number; share: number }[];
+  }[];
+}
+
 export interface AnalysisOverview {
   scope: AnalysisScope;
   cards: AnalysisCard[];
+  score_years: AnalysisYearMedian[];
+  answers: AnalysisAnswerChart[];
 }
 
 export type EntryState = "value" | "missing" | "not_applicable" | "not_yet_due" | "insufficient";
@@ -807,8 +833,30 @@ export interface AnalysisTop {
   lowest: AnalysisEntry[];
 }
 
-export interface AnalysisPositions {
-  measures: string[];
-  /** Per release, each measure's percentile. A release that is not here is outside the analysis. */
-  releases: Record<string, Record<string, number>>;
+export interface AnalysisStanding {
+  value: number | null;
+  state: EntryState;
+  provisional: boolean;
+  /** How far above (+) or below (−) the analysed median, in per cent. */
+  difference: number | null;
+}
+
+/** Analysis → All releases (Daniel, 2026-11-12). */
+export interface AnalysisReleases {
+  scope: AnalysisScope;
+  columns: {
+    key: string;
+    label_en: string;
+    label_ja: string;
+    unit: string;
+    decimals: number;
+    median: number | null;
+  }[];
+  releases: {
+    id: string;
+    code: string | null;
+    title: string | null;
+    release_date: string;
+    standings: Record<string, AnalysisStanding>;
+  }[];
 }

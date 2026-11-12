@@ -61,7 +61,6 @@ test("@webkit editing a cell saves it, and Cmd/Ctrl+Z undoes it", async ({ page 
   // Typing replaces, as in a spreadsheet; a thousands separator is fine.
   await page.keyboard.type("1,234");
   await page.keyboard.press("Enter");
-  // The value alone: a position chip may sit beside it in All (phase-2 brief §5.5).
   await expect(value(views)).toHaveText("1,234");
   await expect.poll(async () => reading(await ada.fetch(release), "ea_views.d28").value).toBe(1234);
 
@@ -94,6 +93,31 @@ test("@webkit pasting a column fills a cell per line, each checked on its own", 
   expect(reading(await ada.fetch(first), "ea_views.d28").value).toBe(120);
   expect(reading(await ada.fetch(second), "ea_views.d28").value).toBe(2500);
   expect(reading(await ada.fetch(third), "ea_views.d28").state).toBe("missing");
+});
+
+test("dates as people type them, and EurekAlert's US Eastern time kept in Japan time", async ({ page }) => {
+  const word = tag();
+  const release = await ada.release(`Dated ${word}`);
+  const grid = await openData(page, word);
+  const date = await cell(grid, word, "Release date");
+  // Daniel's examples (2026-11-12): this year's 26 is the year, wherever it stands.
+  for (const typed of ["26/11/10", "10/11/26"]) {
+    await date.click();
+    await page.keyboard.type(typed);
+    await page.keyboard.press("Enter");
+    await expect(date).toHaveText("2026-11-10");
+  }
+  // A date and time from EurekAlert: both move to Japan time, the date by a day.
+  await date.click();
+  await page.keyboard.type("2026-11-10 10:00 ET");
+  await page.keyboard.press("Enter");
+  await expect(date).toHaveText("2026-11-11");
+  await expect
+    .poll(async () => {
+      const saved = await ada.fetch(release);
+      return [saved.release_date, saved.release_time];
+    })
+    .toEqual(["2026-11-11", "00:00:00"]);
 });
 
 test("N/A: a dash in the grid, or the button in Due now", async ({ page }) => {

@@ -1,5 +1,6 @@
 """Score profiles and the analysis defaults (R8.2, R6.4.2; phase-2 brief §4.3). Synthetic data."""
 
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 
@@ -251,7 +252,8 @@ async def test_the_analysis_defaults_start_with_peer_reviewed_publications(clien
         "shown_release_type_ids", both, settings["field_versions"]["shown_release_type_ids"]
     )
     assert refused.json()["detail"] == "shown_outside_analysed"
-    unknown = await patch("analysed_release_type_ids", [str(peer), str(peer)[:-1] + "0"], 2)
+    # A made-up ID; changing the last character of a real one fails when it already was that.
+    unknown = await patch("analysed_release_type_ids", [str(peer), str(uuid.uuid4())], 2)
     assert unknown.json()["detail"] in {"unknown_reference", "field_invalid"}
     # Empty: every type.
     assert (await patch("analysed_release_type_ids", [], 2)).status_code == 200

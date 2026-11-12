@@ -1,8 +1,9 @@
-import { useEffect, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ApiError } from "../../api/client";
 import { errorMessage } from "../../api/errors";
+import { isIsoDate, normaliseDate } from "../../dates";
 
 /**
  * Fields that save themselves, one at a time, with no Save button. The step 1.5 grid
@@ -150,6 +151,61 @@ function StatusLine({
 
 const textFromServer = (value: unknown): string => (value == null ? "" : String(value));
 
+/**
+ * Opens the browser's calendar to pick a date. The calendar's own field stays hidden, as its
+ * display follows the browser's locale; what was picked shows as YYYY-MM-DD in the text field.
+ */
+export function CalendarButton({
+  value,
+  disabled,
+  label,
+  onPick,
+}: {
+  value: string;
+  disabled?: boolean;
+  label: string;
+  onPick: (date: string) => void;
+}) {
+  const { t } = useTranslation();
+  const picker = useRef<HTMLInputElement>(null);
+  return (
+    <span className="date-picker">
+      <button
+        type="button"
+        className="date-picker-button"
+        aria-label={t("common.pick_date", { field: label })}
+        title={t("common.pick_date", { field: label })}
+        disabled={disabled}
+        onClick={() => {
+          const input = picker.current;
+          if (!input) return;
+          try {
+            input.showPicker();
+          } catch {
+            input.focus();
+          }
+        }}
+      >
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+          <rect x="2" y="3" width="12" height="11" rx="1.5" fill="none" stroke="currentColor" />
+          <path d="M2 6.5h12M5 1.5v3M11 1.5v3" stroke="currentColor" fill="none" />
+        </svg>
+      </button>
+      <input
+        ref={picker}
+        type="date"
+        className="date-picker-native"
+        tabIndex={-1}
+        aria-hidden="true"
+        value={isIsoDate(value) ? value : ""}
+        onChange={(event) => {
+          if (event.target.value) onPick(event.target.value);
+        }}
+      />
+    </span>
+  );
+}
+
 interface TextFieldProps {
   id?: string;
   label: string;
@@ -186,6 +242,15 @@ export function TextField({
     textFromServer,
   );
 
+  const isDate = type === "date";
+  // A date is typed as people write it and kept as YYYY-MM-DD, never in the browser's
+  // own format, which in the US puts the month first (Daniel, 2026-11-12).
+  function finish(text: string): void {
+    const next = isDate ? normaliseDate(text) : text;
+    if (next !== text) setDraft(next);
+    void commit(next);
+  }
+
   function onKeyDown(event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): void {
     if (event.key === "Escape") {
       // With something to take back, Esc does only that, and a panel around it stays open.
@@ -194,7 +259,7 @@ export function TextField({
     } else if (event.key === "Enter" && !multiline) {
       event.preventDefault();
       if (status.kind === "conflict") keepMine();
-      else void commit(draft);
+      else finish(draft);
     }
   }
 
@@ -204,14 +269,14 @@ export function TextField({
     "aria-invalid": status.kind === "error" || undefined,
     className,
     disabled,
-    placeholder,
+    placeholder: placeholder ?? (isDate ? "YYYY-MM-DD" : undefined),
     title,
     value: draft,
     onKeyDown,
     onBlur: () => {
       // During a conflict the choice is the person's: clicking one of the two buttons
       // leaves this field, and that must not save anything by itself.
-      if (status.kind !== "conflict") void commit(draft);
+      if (status.kind !== "conflict") finish(draft);
     },
   };
 
@@ -223,6 +288,19 @@ export function TextField({
           rows={2}
           onChange={(event) => setDraft(event.target.value)}
         />
+      ) : isDate ? (
+        <span className="date-field">
+          <input {...shared} type="text" onChange={(event) => setDraft(event.target.value)} />
+          <CalendarButton
+            value={draft}
+            disabled={disabled}
+            label={label}
+            onPick={(picked) => {
+              setDraft(picked);
+              void commit(picked);
+            }}
+          />
+        </span>
       ) : (
         <input
           {...shared}

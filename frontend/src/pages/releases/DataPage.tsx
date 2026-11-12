@@ -1,15 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 
-import { api, http } from "../../api/client";
-import type {
-  AnalysisPositions,
-  CrossrefStatus,
-  ReleaseFilters,
-  UserPreferences,
-} from "../../api/types";
+import { api } from "../../api/client";
+import type { CrossrefStatus, ReleaseFilters, UserPreferences } from "../../api/types";
 import { useAuth } from "../../auth";
 import { PageLoading } from "../../components/Spinner";
 import { useToast } from "../../components/Toast";
@@ -59,16 +54,8 @@ export default function DataPage() {
   const sort = useMemo(() => sortFrom(params), [params]);
 
   const { data: page, isLoading, isPlaceholderData } = useReleaseList(view, filters);
-  // Positions (phase-2 brief §5.5): the All view only, on unless someone switched them off.
-  const positionsOn = view === "all" && (user?.preferences?.data_positions ?? true);
   const queryClient = useQueryClient();
-  const { data: positions } = useQuery({
-    queryKey: ["analysis", "positions"],
-    queryFn: () => http.get<AnalysisPositions>("/analysis/positions"),
-    enabled: positionsOn,
-    refetchInterval: 60_000,
-  });
-  const { columns, context } = useGridColumns(positionsOn ? (positions?.releases ?? null) : null);
+  const { columns, context } = useGridColumns();
   const actions = useReleaseActions();
 
   const sortColumn = sort ? columns?.find((column) => column.id === sort.column) : undefined;
@@ -104,7 +91,7 @@ export default function DataPage() {
   const apply = useCallback(
     async (releaseId: string, commit: Commit, version?: number) => {
       await actions.save(releaseId, commit, version);
-      // A new number moves positions; the next look at them should know.
+      // A new number moves Analysis; the next look at it should know.
       void queryClient.invalidateQueries({ queryKey: ["analysis"] });
       // A new DOI fills in what is still empty. Trouble here says so, and nothing is lost.
       if (commit.kind === "field" && commit.field === "doi" && commit.value) {
@@ -125,15 +112,6 @@ export default function DataPage() {
       .updateMe({ preferences })
       .then((updated) => setUser(updated))
       .catch(() => toast({ text: t("data.columns_not_saved") }));
-  }
-
-  function showPositions(on: boolean): void {
-    if (!user) return;
-    setUser({ ...user, preferences: { ...user.preferences, data_positions: on } });
-    void api
-      .updateMe({ preferences: { data_positions: on } })
-      .then((updated) => setUser(updated))
-      .catch(() => toast({ text: t("data.positions.not_saved") }));
   }
 
   function setParam(name: string, value: string | null): void {
@@ -213,17 +191,6 @@ export default function DataPage() {
               </button>
             ))}
           </div>
-          {view === "all" && (
-            <button
-              type="button"
-              className="btn-small"
-              aria-pressed={positionsOn}
-              title={t("data.positions.toggle_hint")}
-              onClick={() => showPositions(!positionsOn)}
-            >
-              {t("data.positions.label")}
-            </button>
-          )}
           <ColumnChooser columns={columns} choice={choice} onChange={chooseColumns} />
           <ExportMenu
             view={view}

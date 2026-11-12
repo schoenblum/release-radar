@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { http } from "../../api/client";
@@ -20,6 +20,7 @@ import SidePanel from "../../components/SidePanel";
 import { useToast } from "../../components/Toast";
 import { formatDateTime } from "../../dates";
 import { translate } from "../../i18n";
+import { inOtherZones, shortLabel, zoneName } from "../../timeZones";
 import {
   customColumnId,
   customOptions,
@@ -29,6 +30,7 @@ import {
 } from "./columns";
 import { GENDERS } from "./gender";
 import { normaliseDate } from "./parse";
+import { releaseDateValue, releaseTimeValue, shownTime } from "./releaseMoment";
 import ResearcherFeedback from "./ResearcherFeedback";
 import ResearcherPicker from "./ResearcherPicker";
 import { useReleaseActions, useReleaseHistory } from "./useReleaseData";
@@ -46,7 +48,7 @@ const RELEASE_SECTION = new Set([
   "release_type",
   "embargoed",
   "release_date",
-  "release_time_et",
+  "release_time",
   "ea_url",
   "website_url",
   "ea_top_page",
@@ -492,6 +494,15 @@ export default function ReleaseDrawer({
   const isRequired = (key: string): boolean =>
     configs.find((row) => row.key === key)?.required === true;
 
+  // Release date and time are kept in the institution's zone, and can be typed in another
+  // (Daniel, 2026-11-12): the choice shows above whichever of the two comes first.
+  const local = context.timezone;
+  const zoneChoices = [...new Set([local, ...context.displayZones])];
+  const [entryZone, setEntryZone] = useState(local);
+  const firstMomentKey = configs.find(
+    (row) => row.key === "release_date" || row.key === "release_time",
+  )?.key;
+
   function saver(field: string) {
     return async (value: unknown, version: number) => {
       const saved = await http.patch<ReleaseSaved>(`/releases/${release.id}`, {
@@ -766,10 +777,72 @@ export default function ReleaseDrawer({
         );
       }
       case "publication_date":
-      case "release_date":
         return text(key, key, { type: "date", clean: normaliseDate });
-      case "release_time_et":
-        return text(key, key);
+      case "release_date":
+      case "release_time": {
+        const id = `drawer-${key}`;
+        const isDate = key === "release_date";
+        const label = isDate ? labelOf(key) : `${labelOf(key)} (${shortLabel(local)})`;
+        const elsewhere = isDate
+          ? []
+          : inOtherZones(release.release_date, release.release_time, local, context.displayZones);
+        const save = saver(key);
+        return (
+          <Fragment key={key}>
+            {key === firstMomentKey && canEdit && zoneChoices.length > 1 && (
+              <div className="drawer-field">
+                <label className="field-label" htmlFor="drawer-entry-zone">
+                  {t("data.entry_zone")}
+                </label>
+                <select
+                  id="drawer-entry-zone"
+                  className="input"
+                  value={entryZone}
+                  onChange={(event) => setEntryZone(event.target.value)}
+                >
+                  {zoneChoices.map((zone) => (
+                    <option key={zone} value={zone}>
+                      {zoneName(zone, i18n.language)}
+                    </option>
+                  ))}
+                </select>
+                {entryZone !== local && (
+                  <p className="field-hint">
+                    {t("data.entry_zone_hint", {
+                      zone: zoneName(entryZone, i18n.language),
+                      local: zoneName(local, i18n.language),
+                    })}
+                  </p>
+                )}
+              </div>
+            )}
+            <Labelled id={id} label={label} required={isRequired(key)}>
+              <TextField
+                id={id}
+                label={label}
+                className="input"
+                type={isDate ? "date" : "text"}
+                value={isDate ? release.release_date : shownTime(release.release_time)}
+                version={versions[key]}
+                disabled={!canEdit}
+                hint={
+                  elsewhere.length > 0
+                    ? t("data.elsewhere", { times: elsewhere.join(" · ") })
+                    : undefined
+                }
+                save={async (next, version) => {
+                  const value = isDate
+                    ? releaseDateValue(next, entryZone, local)
+                    : releaseTimeValue(next, entryZone, local);
+                  const saved = await save(value, version);
+                  // A time shows as HH:MM, without the seconds the server keeps.
+                  return isDate ? saved : { ...saved, value: shownTime(saved.value as string) };
+                }}
+              />
+            </Labelled>
+          </Fragment>
+        );
+      }
       case "ea_top_position":
         return text(key, key);
       case "embargoed":

@@ -86,6 +86,8 @@
     "field_out_of_range": "数値が許容範囲を超えています。",
     "field_not_editable": "この項目は変更できません。",
     "invalid_timezone": "リストからタイムゾーンを選択してください。",
+    "release_date_first": "先にリリース日を入力してください。別の時間帯の時刻は、日付がないと変換できません。",
+    "too_many_time_zones": "時間帯は3つまで選べます。",
     "invalid_domain": "news.example.org のようなアドレスを入力してください。",
     "invalid_email": "正しいメールアドレスを入力してください。",
     "invalid_code_pattern": "形式には {yyyy} と {nn} の両方が必要で、波括弧はこの 2 つにのみ使えます。",
@@ -138,6 +140,7 @@
   "common": {
     "saving": "保存中…",
     "saved": "保存しました",
+    "pick_date": "カレンダーから{{field}}を選ぶ",
     "active": "有効",
     "add": "追加",
     "apply": "適用",
@@ -205,7 +208,9 @@
       "name_en": "機関名（英語）",
       "name_ja": "機関名（日本語）",
       "timezone": "タイムゾーン",
-      "timezone_hint": "日付はこのタイムゾーンで表示されます。夜間の自動処理には次回の再起動後に反映されます。",
+      "timezone_hint": "日付はこのタイムゾーンで表示され、リリース日時もこのタイムゾーンで保存されます。夜間の自動処理には次回の再起動後に反映されます。",
+      "display_zones": "リリース時刻を併せて表示する時間帯",
+      "display_zones_hint": "{{count}}つまで選べます。表のリリース時刻にポインタを合わせたときと、レコードの時刻の下に表示されます。レコードでは、これらの時間帯で日時を入力することもできます。",
       "ay_start": "年度の開始月",
       "website_domain": "ニュースサイトのアドレス",
       "website_domain_hint": "ウェブサイト閲覧数は、このアドレス上のリリースのみが対象です（例：news.example.org）。",
@@ -624,6 +629,7 @@
     "embargoed": "エンバーゴあり",
     "release_date": "リリース日",
     "release_time_et": "リリース時刻（米国東部時間）",
+    "release_time": "リリース時刻",
     "ea_url": "EurekAlert のリンク",
     "website_url": "ウェブサイトのリンク",
     "ea_top_page": "EurekAlert トップページ掲載",
@@ -661,6 +667,9 @@
     "due_title": "入力時期を迎えた項目",
     "due_count": "入力時期を迎えた項目：{{count}} 件",
     "caught_up": "すべて入力済みです。現在入力が必要な項目はありません。",
+    "entry_zone": "入力するリリース日時の時間帯",
+    "entry_zone_hint": "{{zone}}の日時をそのまま入力してください。{{local}}に変換して保存されるため、日付が1日ずれることがあります。",
+    "elsewhere": "他の時間帯：{{times}}",
     "open_to_fill": "開いて入力",
     "failed_hint": "Enter または Backspace で修正、Esc で元の値に戻せます。",
     "paste_result": "{{saved}} 件を保存、{{invalid}} 件は入力できませんでした。色の付いたセルをご確認ください。",
@@ -775,14 +784,6 @@
       "activities": "活動",
       "inquiries": "問い合わせ",
       "comments": "コメント"
-    },
-    "positions": {
-      "label": "位置",
-      "toggle_hint": "各数値の横に、既定のスコアのプロファイルで比べた同種のリリースの中でのパーセンタイルを表示します。",
-      "hint": "パーセンタイル {{percentile}}：同種のリリースの約 {{percentile}} % を上回っています。",
-      "outside": "分析対象外：分析の既定の設定ではこのリリースを含めていません。",
-      "sr": "パーセンタイル",
-      "not_saved": "この選択を保存できませんでした。このページを離れるまでは有効です。"
     }
   },
   "writers": {
@@ -922,7 +923,8 @@
       "percentile": "パーセンタイル",
       "coverage": "カバー率",
       "based_on": "算出の根拠",
-      "state": "状態"
+      "state": "状態",
+      "academic_year": "年度"
     },
     "states": {
       "value": "値あり",
@@ -954,6 +956,44 @@
       "lowest_caption": "{{name}} の下位5件",
       "none": "表示中のリリースには、値のある完了したものがまだありません。",
       "lowest_none": "リリースが少ないため、二つ目のリストはありません。すべて上に入っています。"
+    },
+    "score_time": {
+      "caption": "点は最終スコアのある表示中のリリースで、リリース日の位置に置いています。線は各年度の中央値です：{{medians}}。",
+      "median": "{{year}} {{median}}"
+    },
+    "answers": {
+      "heading": "研究者からのフィードバック",
+      "intro": "分析対象のリリースについての研究者アンケートから集計しています。1 件のリリースに複数の研究者が回答しても、1 件として数えます。",
+      "separator": "、",
+      "respondents": "{{year}} {{count}} 件",
+      "bar": "{{year}}：{{share}}%（{{total}} 件中 {{count}} 件）",
+      "caption": "その質問に回答があったリリースに占める割合です。回答があったリリース（年度別）：{{respondents}}。",
+      "inquiries": {
+        "title": "問い合わせの相手",
+        "describe": "リリースについて研究者に連絡してきた相手です。"
+      },
+      "activities": {
+        "title": "その後の展開",
+        "describe": "リリースをきっかけに生まれたと研究者が答えた活動です。"
+      }
+    },
+    "releases": {
+      "tab": "すべてのリリース",
+      "title": "すべてのリリース",
+      "intro": "表示中の各リリースについて、スコアと広がりを示す 3 つの数値を、分析対象のリリースの中央値と比べて示します。タイトルをクリックするとリリースが、数値をクリックするとその指標のページが開きます。",
+      "release": "リリース",
+      "caption": "表示中のリリースのスコア、ウェブサイト閲覧数、EurekAlert 閲覧数、Altmetric",
+      "median": "中央値 {{median}}",
+      "no_values": "値はまだありません",
+      "above": "中央値より {{percent}}% 高い",
+      "below": "中央値より {{percent}}% 低い",
+      "no_median": "中央値が 0 のため、割合は示せません",
+      "none": "表示中のリリースはありません。",
+      "how": "バーは分析対象のリリースの中央値から伸びます。右は中央値より上、左は下です。中央値の 2 倍以上ではバーがいっぱいになり、どれだけ離れているかは割合で示します。"
+    },
+    "pick": {
+      "open_hint": "タイトルをクリックするとリリースが開きます。",
+      "in_ranking": "ランキングで見る"
     }
   },
   "page_error": {

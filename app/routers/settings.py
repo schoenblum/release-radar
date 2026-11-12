@@ -26,7 +26,7 @@ from app.schemas.settings import (
     MeasureOut,
     Reorder,
 )
-from app.services import field_patch
+from app.services import field_patch, time_zones
 from app.services.field_patch import (
     FieldPatch,
     FieldSpec,
@@ -106,6 +106,16 @@ def _parse_type_ids(value: Any) -> list[str]:
     return found
 
 
+def _parse_time_zones(value: Any) -> list[str]:
+    """Up to three further zones to show release times in, from the offered list."""
+    if not isinstance(value, list) or not all(item in time_zones.BY_KEY for item in value):
+        raise field_error("invalid_timezone")
+    chosen = list(dict.fromkeys(value))
+    if len(chosen) > time_zones.MAX_SHOWN:
+        raise field_error("too_many_time_zones")
+    return chosen
+
+
 # Where the two Analysis filters start (R6.4.2, R8.4.1).
 _ANALYSIS_DEFAULTS = ("analysed_release_type_ids", "shown_release_type_ids")
 
@@ -122,6 +132,7 @@ INSTITUTION_SPECS: dict[str, FieldSpec] = {
     "default_release_type_id": field_patch.reference(ReleaseType),
     "analysed_release_type_ids": FieldSpec(_parse_type_ids),
     "shown_release_type_ids": FieldSpec(_parse_type_ids),
+    "display_time_zones": FieldSpec(_parse_time_zones),
 }
 CHECKPOINT_SPECS: dict[str, FieldSpec] = {
     "label_en": field_patch.text(required=True),

@@ -18,7 +18,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.i18n import t
 from app.models import Checkpoint, Institution, Measure, Reading, Release, Researcher
+from app.models.survey import SurveyItem
 from app.services.feedback import dimensions as feedback
+from app.services.feedback.template import ACTIVITIES, INQUIRIES
 from app.services.readings import (
     STATE_MISSING,
     STATE_NOT_APPLICABLE,
@@ -81,10 +83,22 @@ class Row:
     gender: str
     finished: bool
     cells: dict[str, Cell] = field(default_factory=dict)
+    # Per survey question (inquiries, activities): the boxes ticked; None if not answered.
+    answers: dict[str, frozenset[str] | None] = field(default_factory=dict)
 
     def cell(self, key: str) -> Cell:
         # A dimension a release has no reading for cannot exist for it.
         return self.cells.get(key, NOT_APPLICABLE)
+
+
+@dataclass(frozen=True)
+class Choice:
+    """One box of a survey question, as the Overview's bar charts name it."""
+
+    question: str
+    key: str
+    label_en: str
+    label_ja: str
 
 
 @dataclass
@@ -92,6 +106,7 @@ class Dataset:
     today: date
     dimensions: list[Dimension]
     rows: list[Row]
+    choices: list[Choice] = field(default_factory=list)
 
     def dimension(self, key: str) -> Dimension | None:
         return next((item for item in self.dimensions if item.key == key), None)
@@ -164,6 +179,28 @@ async def measures_of(db: AsyncSession, institution_id: uuid.UUID) -> list[Measu
             .order_by(Measure.position, Measure.key)
         )
     )
+
+
+async def choices_of(db: AsyncSession, institution_id: uuid.UUID) -> list[Choice]:
+    """The boxes of the inquiries and activities questions, in the survey's order. Keys are
+    stable across template versions (R11.1); the newest template's wording wins."""
+    found: dict[str, Choice] = {}
+    order: dict[str, int] = {}
+    items = await db.scalars(
+        select(SurveyItem)
+        .where(
+            SurveyItem.institution_id == institution_id,
+            SurveyItem.question.in_((INQUIRIES, ACTIVITIES)),
+            SurveyItem.exclusive.is_(False),
+        )
+        .order_by(SurveyItem.created_at)
+    )
+    for item in items:
+        found[item.key] = Choice(
+            item.question, item.key, item.label_en, item.label_ja or item.label_en
+        )
+        order.setdefault(item.key, item.position)
+    return sorted(found.values(), key=lambda choice: order[choice.key])
 
 
 async def load(db: AsyncSession, institution: Institution, today: date) -> Dataset:
@@ -251,5 +288,14 @@ async def load(db: AsyncSession, institution: Institution, today: date) -> Datas
         for key in FEEDBACK_DIMENSIONS:
             value = getattr(found, key) if found is not None else None
             row.cells[key] = MISSING if value is None else Cell(STATE_VALUE, float(value))
+        row.answers = {
+            INQUIRIES: found.inquiry_keys if found else None,
+            ACTIVITIES: found.activity_keys if found else None,
+        }
         rows.append(row)
-    return Dataset(today=today, dimensions=dimensions, rows=rows)
+    return Dataset(
+        today=today,
+        dimensions=dimensions,
+        rows=rows,
+        choices=await choices_of(db, institution.id),
+    )

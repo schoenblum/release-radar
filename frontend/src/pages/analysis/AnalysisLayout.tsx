@@ -75,8 +75,9 @@ export function AnalysisHeader({
 }
 
 /**
- * The Analysis area (D30, phase-2 brief §5), for every signed-in role: the overview, a page per
- * dimension and top & bottom 5, with both filters carried over between them in the address.
+ * The Analysis area (D30, phase-2 brief §5), for every signed-in role: the overview, all
+ * releases, a page per dimension and top & bottom 5, with both filters carried over between them
+ * in the address.
  */
 export default function AnalysisLayout() {
   const { t, i18n } = useTranslation();
@@ -94,6 +95,9 @@ export default function AnalysisLayout() {
       <nav aria-label={t("analysis.pages_label")} className="analysis-tabs">
         <NavLink end to={`/analysis${query}`} className={link}>
           {t("analysis.overview.tab")}
+        </NavLink>
+        <NavLink to={`/analysis/releases${query}`} className={link}>
+          {t("analysis.releases.tab")}
         </NavLink>
         {options.pages.map((page) => (
           <NavLink key={page.key} to={pagePath(page.key, params)} className={link}>

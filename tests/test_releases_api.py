@@ -330,14 +330,66 @@ async def test_spaces_around_values_go_everywhere(client, admin_headers):
 )
 async def test_the_release_time_takes_what_a_paste_brings(client, admin_headers, written, stored):
     made = await _create(client, admin_headers)
-    saved = await _set(client, made, admin_headers, "release_time_et", written)
-    assert saved["release_time_et"] == stored
+    saved = await _set(client, made, admin_headers, "release_time", written)
+    assert saved["release_time"] == stored
+
+
+EASTERN = "America/New_York"
+
+
+async def test_a_date_and_time_in_us_eastern_are_kept_in_japan_time(client, admin_headers):
+    """Daniel, 2026-11-12: EurekAlert's date and time, converted; the date can move."""
+    made = await _create(client, admin_headers)
+    value = {"date": "2026-11-10", "time": "10:00", "zone": EASTERN}
+    saved = await _set(client, made, admin_headers, "release_date", value)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-11-11", "00:00:00")
+    # Summer time: 11:00 EDT is midnight in Japan.
+    value = {"date": "2026-08-13", "time": "11:00", "zone": EASTERN}
+    saved = await _set(client, saved, admin_headers, "release_date", value)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-08-14", "00:00:00")
+
+
+async def test_a_time_in_us_eastern_goes_with_the_eastern_date(client, admin_headers):
+    made = await _create(client, admin_headers)
+    saved = await _set(client, made, admin_headers, "release_date", "2026-11-10")
+    # The date was typed as it was given, with no time yet: it is the Eastern date.
+    zoned = {"time": "10:00", "zone": EASTERN}
+    saved = await _set(client, saved, admin_headers, "release_time", zoned)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-11-11", "00:00:00")
+    # Corrected later, still in Eastern time: the release's Eastern date is still the 10th.
+    zoned = {"time": "11:00", "zone": EASTERN}
+    saved = await _set(client, saved, admin_headers, "release_time", zoned)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-11-11", "01:00:00")
+    # A new date in Eastern time keeps the release's Eastern time.
+    saved = await _set(
+        client, saved, admin_headers, "release_date", {"date": "2026-11-12", "zone": EASTERN}
+    )
+    assert (saved["release_date"], saved["release_time"]) == ("2026-11-13", "01:00:00")
+
+
+async def test_a_zoned_time_needs_its_date(client, admin_headers):
+    made = await _create(client, admin_headers)
+    zoned = {"time": "10:00", "zone": EASTERN}
+    bad = await _patch(client, made, admin_headers, "release_time", zoned)
+    assert (bad.status_code, bad.json()) == (422, {"detail": "release_date_first"})
+    zoned = {"time": "10:00", "zone": "Mars"}
+    bad = await _patch(client, made, admin_headers, "release_time", zoned)
+    assert (bad.status_code, bad.json()) == (422, {"detail": "invalid_timezone"})
+
+
+async def test_a_date_and_time_in_japan_time_stay_as_they_are(client, admin_headers):
+    made = await _create(client, admin_headers)
+    value = {"date": "2026-11-10", "time": "14:10", "zone": "Asia/Tokyo"}
+    saved = await _set(client, made, admin_headers, "release_date", value)
+    assert (saved["release_date"], saved["release_time"]) == ("2026-11-10", "14:10:00")
+    stale = await _patch(client, made, admin_headers, "release_date", value, version=0)
+    assert stale.status_code == 409
 
 
 @pytest.mark.parametrize("written", ["soon", "25:00", "9", 930])
 async def test_a_bad_time_is_explained(client, admin_headers, written):
     made = await _create(client, admin_headers)
-    bad = await _patch(client, made, admin_headers, "release_time_et", written)
+    bad = await _patch(client, made, admin_headers, "release_time", written)
     assert (bad.status_code, bad.json()) == (422, {"detail": "invalid_time"})
 
 

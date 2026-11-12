@@ -51,7 +51,7 @@ class ReleaseOut(BaseModel):
     release_date: date | None
     # From the date, never from the code (D35).
     academic_year: int | None = None
-    release_time_et: time | None
+    release_time: time | None
     ea_url: str | None
     website_url: str | None
     ea_top_page: bool

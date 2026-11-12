@@ -15,10 +15,19 @@ agree.
 
 import uuid
 from bisect import bisect_right
+from collections import defaultdict
 from dataclasses import dataclass, field
+from datetime import date
 
 from app.i18n import t
-from app.services.analysis.dataset import ALTMETRIC_INCREASE, Dataset, Dimension, Row
+from app.services.analysis.dataset import (
+    ALTMETRIC_INCREASE,
+    FEEDBACK_DIMENSIONS,
+    Choice,
+    Dataset,
+    Dimension,
+    Row,
+)
 from app.services.analysis.filters import AnalysisFilter
 from app.services.analysis.scoring import (
     ALTMETRIC,
@@ -301,15 +310,112 @@ class Analysis:
         lowest = list(reversed(rest[-count:])) if rest else []
         return highest, lowest
 
-    def positions(self, keys: list[str]) -> dict[uuid.UUID, dict[str, float]]:
-        """Each analysed release's percentile per measure, for the Data page (BRIEF §8.4)."""
-        found: dict[uuid.UUID, dict[str, float]] = {row.id: {} for row in self.analysed_rows}
+    def year_medians(self, key: str = SCORE) -> list["YearMedian"]:
+        """The median of each academic year's population: for the score over time."""
+        found, _ = self.entries(key)
+        by_year: dict[int, list[Entry]] = defaultdict(list)
+        for entry in found:
+            if self._in_population(key, entry):
+                by_year[entry.row.academic_year].append(entry)
+        medians = []
+        for year, entries in sorted(by_year.items()):
+            dates = [entry.row.release_date for entry in entries]
+            values = sorted(entry.value for entry in entries)
+            medians.append(
+                YearMedian(year, quantile_inc(values, 0.5), len(values), min(dates), max(dates))
+            )
+        return medians
+
+    def answer_chart(self, question: str) -> "AnswerChart | None":
+        """How many of the analysed releases' researchers ticked each box, per academic year.
+        Only releases whose researchers answered the question count (Daniel, 2026-11-12)."""
+        choices = [choice for choice in self.dataset.choices if choice.question == question]
+        answered: dict[int, list[frozenset[str]]] = defaultdict(list)
+        for row in self.analysed_rows:
+            ticked = row.answers.get(question)
+            if ticked is not None:
+                answered[row.academic_year].append(ticked)
+        if not choices or not answered:
+            return None
+        years = sorted(answered)
+        bars = []
+        for choice in choices:
+            shares = []
+            for year in years:
+                count = sum(1 for ticked in answered[year] if choice.key in ticked)
+                shares.append(Share(year, count, 100 * count / len(answered[year])))
+            bars.append(Bar(choice, shares))
+        return AnswerChart(question, [(year, len(answered[year])) for year in years], bars)
+
+    def standings(
+        self, keys: list[str]
+    ) -> tuple[dict[str, float | None], list[tuple[Row, dict[str, "Standing"]]]]:
+        """Each key's median over the analysed releases, and each shown release on each key
+        against it: the All releases page (Daniel, 2026-11-12)."""
+        per_key: dict[str, tuple[dict[uuid.UUID, Entry], float | None]] = {}
         for key in keys:
-            entries, _ = self.entries(key)
-            for entry in entries:
-                if entry.percentile is not None:
-                    found[entry.row.id][key] = entry.percentile
-        return found
+            found, population = self.entries(key)
+            median = quantile_inc(population, 0.5) if population else None
+            per_key[key] = ({entry.row.id: entry for entry in found}, median)
+        table = []
+        for row in self.shown_rows:
+            line: dict[str, Standing] = {}
+            for key, (entries, median) in per_key.items():
+                entry = entries[row.id]
+                difference = None
+                if entry.value is not None and median:
+                    difference = 100 * (entry.value - median) / median
+                line[key] = Standing(entry, median, difference)
+            table.append((row, line))
+        return {key: median for key, (_, median) in per_key.items()}, table
+
+
+@dataclass(frozen=True)
+class YearMedian:
+    year: int
+    median: float
+    n: int
+    # The first and last release date among them, where the year's line starts and ends.
+    first: date
+    last: date
+
+
+@dataclass(frozen=True)
+class Share:
+    year: int
+    count: int
+    # Of the year's releases whose researchers answered, in per cent.
+    share: float
+
+
+@dataclass(frozen=True)
+class Bar:
+    choice: Choice
+    shares: list[Share]
+
+
+@dataclass(frozen=True)
+class AnswerChart:
+    question: str
+    # Each academic year, with how many releases' researchers answered.
+    years: list[tuple[int, int]]
+    bars: list[Bar]
+
+
+@dataclass(frozen=True)
+class Standing:
+    entry: Entry
+    # The analysed releases' median on this key.
+    median: float | None
+    # How far above (+) or below (−) that median, in per cent; None when the median is 0.
+    difference: float | None
+
+
+# Researcher feedback shows on the Overview as bar charts instead of cards (Daniel,
+# 2026-11-12); its dimensions keep their pages.
+OVERVIEW_WITHOUT_CARDS = frozenset(FEEDBACK_DIMENSIONS)
+# The All releases page: the score and the three numbers that travel (Daniel, 2026-11-12).
+RELEASE_TABLE_KEYS = (SCORE, "hp_views.d28", "ea_views.d28", ALTMETRIC)
 
 
 def _ranked_order(entry: Entry) -> tuple:

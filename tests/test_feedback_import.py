@@ -334,14 +334,22 @@ def test_one_response_gives_the_mean_and_the_counts():
         ITEM_INFO,
     )
     assert found == dims.FeedbackDimensions(
-        responses=1, satisfaction=4.0, research_outcomes=1, inquiries=2, inquiries_external=1
+        responses=1,
+        satisfaction=4.0,
+        research_outcomes=1,
+        inquiries=2,
+        inquiries_external=1,
+        inquiry_keys=frozenset({"inq_media", "inq_researchers_nu"}),
+        activity_keys=frozenset({"act_collab"}),
     )
 
 
 def test_none_is_zero_and_a_skipped_question_is_missing():
     found = dims.dimensions([_answers(("inq_none",), skip=("activities",))], ITEM_INFO)
     assert (found.inquiries, found.inquiries_external) == (0, 0)
-    assert found.research_outcomes is None
+    # "None" is an answer: a respondent who ticked nothing that counts.
+    assert found.inquiry_keys == frozenset()
+    assert found.research_outcomes is None and found.activity_keys is None
     assert found.satisfaction is None
 
 
@@ -356,6 +364,7 @@ def test_several_responses_take_the_mean_and_the_union():
     # Each response's own mean (5 and 3), then the mean of those.
     assert found.satisfaction == 4.0
     assert (found.research_outcomes, found.inquiries, found.inquiries_external) == (2, 2, 2)
+    assert found.inquiry_keys == frozenset({"inq_media", "inq_public"})
     assert found.responses == 2
 
 

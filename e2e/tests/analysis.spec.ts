@@ -156,3 +156,42 @@ test("top & bottom 5 keep a provisional release out of the bottom", async ({ pag
   await expect(lowest.locator("tbody tr").first()).toContainText(`Finished 01 ${word}`);
   await expect(page.getByText(`Recent ${word}`)).toHaveCount(0);
 });
+
+test("all releases: against the median, a number opens its measure with the release picked out", async ({ page }) => {
+  const word = tag();
+  const { unit } = await releases(word, [
+    { title: "Low", views: 100 },
+    { title: "Middle", views: 200 },
+    { title: "High", views: 400 },
+  ]);
+  await page.goto(`/analysis?a_unit=${unit}`);
+  await page.getByRole("link", { name: "All releases" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "All releases" })).toBeVisible();
+  const table = page.getByRole("table", { name: /shown releases with their score/ });
+  await expect(table.getByText("Median 200")).toBeVisible();
+  const high = table.getByRole("row").filter({ hasText: `High ${word}` });
+  await expect(high.getByText("+100%")).toBeVisible();
+  await expect(table.getByRole("row").filter({ hasText: `Low ${word}` }).getByText("−50%")).toBeVisible();
+  // The bar is drawn, which a missing class would silently stop (Daniel, 2026-11-12).
+  const bar = high.locator(".standing-above");
+  await expect(bar).toBeVisible();
+  expect(await bar.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+
+  await high.getByRole("link", { name: /400/ }).click();
+  await expect(page).toHaveURL(/\/analysis\/d\/ea_views\.d28\?.*release=/);
+  const window = page.getByRole("dialog", { name: `High ${word}` });
+  await expect(window).toBeVisible();
+  await expect(page.locator("tr.is-picked")).toContainText(`High ${word}`);
+  // Closed, then opened again by clicking the dot itself.
+  await page.keyboard.press("Escape");
+  await expect(window).toBeHidden();
+  const dot = page.locator(".rr-pickable circle.rr-picked");
+  await expect(dot).toHaveCount(0);
+  const box = await page.locator(".rr-pickable circle").last().boundingBox();
+  if (!box) throw new Error("No dot");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("dialog").getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/data\?view=all&release=/);
+});
+

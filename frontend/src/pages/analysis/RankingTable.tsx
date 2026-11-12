@@ -22,6 +22,11 @@ type Column =
 const TEXT_COLUMNS = new Set<Column>(["code", "title", "unit", "field", "based_on", "state"]);
 
 /** The record opens on the Data page, in the All view, where every release is listed. */
+/** A ranking row's own address in the page, which a chart's window scrolls to. */
+export function rankingRowId(releaseId: string): string {
+  return `rank-${releaseId}`;
+}
+
 export function recordLink(id: string): string {
   return `/data?${new URLSearchParams({ view: "all", release: id }).toString()}`;
 }
@@ -61,6 +66,7 @@ export default function RankingTable({
   label,
   caption,
   sortable = true,
+  picked = null,
 }: {
   rows: AnalysisEntry[];
   options: AnalysisOptions;
@@ -69,6 +75,8 @@ export default function RankingTable({
   label: string;
   caption: string;
   sortable?: boolean;
+  /** A release picked out, as from All releases: its row stands out. */
+  picked?: string | null;
 }) {
   const { t, i18n } = useTranslation();
   const language: Language = i18n.language === "ja" ? "ja" : "en";
@@ -170,7 +178,15 @@ export default function RankingTable({
         </thead>
         <tbody>
           {ordered.map((entry) => (
-            <tr key={entry.id} className={entry.value === null ? "is-empty" : undefined}>
+            <tr
+              key={entry.id}
+              id={rankingRowId(entry.id)}
+              className={
+                [entry.value === null ? "is-empty" : "", entry.id === picked ? "is-picked" : ""]
+                  .filter(Boolean)
+                  .join(" ") || undefined
+              }
+            >
               <td>{entry.rank ?? "–"}</td>
               <th scope="row" className="is-text">
                 {entry.code ?? ""}

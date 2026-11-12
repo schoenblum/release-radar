@@ -13,6 +13,8 @@ export function useBrand() {
       ? ((isJapanese ? data.institution_name_ja : null) ?? data.institution_name_en)
       : null,
     timezone: data?.timezone,
+    /** Further zones a release time is shown in (Settings → Institution). */
+    displayTimeZones: data?.display_time_zones ?? [],
     logoUrl: data?.logo?.url ?? null,
     logoAlt: data?.logo
       ? ((isJapanese ? data.logo.alt_ja : null) ?? data.logo.alt_en ?? "")

@@ -85,8 +85,9 @@ class Release(Record, FieldVersioned, Base):
     authors: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     embargoed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    # US Eastern time, as EurekAlert works in it. Not converted.
-    release_time_et: Mapped[time | None] = mapped_column(Time, nullable=True)
+    # With the release date, in the institution's time zone. A time given in another zone
+    # (EurekAlert's US Eastern) is converted on entry, date and all (``app.services.time_zones``).
+    release_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     ea_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     website_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     ea_top_page: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

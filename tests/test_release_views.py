@@ -303,7 +303,7 @@ async def test_the_workbook_has_releases_lists_and_a_read_me(client, admin_heade
         )
         release = await db.get(Release, first["id"])
         release.custom_values = {"clicks": {"state": "value", "value": 12}}
-        release.release_time_et = time(14, 0)
+        release.release_time = time(14, 0)
         release.embargoed = True
         await db.commit()
 
@@ -318,7 +318,7 @@ async def test_the_workbook_has_releases_lists_and_a_read_me(client, admin_heade
     # Whatever can be a number is one, so nothing needs converting afterwards.
     assert frogs["Academic year"] == 2025
     assert frogs["Release date"].date().isoformat() == "2026-03-31"
-    assert frogs["Release time (ET)"] == time(14, 0)
+    assert frogs["Release time (JST)"] == time(14, 0)
     assert frogs["Unit"] == "North School"
     assert frogs["Field"] == "Sciences"
     assert frogs["Researcher"] == "Ada Example"

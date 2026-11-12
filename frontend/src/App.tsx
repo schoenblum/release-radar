@@ -30,6 +30,7 @@ const AnalysisLayout = lazy(() => import("./pages/analysis/AnalysisLayout"));
 const Overview = lazy(() => import("./pages/analysis/Overview"));
 const DimensionPage = lazy(() => import("./pages/analysis/DimensionPage"));
 const TopBottom = lazy(() => import("./pages/analysis/TopBottom"));
+const AllReleases = lazy(() => import("./pages/analysis/AllReleases"));
 
 function RequireAuth({ children }: { children: ReactElement }) {
   const { user, loading } = useAuth();
@@ -94,6 +95,7 @@ export default function App() {
               }
             >
               <Route index element={<Overview />} />
+              <Route path="releases" element={<AllReleases />} />
               <Route path="top" element={<TopBottom />} />
               <Route path="d/:key" element={<DimensionPage />} />
             </Route>

@@ -10,6 +10,8 @@ On **Data**, paste a DOI or type a title in the top row of the grid and press En
 - It gets its code, such as `AY2026-12`, when its release date is first entered. Codes can't be edited, and a code stays the same even if the date moves to another academic year.
 - It starts as a **Peer-reviewed publication** (see *Set the release type*). You are its writer.
 - The paper's **Publication date** is the column right after the DOI. If Crossref knows only the month, it stays empty: type it in.
+- **Dates** show as YYYY-MM-DD everywhere. Type them as you write them: `2026-11-10`, `26/11/10`, `10/11/26`, `10 Nov 2026` and `2026年11月10日` all mean 10 November 2026. The day comes before the month; a two-digit year can come first or last, and the one that is this year, last year or next year is the year. In a release's record, the calendar button beside a date opens a calendar.
+- The **Release date** and **Release time** are in Japan time (your institution's time zone), as the website goes by it. EurekAlert gives its date and time in US Eastern time: type them together in the Release date cell, such as `2026-11-10 10:00 ET`, or type `10:00 ET` in the time cell. In a release's record, choose the zone above the date first, then type the date and time as given. Either way they are converted, so the date can move by a day. Point at a release time to see it in the other zones chosen in Settings; the record shows them under the time.
 - Paste the **DOI**, the **EurekAlert link** and the **Website link** into their cells. A DOI can be bare (`10.1038/…`) or a link (`https://doi.org/10.1038/…`): Release Radar keeps the DOI either way. A saved link shows as **✓ ↗**: click the mark to open the page in a new tab, or click beside it to select the cell, for example to paste a corrected link over it.
 
 ## Fill in day-28 numbers
@@ -73,10 +75,6 @@ Click a column's heading to sort by it, again to reverse, and a third time to go
 
 What you choose is kept in the page's address, so you can bookmark a view, such as one unit's releases this year, or send the link to a colleague.
 
-### Positions
-
-In **All**, a small grey chip beside a number shows where it stands: its percentile among comparable releases, as the default score profile compares them (the same and the two previous academic years, among the releases the Analysis pages analyse). 73 means the release did better than about 73 % of them. Hover over the cell for the words. A release the Analysis pages leave out, such as a feature story, has no chips, and its numbers say so on hover; so does a number with too few others to compare with yet. **Positions** above the grid switches the chips off or on again, and Release Radar remembers your choice. They never go into an export.
-
 ## The Writers page
 
 **Writers** counts each writer's releases in each month of an academic year, by release date, with a total for every writer and every month. Choose the year at the top, or **All years** to see one column per academic year instead of per month. Everyone in the writers list has a row, and so does anyone who wrote that year and has left since. Releases without a writer have a row of their own. A release without a release date is counted once it has one.
@@ -87,7 +85,7 @@ Click a name to see that writer's releases of the year on the Data page. **Expor
 
 ## Read the Analysis pages
 
-**Analysis** shows how the releases did in their first 28 days, compared with each other. It is for the office: guest pages for researchers never show any of it. **Overview** has a card per measure, each page after it ranks the releases by one measure, and **Top & bottom 5** lists the highest and lowest.
+**Analysis** shows how the releases did in their first 28 days, compared with each other. It is for the office: guest pages for researchers never show any of it. **Overview** has a card per measure and, below them, what researchers told us. **All releases** lists every shown release with its score and three numbers. Each page after that ranks the releases by one measure, and **Top & bottom 5** lists the highest and lowest.
 
 ### The two filters
 
@@ -97,9 +95,21 @@ Both start as an admin set them in Settings (peer-reviewed publications to begin
 
 ### Reading a card
 
-The coloured box holds the middle half of the analysed releases: a quarter did better than its right edge, a quarter worse than its left. The thick line is the median, and the thin lines reach to the lowest and highest values. The dots above are the shown releases, one each; hover over a dot to see which. With both filters at their start, the dots are the same releases as the box. The caption says the same in words, and the line under it counts the releases with a value, missing and not applicable, so gaps stay visible. **Show as table** gives the same numbers as a table.
+The coloured box holds the middle half of the analysed releases: a quarter did better than its right edge, a quarter worse than its left. The thick line is the median, and the thin lines reach to the lowest and highest values. The dots above are the shown releases, one each; where many share a value they pile up, smaller when the pile is tall. Click a dot, or near it, to see which release it is: a small window names it, and its title opens the release's record. Esc or × closes the window. With both filters at their start, the dots are the same releases as the box. The caption says the same in words, and the line under it counts the releases with a value, missing and not applicable, so gaps stay visible. **Show as table** gives the same numbers as a table.
 
 Some measures have a few very large values that squash the rest into one corner. **Log scale** spreads the small values out; Release Radar remembers it per card. The Altmetric card follows the score profile: the increase from day 0 to day 28, or the score on day 28, with a switch for the other. Medians and quartiles are calculated as Excel's QUARTILE.INC does, so any number can be checked in a spreadsheet.
+
+### The score over time
+
+A score compares each release with its neighbours, so half of them always score above about 50 and a box would say little. The score's card shows it over time instead: each shown release with a final score is a dot at its release date, and each academic year's median is a line across that year's releases. Lines that rise from one year to the next mean releases did better than those before them. Click a dot to see which release it is.
+
+### What researchers told us
+
+Under the cards, two charts come from the researcher feedback: **Who got in touch** (journalists, other researchers, students, companies, the public) and **What came of it** (presentations, visits, joint research, articles). Each bar is the per cent of analysed releases whose researchers ticked that box, among the releases whose researchers answered the question; with more than one academic year there is a bar per year. A release counts once, however many of its researchers answered. Satisfaction isn't shown here for now; its page is still there.
+
+### All releases
+
+**All releases** lists every shown release, newest first: its title and date, then the score, website views, EurekAlert views and Altmetric. Each number has a bar that starts at the median of the analysed releases, to the right above it and to the left below, and the per cent above or below. At twice the median or more the bar is full, and the per cent says how far. Click a heading to sort by it. Click a title to open the release's record, or a number to open that measure's page with the release picked out: its window open on the chart and its row marked in the ranking.
 
 ### Scores
 
@@ -151,7 +161,7 @@ Use the button next to your name at the top right to switch between English and 
 
 **Settings** is only visible to admins, and every section works without changing anything. Changes save themselves when you leave a field. If a colleague changed the same field a moment earlier, you see what they entered and choose which to keep.
 
-- **Institution:** names, time zone, the month the academic year starts, your news website, and where people land after signing in: their own releases, all releases, or **Analysis**.
+- **Institution:** names, time zone, up to three further time zones to show release times in, the month the academic year starts, your news website, and where people land after signing in: their own releases, all releases, or **Analysis**.
 - **Users:** invite people and set their role. To remove someone, switch off **Active**: their name stays in the history. If they tracked personal fields, pass those on or make them institution fields here.
 - **Lists:** units, fields, writers, release types and vocabularies. To retire an entry, switch off **Active**. Each list can be exported to CSV, edited in a spreadsheet and imported again. An import shows what it would do before anything changes. A column you leave out of the file stays as it is. If a cell can't be used, the import names its row and column and skips only that cell.
 - **Release types:** EurekAlert's eleven categories, in the order the menus show them. Rename, reorder or switch off any, or add your own. **New releases start as** sets the type new and imported releases get; choose **No type** to have people choose every time.
@@ -204,7 +214,7 @@ Importing a newer export later is safe: each response is found again by the expo
 
 - **Compared with what:** finished releases (day 28 and two days for Google Analytics have passed) of the same academic year and the two before it, among those the Analysis pages analyse. A release that is not finished yet gets a *provisional* score, ranked as if it were among them.
 - **What doesn't apply** (embargoed views for a release without an embargo, pickups before they are collected) leaves the weights, and the rest count for more. **What is missing** still counts: below 60 % of the weight with values there is no score, only "insufficient data". A component with fewer than 10 releases to compare with doesn't count yet.
-- **News performance** is the default profile: major-outlet pickups 35, Altmetric 25, EurekAlert views on day 28 15, embargoed views 10, all pickups 10, website views 5. Researcher satisfaction and research outcomes never go into it; another profile can use them.
+- **News performance** is the profile Release Radar starts with, and the default (rename it as you like, such as *ICO score*, so nobody takes it for news pickups alone): major-outlet pickups 35, Altmetric 25, EurekAlert views on day 28 15, embargoed views 10, all pickups 10, website views 5. Researcher satisfaction and research outcomes never go into it; another profile can use them.
 
 In **Settings → Score profiles**, choose a profile, change the weights (the total shows as you type and must be 100), how Altmetric counts (its increase from day 0 to day 28, or its score on day 28), the coverage needed, how many academic years are compared and how many values a component needs. **Top 5 now** shows the five highest scores under the saved version and under your changes, side by side. Your changes are kept in this browser until you save or discard them. **Save as a new version** keeps the old version readable under *Earlier versions*, so a report can say which version its scores came from. **Duplicate** starts a new profile from this one; **Make default** makes it the one the Analysis pages open with.
 

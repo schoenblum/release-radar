@@ -99,6 +99,7 @@ class PointOut(BaseModel):
     id: uuid.UUID
     code: str | None
     title: str | None
+    release_date: date
     value: float
     inferred: bool
 
@@ -116,9 +117,47 @@ class CardOut(BaseModel):
     shown_median: float | None
 
 
+class YearMedianOut(BaseModel):
+    year: int
+    median: float
+    n: int
+    first: date
+    last: date
+
+
+class ShareOut(BaseModel):
+    year: int
+    count: int
+    share: float
+
+
+class BarOut(BaseModel):
+    key: str
+    label_en: str
+    label_ja: str
+    shares: list[ShareOut]
+
+
+class AnswerYearOut(BaseModel):
+    year: int
+    respondents: int
+
+
+class AnswerChartOut(BaseModel):
+    """A survey question as bars: the share of respondents who ticked each box, per year."""
+
+    question: str
+    years: list[AnswerYearOut]
+    bars: list[BarOut]
+
+
 class OverviewOut(BaseModel):
     scope: ScopeOut
     cards: list[CardOut]
+    # The score's median per academic year, for the score over time.
+    score_years: list[YearMedianOut]
+    # Inquiries and activities from researcher feedback (Daniel, 2026-11-12).
+    answers: list[AnswerChartOut]
 
 
 class EntryOut(BaseModel):
@@ -156,9 +195,34 @@ class TopOut(BaseModel):
     lowest: list[EntryOut]
 
 
-class PositionsOut(BaseModel):
-    """Percentiles per release and measure for the Data page (BRIEF §8.4). A release that is not
-    a key is outside the default analysis."""
+class StandingOut(BaseModel):
+    value: float | None
+    state: str
+    provisional: bool
+    # How far above (+) or below (−) the analysed median, in per cent.
+    difference: float | None
 
-    measures: list[str]
-    releases: dict[uuid.UUID, dict[str, float]]
+
+class ReleaseLineOut(BaseModel):
+    id: uuid.UUID
+    code: str | None
+    title: str | None
+    release_date: date
+    standings: dict[str, StandingOut]
+
+
+class ReleaseColumnOut(BaseModel):
+    key: str
+    label_en: str
+    label_ja: str
+    unit: str
+    decimals: int
+    median: float | None
+
+
+class ReleasesOut(BaseModel):
+    """Analysis → All releases: each shown release on the score and three numbers."""
+
+    scope: ScopeOut
+    columns: list[ReleaseColumnOut]
+    releases: list[ReleaseLineOut]

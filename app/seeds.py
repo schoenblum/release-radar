@@ -99,7 +99,7 @@ CORE_FIELDS = (
     "authors",
     "embargoed",
     "release_date",
-    "release_time_et",
+    "release_time",
     "ea_url",
     "website_url",
     "ea_top_page",

@@ -404,7 +404,8 @@ async def test_the_import_brings_everything_in(client, admin_headers, make_user)
     assert frogs.paper_title == "A paper on frogs"
     assert (frogs.journal, frogs.publication_date) == ("Journal of Frogs", date(2025, 3, 3))
     assert frogs.embargoed is True
-    assert (frogs.release_date, frogs.release_time_et) == (date(2025, 5, 1), time(0, 10))
+    # The workbook's date and time are US Eastern (summer time here); kept in Japan time.
+    assert (frogs.release_date, frogs.release_time) == (date(2025, 5, 1), time(13, 10))
     assert frogs.ea_url == f"{EA}1001"
     assert (frogs.ea_top_page, frogs.ea_top_position) == (True, 2)
     assert frogs.notes == "EA front page: Top spot No.2"
@@ -432,7 +433,7 @@ async def test_the_import_brings_everything_in(client, admin_headers, make_user)
     assert salt.unit_id == units["Science"].id  # through the alias
     assert salt.writer_id == writers["Bo"].id  # case aside
     assert salt.doi == "10.1234/salt"
-    assert (salt.release_date, salt.release_time_et) == (date(2026, 3, 4), time(0, 15))
+    assert (salt.release_date, salt.release_time) == (date(2026, 3, 4), time(14, 15))
     assert salt.embargoed is False
     # A surname alone, settled by the paper's one author of that name.
     hana = people["Hana Tanaka"]

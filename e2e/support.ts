@@ -13,6 +13,8 @@ export interface Release {
   code: string | null;
   title: string | null;
   release_type_id: string | null;
+  release_date: string | null;
+  release_time: string | null;
   field_versions: Record<string, number>;
   readings: { id: string; measure_key: string; value: number | null; state: string; version: number }[];
 }
@@ -115,7 +117,7 @@ export async function cell(grid: Locator, title: string, heading: string | RegEx
   return row.locator(`[role="gridcell"][aria-colindex="${index}"]`);
 }
 
-/** What a cell holds, without what is shown beside it (an "inferred" mark, a position chip). */
+/** What a cell holds, without what is shown beside it (an "inferred" mark). */
 export function value(gridCell: Locator): Locator {
   return gridCell.locator(".grid-value");
 }

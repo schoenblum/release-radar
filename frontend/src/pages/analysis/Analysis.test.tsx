@@ -11,11 +11,13 @@ import type {
   AnalysisOptions,
   AnalysisOverview,
   AnalysisScope,
+  AnalysisReleases,
   AnalysisTop,
 } from "../../api/types";
 import { ToastProvider } from "../../components/Toast";
 import { applyLanguage } from "../../i18n";
 import i18n from "../../i18n";
+import AllReleases from "./AllReleases";
 import AnalysisLayout from "./AnalysisLayout";
 import { toggled } from "./AnalysisFilterBar";
 import DimensionPage from "./DimensionPage";
@@ -29,7 +31,7 @@ const setUser = vi.fn();
 const user = {
   id: "u1",
   role: "viewer",
-  preferences: { data_columns: { hidden: [], shown: [] }, data_positions: true, analysis_log_scale: [] },
+  preferences: { data_columns: { hidden: [], shown: [] }, analysis_log_scale: [] },
 };
 vi.mock("../../auth", () => ({ useAuth: () => ({ user, setUser }) }));
 vi.mock("../../api/client", async (original) => {
@@ -115,6 +117,7 @@ function card(key: string, overrides: Partial<AnalysisCard> = {}): AnalysisCard 
       id: `r${place}`,
       code: `AY2025-${place}`,
       title: `Release ${place}`,
+      release_date: "2025-10-01",
       value: 43 + place * 3,
       inferred: false,
     })),
@@ -165,12 +168,60 @@ function respond(url: string): unknown {
         }),
         views,
       ],
+      score_years: [
+        { year: 2025, median: 48, n: 40, first: "2025-04-03", last: "2026-03-27" },
+        { year: 2026, median: 55, n: 15, first: "2026-04-02", last: "2026-10-01" },
+      ],
+      answers: [
+        {
+          question: "inquiries",
+          years: [
+            { year: 2025, respondents: 40 },
+            { year: 2026, respondents: 6 },
+          ],
+          bars: [
+            {
+              key: "inq_media",
+              label_en: "Journalists/media",
+              label_ja: "報道機関（記者・放送局など）",
+              shares: [
+                { year: 2025, count: 18, share: 45 },
+                { year: 2026, count: 2, share: 100 / 3 },
+              ],
+            },
+          ],
+        },
+        {
+          question: "activities",
+          years: [{ year: 2026, respondents: 6 }],
+          bars: [
+            {
+              key: "act_collab",
+              label_en: "Joint research",
+              label_ja: "共同研究",
+              shares: [{ year: 2026, count: 1, share: 100 / 6 }],
+            },
+          ],
+        },
+      ],
     } satisfies AnalysisOverview;
   }
   if (parsed.pathname.includes("/dimensions/")) {
     return {
       scope: scope(params),
-      card: card("ea_views.d28"),
+      card: card("ea_views.d28", {
+        points: [
+          ...card("x").points,
+          {
+            id: "id-AY2025-03",
+            code: "AY2025-03",
+            title: "Another",
+            release_date: "2025-10-01",
+            value: 300,
+            inferred: false,
+          },
+        ],
+      }),
       rows: [
         entry("AY2025-02", 1, 900),
         entry("AY2025-01", 2, 300, { provisional: true }),
@@ -178,6 +229,44 @@ function respond(url: string): unknown {
         entry("AY2025-04", null, null),
       ],
     } satisfies AnalysisDimension;
+  }
+  if (parsed.pathname.endsWith("/releases")) {
+    const standing = (value: number | null, difference: number | null) => ({
+      value,
+      state: value === null ? ("missing" as const) : ("value" as const),
+      provisional: false,
+      difference,
+    });
+    return {
+      scope: scope(params),
+      columns: [
+        { key: "score", label_en: "Score", label_ja: "スコア", unit: "score", decimals: 0, median: 50 },
+        {
+          key: "ea_views.d28",
+          label_en: "EurekAlert views, day 28",
+          label_ja: "EurekAlert 閲覧数（28 日目）",
+          unit: "views",
+          decimals: 0,
+          median: 200,
+        },
+      ],
+      releases: [
+        {
+          id: "id-new",
+          code: "AY2026-02",
+          title: "A new release",
+          release_date: "2026-10-01",
+          standings: { score: standing(70, 40), "ea_views.d28": standing(150, -25) },
+        },
+        {
+          id: "id-old",
+          code: "AY2025-07",
+          title: "An older release",
+          release_date: "2025-06-01",
+          standings: { score: standing(90, 80), "ea_views.d28": standing(null, null) },
+        },
+      ],
+    } satisfies AnalysisReleases;
   }
   if (parsed.pathname.endsWith("/top")) {
     return {
@@ -215,6 +304,7 @@ function setup(address: string) {
           <Routes>
             <Route path="/analysis" element={<AnalysisLayout />}>
               <Route index element={<Overview />} />
+              <Route path="releases" element={<AllReleases />} />
               <Route path="top" element={<TopBottom />} />
               <Route path="d/:key" element={<DimensionPage />} />
             </Route>
@@ -294,7 +384,18 @@ describe("the Analysis pages", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Overview" })).toBeInTheDocument();
     const cards = screen.getAllByRole("region").filter((region) => region.tagName === "SECTION");
     const names = cards.map((region) => within(region).queryByRole("heading")?.textContent);
-    expect(names.filter(Boolean)).toEqual(["News performance", "EurekAlert views, day 28"]);
+    expect(names.filter(Boolean)).toEqual([
+      "News performance",
+      "EurekAlert views, day 28",
+      "Who got in touch",
+      "What came of it",
+    ]);
+    // The score shows over time, with each academic year's median (Daniel, 2026-11-12).
+    expect(
+      screen.getByText(
+        "Each dot is a shown release with a final score, by its release date. Each line is an academic year's median: AY2025 48, AY2026 55.",
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getAllByText("Half of the analysed releases land between 109 and 247 (the box). The median is 201.")[0],
     ).toBeInTheDocument();
@@ -351,8 +452,14 @@ describe("the Analysis pages", () => {
   it("shows a chart's numbers as a table too", async () => {
     const { actor } = setup("/analysis");
     await screen.findByRole("heading", { level: 1, name: "Overview" });
-    const [first] = screen.getAllByRole("button", { name: "Show as table" });
-    await actor.click(first);
+    const [score, views] = screen.getAllByRole("button", { name: "Show as table" });
+    // The score over time: each year's median, then the releases.
+    await actor.click(score);
+    const years = screen.getAllByRole("table")[0];
+    expect(within(years).getByRole("rowheader", { name: "AY2026" })).toBeInTheDocument();
+    expect(within(years).getByText("55")).toBeInTheDocument();
+    await actor.click(score);
+    await actor.click(views);
     const summary = screen.getAllByRole("table")[0];
     expect(within(summary).getByRole("rowheader", { name: "Lower quartile" })).toBeInTheDocument();
     expect(within(summary).getByText("109")).toBeInTheDocument();
@@ -396,6 +503,86 @@ describe("the Analysis pages", () => {
     await actor.selectOptions(screen.getByRole("combobox", { name: "Ranked by" }), "ea_views.d28");
     expect(address()).toBe("/analysis/top?by=ea_views.d28");
     await waitFor(() => expect(urls()).toContain("/api/v1/analysis/top?dimension=ea_views.d28"));
+  });
+
+  it("shows researcher feedback as bars per academic year", async () => {
+    setup("/analysis");
+    const card = await screen.findByRole("region", { name: "Who got in touch" });
+    expect(within(card).getByText("Journalists/media")).toBeInTheDocument();
+    expect(within(card).getByText("AY2025: 45% (18 of 40)")).toBeInTheDocument();
+    expect(within(card).getByText("AY2026: 33% (2 of 6)")).toBeInTheDocument();
+    expect(card.querySelectorAll(".answer-fill")).toHaveLength(2);
+    expect(card.querySelector<HTMLElement>(".answer-fill")?.style.width).toBe("45%");
+    expect(
+      within(card).getByText(/Releases that answered, by academic year: AY2025: 40, AY2026: 6\./),
+    ).toBeInTheDocument();
+    // One year: no legend, one bar.
+    const outcomes = screen.getByRole("region", { name: "What came of it" });
+    expect(outcomes.querySelector(".answer-legend")).toBeNull();
+    expect(outcomes.querySelectorAll(".answer-fill")).toHaveLength(1);
+  });
+
+  it("says which release a clicked point is, with a link to its record", async () => {
+    const { actor } = setup("/analysis/d/ea_views.d28");
+    await screen.findByRole("heading", { level: 1, name: "EurekAlert views, day 28" });
+    const chart = document.querySelector(".rr-chart") as HTMLElement;
+    // jsdom lays nothing out: every dot is at 0, 0, so a click there reaches the first.
+    expect(chart.querySelectorAll(".rr-pickable circle").length).toBe(95);
+    await actor.pointer({ keys: "[MouseLeft]", target: chart, coords: { clientX: 0, clientY: 0 } });
+    const window = await screen.findByRole("dialog", { name: "Release 0" });
+    expect(within(window).getByRole("link", { name: "Release 0" })).toHaveAttribute(
+      "href",
+      "/data?view=all&release=r0",
+    );
+    expect(within(window).getByText("43")).toBeInTheDocument();
+    await actor.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens the window of a release named in the address", async () => {
+    const { actor } = setup("/analysis/d/ea_views.d28?release=id-AY2025-03");
+    const window = await screen.findByRole("dialog", { name: "Another" });
+    expect(document.querySelectorAll("circle.rr-picked")).toHaveLength(1);
+    // Down to its row in the ranking, on request: arriving, the chart stays in view.
+    await actor.click(within(window).getByRole("button", { name: "Show it in the ranking" }));
+    const table = screen.getByRole("table", { name: "Ranking by EurekAlert views, day 28" });
+    expect(within(table).getByRole("link", { name: "Another" })).toHaveFocus();
+  });
+
+  it("marks a release named in the address in the ranking", async () => {
+    const { urls } = setup("/analysis/d/ea_views.d28?release=id-AY2025-03");
+    const table = await screen.findByRole("table", { name: "Ranking by EurekAlert views, day 28" });
+    const row = within(table).getByRole("rowheader", { name: "AY2025-03" }).closest("tr");
+    expect(row).toHaveClass("is-picked");
+    // The pick stays in the page; the server never hears of it.
+    expect(urls().some((url) => url.includes("release="))).toBe(false);
+  });
+
+  it("lists all releases against the median, newest first, linking to the record and the measure", async () => {
+    const { actor } = setup(`/analysis/releases?s_unit=${SCIENCE}`);
+    expect(await screen.findByRole("heading", { level: 1, name: "All releases" })).toBeInTheDocument();
+    const table = screen.getByRole("table", { name: /shown releases with their score/ });
+    const titles = () =>
+      within(table)
+        .getAllByRole("rowheader")
+        .map((cell) => within(cell).getByRole("link").textContent);
+    expect(titles()).toEqual(["A new release", "An older release"]);
+    expect(within(table).getByText("Median 200")).toBeInTheDocument();
+    expect(within(table).getByRole("link", { name: "A new release" })).toHaveAttribute(
+      "href",
+      "/data?view=all&release=id-new",
+    );
+    const views = within(table).getByRole("link", { name: /150/ });
+    expect(views).toHaveAttribute(
+      "href",
+      `/analysis/d/ea_views.d28?s_unit=${SCIENCE}&release=id-new`,
+    );
+    expect(within(views).getByText("−25%")).toBeInTheDocument();
+    expect(within(views).getByText("25% below the median")).toBeInTheDocument();
+    expect(within(table).getAllByText("+40%")).toHaveLength(1);
+    // Highest score first at a click on its heading.
+    await actor.click(within(table).getByRole("button", { name: "News performance" }));
+    expect(titles()).toEqual(["An older release", "A new release"]);
   });
 
   it("speaks Japanese", async () => {
